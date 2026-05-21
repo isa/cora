@@ -1,0 +1,219 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cora.dev/schema/v1/diagram.json",
+  "type": "object",
+  "required": ["version", "diagram"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "diagram": {
+      "$ref": "#/$defs/diagram"
+    }
+  },
+  "$defs": {
+    "node": {
+      "type": "object",
+      "required": ["id", "label"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z][a-zA-Z0-9_-]*$"
+        },
+        "label": {
+          "type": "string"
+        },
+        "shape": {
+          "type": "string",
+          "enum": [
+            "rectangle",
+            "rounded",
+            "cylinder",
+            "cloud",
+            "diamond",
+            "hexagon",
+            "group"
+          ]
+        },
+        "position": {
+          "type": "object",
+          "required": ["x", "y"],
+          "additionalProperties": false,
+          "properties": {
+            "x": { "type": "number" },
+            "y": { "type": "number" }
+          }
+        },
+        "pinned": { "type": "boolean" },
+        "provider": { "type": "string" },
+        "service": { "type": "string" },
+        "style": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "required": ["from", "to"],
+      "additionalProperties": false,
+      "properties": {
+        "from": { "type": "string" },
+        "to": { "type": "string" },
+        "label": { "type": "string" }
+      }
+    },
+    "group": {
+      "type": "object",
+      "required": ["id", "label"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-zA-Z][a-zA-Z0-9_-]*$"
+        },
+        "label": { "type": "string" },
+        "contains": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "style": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      }
+    },
+    "diagramBase": {
+      "type": "object",
+      "required": ["kind", "nodes", "edges"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "box-arrows",
+            "flowchart",
+            "microservice",
+            "infra",
+            "database"
+          ]
+        },
+        "nodes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/node" }
+        },
+        "edges": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/edge" }
+        },
+        "groups": {
+          "type": "array",
+          "default": [],
+          "items": { "$ref": "#/$defs/group" }
+        },
+        "theme": {
+          "type": "string",
+          "default": "default"
+        },
+        "layout": {
+          "type": "string",
+          "enum": ["auto", "preserve", "hybrid"],
+          "default": "auto"
+        },
+        "direction": {
+          "type": "string",
+          "enum": ["LR", "TB"]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "kind": { "const": "box-arrows" } },
+            "required": ["kind"]
+          },
+          "then": {
+            "properties": {
+              "nodes": {
+                "items": {
+                  "properties": {
+                    "shape": {
+                      "enum": ["rectangle", "rounded", "diamond"]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "kind": { "const": "flowchart" } },
+            "required": ["kind"]
+          },
+          "then": {
+            "properties": {
+              "nodes": {
+                "items": {
+                  "properties": {
+                    "shape": {
+                      "enum": [
+                        "rectangle",
+                        "rounded",
+                        "diamond",
+                        "hexagon"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "kind": { "const": "microservice" } },
+            "required": ["kind"]
+          },
+          "then": {
+            "properties": {
+              "groups": {
+                "items": {
+                  "required": ["contains"]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": { "kind": { "const": "database" } },
+            "required": ["kind"]
+          },
+          "then": {
+            "properties": {
+              "nodes": {
+                "items": {
+                  "properties": {
+                    "shape": {
+                      "enum": [
+                        "rectangle",
+                        "rounded",
+                        "cylinder",
+                        "diamond"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "diagram": {
+      "$ref": "#/$defs/diagramBase"
+    }
+  }
+}

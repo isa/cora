@@ -1,0 +1,21 @@
+version: 1
+
+diagram:
+  kind: infra
+  layout: auto
+  nodes:
+    - id: vpc
+      label: VPC
+      shape: cloud
+    - id: compute
+      label: Compute
+      shape: rounded
+  edges:
+    - from: vpc
+      to: compute
+  groups:
+    - id: region
+      label: Region
+      contains:
+        - vpc
+        - compute

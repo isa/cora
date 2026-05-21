@@ -125,8 +125,11 @@ dist
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
 
-# pnpm
-.pnpm-store
+# Turborepo
+.turbo
+
+# Bun
+bun.lockb
 
 # yarn v3
 .pnp.*

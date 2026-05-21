@@ -1,0 +1,16 @@
+version: 1
+
+diagram:
+  kind: box-arrows
+  direction: LR
+  nodes:
+    - id: client
+      label: Client
+      shape: rounded
+    - id: server
+      label: Server
+      shape: rectangle
+  edges:
+    - from: client
+      to: server
+      label: request

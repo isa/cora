@@ -1,0 +1,6 @@
+diagram:
+  kind: box-arrows
+  nodes:
+    - id: api
+      label: API
+  edges: []

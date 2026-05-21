@@ -1,0 +1,9 @@
+version: 1
+
+diagram:
+  kind: infra
+  nodes:
+    - id: fn
+      label: Function
+      service: lambda
+  edges: []

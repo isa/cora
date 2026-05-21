@@ -1,0 +1,15 @@
+version: 1
+
+diagram:
+  kind: database
+  nodes:
+    - id: app
+      label: Application
+      shape: rounded
+    - id: db
+      label: PostgreSQL
+      shape: cylinder
+  edges:
+    - from: app
+      to: db
+      label: FK users.id

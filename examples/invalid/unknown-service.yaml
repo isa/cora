@@ -1,0 +1,10 @@
+version: 1
+
+diagram:
+  kind: infra
+  nodes:
+    - id: fn
+      label: Lambda Function
+      provider: aws
+      service: lambda
+  edges: []

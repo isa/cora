@@ -37,6 +37,14 @@
 
 **Pitfalls to address:** Agent-hostile CLI output (TTY detection, JSON path established from day one)
 
+**Plans:** 4 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Walking skeleton: monorepo build + cora validate/schema E2E
+- [ ] 01-02-PLAN.md — Full v1 JSON Schema + five diagram kinds + fixtures
+- [ ] 01-03-PLAN.md — Structured errors, semantic validation, TTY/JSON output
+- [ ] 01-04-PLAN.md — AGENTS.md draft + README agent pointer
+
 ---
 
 ### Phase 2: Core Renderer + SVG Export

@@ -1,0 +1,10 @@
+version: 1
+
+diagram:
+  kind: box-arrows
+  nodes:
+    - id: api
+      label: API
+  edges:
+    - from: api
+      to: ghost

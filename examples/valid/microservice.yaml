@@ -1,0 +1,23 @@
+version: 1
+
+diagram:
+  kind: microservice
+  nodes:
+    - id: gateway
+      label: API Gateway
+    - id: orders
+      label: Orders Service
+    - id: users
+      label: Users Service
+  edges:
+    - from: gateway
+      to: orders
+    - from: gateway
+      to: users
+  groups:
+    - id: platform
+      label: Platform
+      contains:
+        - gateway
+        - orders
+        - users

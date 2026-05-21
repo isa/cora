@@ -1,0 +1,58 @@
+---
+description: Cora project context, architecture, constraints, and GSD workflow
+alwaysApply: true
+---
+
+# Cora
+
+Open-source diagram tool for AI coding agents. YAML in → professional SVG/PDF out.
+
+## Planning docs
+
+Read `.planning/STATE.md` first each session.
+
+| File | Purpose |
+|------|---------|
+| `.planning/PROJECT.md` | Context, constraints, decisions |
+| `.planning/REQUIREMENTS.md` | v1 requirements (REQ-IDs) |
+| `.planning/ROADMAP.md` | 6-phase execution plan |
+| `.planning/STATE.md` | Current position |
+
+## GSD workflow
+
+1. Read `.planning/STATE.md` before starting work
+2. `/gsd:discuss-phase N` before planning
+3. `/gsd:plan-phase N` to create plans
+4. `/gsd:execute-phase N` to implement
+5. Update `STATE.md` after significant progress
+
+**Current focus:** Phase 1 — Foundation (agent contract + JSON Schema)
+
+## Architecture
+
+Single `cora` npm package: `core` → `renderer` → `web` → `cli`.
+
+- **core:** parse, validate (AJV), ELK layout, theme resolution
+- **renderer:** React → pure SVG (no `foreignObject`)
+- **web:** interactive canvas (`cora serve`)
+- **cli:** validate, render, serve, schema, ext, doctor
+
+## Constraints
+
+- Pure SVG only — required for resvg PDF
+- YAML AST patch save — preserve comments on canvas save
+- One diagram per file; `version: 1` required
+- Extensions via separate `cora-extensions` repo (PR-curated)
+- Config path: `$HOME/.config/cora/`
+- Apache 2.0 license
+
+## Stack
+
+Node.js 22+, Bun, TypeScript 5, Turborepo 2, tsdown, yaml (eemeli), ajv 8, elkjs, React 19, @resvg/resvg-js, commander 12, Vite 6 (web build only)
+
+## Do not (v1)
+
+- MCP server, sequence/state/ER diagrams, or structural canvas editing
+- `foreignObject` in SVG
+- Bundled cloud provider icons in core
+- Silent fallback when extensions missing
