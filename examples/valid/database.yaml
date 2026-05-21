@@ -6,10 +6,25 @@ diagram:
     - id: app
       label: Application
       shape: rounded
-    - id: db
-      label: PostgreSQL
+    - id: cache
+      label: Redis
+      shape: cylinder
+    - id: primary
+      label: PostgreSQL Primary
+      shape: cylinder
+    - id: replica
+      label: PostgreSQL Replica
       shape: cylinder
   edges:
     - from: app
-      to: db
-      label: FK users.id
+      to: cache
+      label: session lookup
+    - from: app
+      to: primary
+      label: writes
+    - from: app
+      to: replica
+      label: reads
+    - from: primary
+      to: replica
+      label: streaming

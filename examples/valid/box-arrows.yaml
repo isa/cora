@@ -7,10 +7,19 @@ diagram:
     - id: client
       label: Client
       shape: rounded
+    - id: proxy
+      label: Edge Proxy
+      shape: rectangle
     - id: server
       label: Server
       shape: rectangle
   edges:
     - from: client
-      to: server
+      to: proxy
       label: request
+    - from: proxy
+      to: server
+      label: forward
+    - from: server
+      to: client
+      label: response

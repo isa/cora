@@ -2,22 +2,163 @@ version: 1
 
 diagram:
   kind: microservice
+  layout: auto
+  direction: TB
   nodes:
+    # Customer experience domain
     - id: gateway
       label: API Gateway
-    - id: orders
-      label: Orders Service
+    - id: web-bff
+      label: Web BFF
+    - id: mobile-bff
+      label: Mobile BFF
+    - id: auth
+      label: Auth Service
     - id: users
       label: Users Service
+    - id: catalog
+      label: Catalog Service
+    - id: search
+      label: Search Service
+    - id: cart
+      label: Cart Service
+    - id: checkout
+      label: Checkout Service
+    - id: notifications
+      label: Notification Service
+
+    # Commerce platform domain
+    - id: orders
+      label: Orders Service
+    - id: payments
+      label: Payments Service
+    - id: inventory
+      label: Inventory Service
+    - id: pricing
+      label: Pricing Service
+    - id: fulfillment
+      label: Fulfillment Service
+    - id: analytics
+      label: Analytics Service
+    - id: recommendations
+      label: Recommendations Service
+    - id: event-bus
+      label: Event Bus
+    - id: config
+      label: Config Service
+    - id: audit
+      label: Audit Service
+
   edges:
+    # Customer domain — ingress and internal flows
     - from: gateway
-      to: orders
+      to: web-bff
     - from: gateway
+      to: mobile-bff
+    - from: web-bff
+      to: auth
+    - from: mobile-bff
+      to: auth
+    - from: web-bff
+      to: catalog
+    - from: mobile-bff
+      to: catalog
+    - from: auth
       to: users
+    - from: catalog
+      to: search
+    - from: web-bff
+      to: cart
+    - from: cart
+      to: checkout
+
+    # Platform domain — internal orchestration
+    - from: orders
+      to: payments
+    - from: orders
+      to: inventory
+    - from: orders
+      to: fulfillment
+    - from: inventory
+      to: pricing
+    - from: fulfillment
+      to: analytics
+    - from: recommendations
+      to: analytics
+    - from: event-bus
+      to: analytics
+    - from: config
+      to: orders
+    - from: config
+      to: payments
+
+    # Cross-domain — customer half talks to platform half
+    - from: checkout
+      to: orders
+      label: place order
+    - from: checkout
+      to: payments
+      label: authorize
+    - from: cart
+      to: inventory
+      label: reserve stock
+    - from: catalog
+      to: pricing
+      label: live prices
+    - from: search
+      to: recommendations
+      label: personalize
+    - from: auth
+      to: audit
+      label: login events
+    - from: users
+      to: recommendations
+      label: preferences
+
+    # Cross-domain — platform half talks back to customer half
+    - from: orders
+      to: notifications
+      label: order updates
+    - from: payments
+      to: notifications
+      label: receipts
+    - from: inventory
+      to: cart
+      label: stock sync
+    - from: recommendations
+      to: catalog
+      label: featured items
+    - from: event-bus
+      to: notifications
+      label: async alerts
+    - from: fulfillment
+      to: notifications
+      label: shipping updates
+
   groups:
-    - id: platform
-      label: Platform
+    - id: customer-experience
+      label: Customer Experience
       contains:
         - gateway
-        - orders
+        - web-bff
+        - mobile-bff
+        - auth
         - users
+        - catalog
+        - search
+        - cart
+        - checkout
+        - notifications
+    - id: commerce-platform
+      label: Commerce Platform
+      contains:
+        - orders
+        - payments
+        - inventory
+        - pricing
+        - fulfillment
+        - analytics
+        - recommendations
+        - event-bus
+        - config
+        - audit

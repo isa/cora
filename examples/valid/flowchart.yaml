@@ -6,15 +6,34 @@ diagram:
     - id: start
       label: Start
       shape: rounded
+    - id: load
+      label: Load Input
+      shape: rectangle
     - id: check
       label: Valid?
       shape: diamond
+    - id: process
+      label: Process
+      shape: rectangle
+    - id: reject
+      label: Reject
+      shape: rectangle
     - id: end
       label: Done
       shape: rounded
   edges:
     - from: start
+      to: load
+    - from: load
       to: check
     - from: check
-      to: end
+      to: process
       label: yes
+    - from: check
+      to: reject
+      label: no
+    - from: process
+      to: end
+    - from: reject
+      to: load
+      label: retry

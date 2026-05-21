@@ -6,6 +6,25 @@ export {
   runSemanticValidationOnDocument,
 } from './errors.js';
 export { validateDocument, validateDiagram } from './validator.js';
+export { measureLabel, measureNodes, baselineYForVisualCenter } from './measureText.js';
+export {
+  edgePathMidpoint,
+  edgeSegments,
+  edgePathLength,
+  edgePathPosition,
+  edgeBridgeMap,
+} from './edgeGeometry.js';
+export {
+  computeLayout,
+  LayoutError,
+} from './layout.js';
+export {
+  createElkWorker,
+  runElkLayout,
+  terminateElkWorker,
+} from './layoutWorker.js';
+export { applyNodeStyles, resolveTheme } from './themeResolver.js';
+export { renderDiagram } from './renderPipeline.js';
 export type {
   Diagram,
   DiagramEdge,
@@ -14,6 +33,13 @@ export type {
   DiagramKind,
   DiagramNode,
   ErrorCode,
+  LayoutedDiagram,
+  LayoutedEdge,
+  LayoutedGroup,
+  LayoutedNode,
+  MeasuredNode,
   ParseResult,
+  ResolvedStyle,
   StructuredError,
+  ThemeTokens,
 } from './types.js';

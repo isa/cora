@@ -1,6 +1,6 @@
-# Cora — Agent Contract (Phase 1)
+# Cora — Agent Contract
 
-Cora validates YAML architecture diagrams for AI coding agents. **Phase 1 provides `validate` and `schema` only** — no render, serve, ext, or doctor yet.
+Cora validates and renders YAML architecture diagrams for AI coding agents.
 
 ## Quick start
 
@@ -13,6 +13,8 @@ Run the CLI from the repo:
 
 ```bash
 bun run cora validate diagram.yaml --format json
+bun run cora render diagram.yaml -o diagram.svg
+bun run cora render diagram.yaml -o diagram.png
 bun run cora schema
 ```
 
@@ -23,11 +25,12 @@ After `bun link` in `packages/cora`, you can use `cora` directly.
 1. Write or edit a diagram YAML file (`version: 1` required).
 2. Run `cora validate path.yaml --format json`.
 3. Fix errors using `code` and `path` from the JSON array.
-4. When adding fields, run `cora schema` (or `cora schema --out cora-schema.json`) — do not invent fields outside the schema.
+4. Run `cora render path.yaml -o out.svg` (or `-o out.png`) to produce SVG or PNG.
+5. When adding fields, run `cora schema` (or `cora schema --out cora-schema.json`) — do not invent fields outside the schema.
 
 ## JSON error shape
 
-`cora validate --format json` prints a **JSON array** on stdout (empty array `[]` when valid):
+`cora validate --format json` and `cora render --format json` (on validation/layout failure) print a **JSON array** on stdout:
 
 ```json
 [
@@ -47,6 +50,7 @@ After `bun link` in `packages/cora`, you can use `cora` directly.
 | `UNKNOWN_SERVICE` | Node has `service` without `provider`, or service unknown for provider |
 | `MISSING_EXTENSION` | Node sets `provider` but that extension is not installed |
 | `PARSE_ERROR` | YAML/JSON syntax error |
+| `LAYOUT_ERROR` | Layout mode failed (e.g. `layout: preserve` without positions) |
 
 ## TTY behavior
 
@@ -66,6 +70,7 @@ Use `--format json` in CI for reliable parsing.
 - **One diagram per file** — single `diagram` object, no `diagrams` array.
 - **Diagram kinds:** `box-arrows`, `flowchart`, `microservice`, `infra`, `database`.
 - **YAML primary**; files ending in `.json` are parsed as JSON.
+- **Layout modes:** `auto` (default), `preserve`, `hybrid`. Pinned nodes keep YAML `position` during auto/hybrid relayout.
 
 ## Getting the schema
 
@@ -93,6 +98,6 @@ Do not add fields that are not in the schema — validation will reject them.
 | `examples/invalid/unknown-service.yaml` | Triggers `MISSING_EXTENSION` |
 | `examples/invalid/service-without-provider.yaml` | Triggers `UNKNOWN_SERVICE` |
 
-## Deferred commands (not in Phase 1)
+## Deferred commands
 
-`cora render`, `cora serve`, `cora ext`, and `cora doctor` are planned for later phases. Do not assume they exist yet.
+`cora serve`, `cora ext`, and `cora doctor` are planned for later phases. Do not assume they exist yet.

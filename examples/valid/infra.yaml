@@ -4,18 +4,55 @@ diagram:
   kind: infra
   layout: auto
   nodes:
-    - id: vpc
-      label: VPC
+    - id: dns
+      label: Global DNS
       shape: cloud
-    - id: compute
-      label: Compute
+    - id: vpc-east
+      label: VPC East
+      shape: cloud
+    - id: compute-east
+      label: Compute East
       shape: rounded
+    - id: db-east
+      label: DB East
+      shape: cylinder
+    - id: vpc-west
+      label: VPC West
+      shape: cloud
+    - id: compute-west
+      label: Compute West
+      shape: rounded
+    - id: db-west
+      label: DB West
+      shape: cylinder
   edges:
-    - from: vpc
-      to: compute
+    - from: dns
+      to: vpc-east
+      label: route
+    - from: dns
+      to: vpc-west
+      label: route
+    - from: vpc-east
+      to: compute-east
+    - from: compute-east
+      to: db-east
+    - from: vpc-west
+      to: compute-west
+    - from: compute-west
+      to: db-west
+    - from: db-east
+      to: db-west
+      label: replicate
   groups:
-    - id: region
-      label: Region
+    - id: region-east
+      label: us-east
       contains:
-        - vpc
-        - compute
+        - vpc-east
+        - compute-east
+        - db-east
+    - id: region-west
+      label: us-west
+      contains:
+        - vpc-west
+        - compute-west
+        - db-west

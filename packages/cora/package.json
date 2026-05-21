@@ -1,7 +1,7 @@
 {
   "name": "cora",
   "version": "0.0.0",
-  "description": "Diagram tool for AI coding agents — YAML in, SVG/PDF out",
+  "description": "Diagram tool for AI coding agents — YAML in, SVG/PNG out",
   "license": "Apache-2.0",
   "type": "module",
   "engines": {
@@ -11,25 +11,43 @@
     "cora": "./dist/cli.js"
   },
   "exports": {
-    ".": "./dist/index.js"
+    ".": "./dist/index.js",
+    "./core": {
+      "import": "./dist/core/index.js",
+      "types": "./dist/core/index.d.ts"
+    },
+    "./renderer": {
+      "import": "./dist/renderer/index.js",
+      "types": "./dist/renderer/index.d.ts"
+    }
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsdown",
+    "build": "tsdown && cp -r src/renderer/assets dist/renderer/",
     "dev": "tsdown --watch",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:golden": "node tests/render-golden.mjs"
   },
   "dependencies": {
+    "@resvg/resvg-js": "~2.6.2",
     "ajv": "^8.17.1",
     "ajv-formats": "^3.0.1",
     "commander": "^12.1.0",
+    "elkjs": "^0.11.1",
+    "fontkit": "^2.0.4",
     "picocolors": "^1.1.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "web-worker": "^1.5.0",
     "yaml": "^2.7.0"
   },
   "devDependencies": {
+    "@fontsource/noto-sans": "5.2.5",
     "@types/node": "^22.15.21",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
     "tsdown": "^0.22.0",
     "typescript": "^5.8.3"
   }

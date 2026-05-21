@@ -1,6 +1,6 @@
 import pc from 'picocolors';
 
-import type { StructuredError } from '../../core/types.js';
+import type { StructuredError } from '../core/types.js';
 
 export interface OutputOptions {
   format?: string;

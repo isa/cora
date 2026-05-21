@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 import { Command } from 'commander';
 
+import { registerRenderCommand } from './commands/render.js';
 import { registerSchemaCommand } from './commands/schema.js';
 import { registerValidateCommand } from './commands/validate.js';
 
@@ -19,7 +20,7 @@ const program = new Command();
 
 program
   .name('cora')
-  .description('Diagram tool for AI coding agents — YAML in, SVG/PDF out')
+  .description('Diagram tool for AI coding agents — YAML in, SVG/PNG out')
   .version(packageJson.version)
   .option(
     '--yes',
@@ -29,6 +30,7 @@ program
 
 registerValidateCommand(program);
 registerSchemaCommand(program);
+registerRenderCommand(program);
 
 program.parseAsync(process.argv).catch((error: unknown) => {
   const message = error instanceof Error ? error.message : String(error);

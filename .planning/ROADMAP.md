@@ -12,7 +12,7 @@
 | # | Phase | Goal | Requirements |
 |---|-------|------|--------------|
 | 1 | Foundation ✓ | Agent contract + monorepo skeleton | SPEC-*, CLI-01–04, CLI-08, AGT-01, AGT-03 |
-| 2 | Renderer + SVG | Professional diagrams from YAML | LAY-*, REN-*, CLI-05, EXP-01 |
+| 2 | Renderer + SVG ✓ | Professional diagrams from YAML | LAY-*, REN-*, CLI-05, EXP-01 |
 | 3 | PDF Export | Shareable PDF artifacts | EXP-02–05 |
 | 4 | Interactive Canvas | Human layout polish loop | CLI-06, SRV-* |
 | 5 | Extension System | Provider themes & icons | EXT-* |
@@ -47,7 +47,7 @@ Plans:
 
 ---
 
-### Phase 2: Core Renderer + SVG Export
+### Phase 2: Core Renderer + SVG Export ✓ 2026-05-21
 **Goal:** `cora render -o diagram.svg` produces professional diagrams for all v1 kinds using the built-in default theme.
 **Mode:** mvp
 **Requirements:** LAY-01–04, REN-01–08, CLI-05, EXP-01
@@ -67,10 +67,10 @@ Plans:
 **Plans:** 4 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Render walking skeleton: measure + Inter fonts + minimal SVG + cora render E2E
-- [ ] 02-02-PLAN.md — ELK worker layout + auto/preserve/hybrid + pinned nodes
-- [ ] 02-03-PLAN.md — Full default theme + all shapes + edges/groups + five kinds
-- [ ] 02-04-PLAN.md — Golden SVG regression + render CLI polish + AGENTS.md
+- [x] 02-01-PLAN.md — Render walking skeleton: measure + Noto Sans fonts + minimal SVG + cora render E2E
+- [x] 02-02-PLAN.md — ELK worker layout + auto/preserve/hybrid + pinned nodes
+- [x] 02-03-PLAN.md — Full default theme + all shapes + edges/groups + five kinds
+- [x] 02-04-PLAN.md — Golden SVG regression + render CLI polish + AGENTS.md
 
 ---
 

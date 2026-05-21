@@ -10,7 +10,8 @@ export type ErrorCode =
   | 'MISSING_EDGE_TARGET'
   | 'UNKNOWN_SERVICE'
   | 'MISSING_EXTENSION'
-  | 'PARSE_ERROR';
+  | 'PARSE_ERROR'
+  | 'LAYOUT_ERROR';
 
 export interface StructuredError {
   code: ErrorCode;
@@ -63,3 +64,14 @@ export interface DiagramFile {
   version: 1;
   diagram: Diagram;
 }
+
+export type {
+  ThemeShapeStyle,
+  ThemeTokens,
+  ResolvedStyle,
+  MeasuredNode,
+  LayoutedNode,
+  LayoutedEdge,
+  LayoutedGroup,
+  LayoutedDiagram,
+} from '../layout-ir.js';

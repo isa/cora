@@ -26,7 +26,7 @@ Read `.planning/STATE.md` first each session.
 4. `/gsd:execute-phase N` to implement
 5. Update `STATE.md` after significant progress
 
-**Current focus:** Phase 1 — Foundation (agent contract + JSON Schema)
+**Current focus:** Phase 3 — PDF Export
 
 ## Architecture
 
