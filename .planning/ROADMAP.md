@@ -64,6 +64,14 @@ Plans:
 
 **Pitfalls to address:** Text measurement without DOM, ELK version pinning, pure-function renderer rule, viewBox padding, font strategy
 
+**Plans:** 4 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Render walking skeleton: measure + Inter fonts + minimal SVG + cora render E2E
+- [ ] 02-02-PLAN.md — ELK worker layout + auto/preserve/hybrid + pinned nodes
+- [ ] 02-03-PLAN.md — Full default theme + all shapes + edges/groups + five kinds
+- [ ] 02-04-PLAN.md — Golden SVG regression + render CLI polish + AGENTS.md
+
 ---
 
 ### Phase 3: PDF Export
