@@ -14,14 +14,15 @@ An AI agent can write a YAML diagram, run `cora validate` and `cora render`, and
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] YAML diagram spec (`version: 1`) with JSON Schema validation — *Phase 1*
+- [x] Layered hybrid diagram model (shared nodes/edges/groups + type-specific extensions) — *schema layer, Phase 1*
+- [x] v1 diagram kinds: box-arrows, flowcharts, microservice topology, cloud/infra, basic database — *schema layer, Phase 1*
+- [x] Agent docs: `AGENTS.md` draft, structured validation errors — *Phase 1*
+- [x] CLI: `cora validate`, `cora schema` — *Phase 1*
 
 ### Active
 
-- [ ] YAML diagram spec (`version: 1`) with JSON Schema validation
-- [ ] CLI: `cora validate`, `cora render`, `cora serve`, `cora schema`, `cora doctor`
-- [ ] Layered hybrid diagram model (shared nodes/edges/groups + type-specific extensions)
-- [ ] v1 diagram kinds: box-arrows, flowcharts, microservice topology, cloud/infra, basic database
+- [ ] CLI: `cora render`, `cora serve`, `cora doctor`, `cora ext install`
 - [ ] ELK auto-layout with pinned position support (`layout: auto | preserve | hybrid`)
 - [ ] React renderer producing pure SVG (no `foreignObject`)
 - [ ] Built-in polished generic `default` theme (no extensions required)
@@ -31,7 +32,7 @@ An AI agent can write a YAML diagram, run `cora validate` and `cora render`, and
 - [ ] File watch in `cora serve` with unsaved-change guard on external edits
 - [ ] Extension system backed by `cora-extensions` git registry (PR-curated)
 - [ ] Extension install: `cora ext install`, compatibility-aware versioning, lockfiles
-- [ ] Agent docs: `AGENTS.md`, structured validation errors, example gallery
+- [ ] Agent docs: example gallery (Phase 6 polish)
 
 ### Out of Scope
 
@@ -176,23 +177,24 @@ cora/
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Structured YAML spec + CLI (not MCP) | Agents excel at structured output; CLI is runtime-agnostic | — Pending |
-| Layered hybrid diagram model | One core vocabulary; type-specific layout/styling profiles | — Pending |
-| Single `cora` npm package | Simple install; internal modules not published separately | — Pending |
+| Structured YAML spec + CLI (not MCP) | Agents excel at structured output; CLI is runtime-agnostic | ✓ Phase 1 validate/schema |
+| Layered hybrid diagram model | One core vocabulary; type-specific layout/styling profiles | ✓ Phase 1 schema |
+| Single `cora` npm package | Simple install; internal modules not published separately | ✓ Phase 1 scaffold |
 | `cora-extensions` repo via PR | Curated quality; no npm sprawl; clean icon licensing | — Pending |
-| YAML primary, one diagram per file | Agent-friendly; unambiguous render target | — Pending |
+| YAML primary, one diagram per file | Agent-friendly; unambiguous render target | ✓ Phase 1 |
 | React everywhere, pure SVG | One render path; resvg-compatible PDF | — Pending |
 | ELK + custom layout (later) + pinned positions | Graph diagrams first; sequence/state deferred | — Pending |
 | Built-in polished `default` theme | Strong zero-extension first impression | — Pending |
 | resvg PDF default; Playwright on `--quality=high` | Fast default; optional WYSIWYG fidelity | — Pending |
 | Lazy Playwright download to `$HOME/.config/cora/browsers/` | Keep core install small | — Pending |
-| Hard fail on missing extensions (v1) | No silently wrong icons/themes for agents | — Pending |
+| Hard fail on missing extensions (v1) | No silently wrong icons/themes for agents | ✓ Phase 1 stub |
 | Compatibility-aware extension versions + lockfile | Reproducible agent/CI runs | — Pending |
 | AST patch YAML save in serve | Preserve agent comments and metadata | — Pending |
 | Canvas: position + labels only (v1) | Agents own structure; humans polish layout | — Pending |
-| Tiered v1 diagram types | Ship ELK-friendly types with excellence; defer sequence/state/ER | — Pending |
-| Apache 2.0 license | Permissive OSS with patent grant | — Pending |
-| `version: 1` field (not `specVersion`) | Explicit schema contract for agents | — Pending |
+| Tiered v1 diagram types | Ship ELK-friendly types with excellence; defer sequence/state/ER | ✓ Phase 1 schema |
+| Apache 2.0 license | Permissive OSS with patent grant | ✓ Phase 1 |
+| `version: 1` field (not `specVersion`) | Explicit schema contract for agents | ✓ Phase 1 |
+| Bun workspaces | Fast local dev; user preference over pnpm | ✓ Phase 1 |
 
 ## Evolution
 
@@ -204,4 +206,4 @@ After each milestone:
 4. Update "What This Is" if the product has drifted
 
 ---
-*Last updated: 2026-05-21 after GSD initialization*
+*Last updated: 2026-05-21 after Phase 1 completion*

@@ -11,7 +11,7 @@
 
 | # | Phase | Goal | Requirements |
 |---|-------|------|--------------|
-| 1 | Foundation | Agent contract + monorepo skeleton | SPEC-*, CLI-01–04, CLI-08, AGT-01, AGT-03 |
+| 1 | Foundation ✓ | Agent contract + monorepo skeleton | SPEC-*, CLI-01–04, CLI-08, AGT-01, AGT-03 |
 | 2 | Renderer + SVG | Professional diagrams from YAML | LAY-*, REN-*, CLI-05, EXP-01 |
 | 3 | PDF Export | Shareable PDF artifacts | EXP-02–05 |
 | 4 | Interactive Canvas | Human layout polish loop | CLI-06, SRV-* |
@@ -20,7 +20,7 @@
 
 ---
 
-### Phase 1: Foundation — Agent Contract + Core Schema
+### Phase 1: Foundation — Agent Contract + Core Schema ✓ 2026-05-21
 **Goal:** Agents can validate YAML diagrams against a published JSON Schema before rendering exists.
 **Mode:** mvp
 **Requirements:** SPEC-01–06, CLI-01–04, CLI-08, AGT-01, AGT-03
@@ -40,10 +40,10 @@
 **Plans:** 4 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Walking skeleton: monorepo build + cora validate/schema E2E
-- [ ] 01-02-PLAN.md — Full v1 JSON Schema + five diagram kinds + fixtures
-- [ ] 01-03-PLAN.md — Structured errors, semantic validation, TTY/JSON output
-- [ ] 01-04-PLAN.md — AGENTS.md draft + README agent pointer
+- [x] 01-01-PLAN.md — Walking skeleton: monorepo build + cora validate/schema E2E
+- [x] 01-02-PLAN.md — Full v1 JSON Schema + five diagram kinds + fixtures
+- [x] 01-03-PLAN.md — Structured errors, semantic validation, TTY/JSON output
+- [x] 01-04-PLAN.md — AGENTS.md draft + README agent pointer
 
 ---
 
