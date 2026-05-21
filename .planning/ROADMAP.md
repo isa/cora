@@ -27,7 +27,7 @@
 **UI hint:** no
 
 **Success Criteria:**
-1. Monorepo scaffold builds with pnpm + Turborepo + tsdown (`packages/cora/` single publish target)
+1. Monorepo scaffold builds with Bun + Turborepo + tsdown (`packages/cora/` single publish target)
 2. `cora validate diagram.yaml --format json` returns structured errors with stable codes on invalid input
 3. `cora schema` exports JSON Schema matching the v1 YAML spec
 4. `AGENTS.md` draft documents validate workflow and JSON error shape

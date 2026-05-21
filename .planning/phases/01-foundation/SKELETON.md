@@ -14,7 +14,7 @@ An AI agent can install the `cora` npm package, run `cora schema` to obtain the 
 | Publish surface | Single `cora` npm package at `packages/cora/` | PROJECT.md: no `@cora/*` sprawl; one install for agents |
 | Module boundaries | `core` → `renderer` → `web` → `cli` (hard dependency direction) | ARCHITECTURE.md: cli imports core only in Phase 1; renderer/web are stubs |
 | Runtime | Node.js 22+ (engines), TypeScript 5 strict | STACK.md + PROJECT.md |
-| Monorepo | pnpm 9 workspaces + Turborepo 2 | Fast CI, single publish target |
+| Monorepo | Bun workspaces + Turborepo 2 | Fast CI, single publish target |
 | Library build | tsdown (ESM + `.d.ts`) for core + cli | STACK.md: tsup successor; zero-config |
 | Web build (later) | Vite 6 — stub only in Phase 1 | Phase 4 concern; `web/` placeholder export |
 | Spec contract | JSON Schema 2020-12 as source of truth | Agents consume `cora schema`; AJV 8 validates |
@@ -30,8 +30,8 @@ An AI agent can install the `cora` npm package, run `cora schema` to obtain the 
 
 ```
 cora/                          # repo root
-  package.json                 # turbo scripts, engines
-  pnpm-workspace.yaml
+  package.json                 # turbo scripts, workspaces, engines
+  bun.lockb
   turbo.json
   tsconfig.base.json
   LICENSE
@@ -66,16 +66,16 @@ cora/                          # repo root
 | 2 | `cli/` (bundles core) | tsdown | `dist/cli.js` + shebang |
 | 3 | package entry | tsdown | `dist/index.js` re-exports core public API |
 
-Turborepo pipeline: `build` depends on `^build`; root `pnpm build` produces installable `cora` binary.
+Turborepo pipeline: `build` depends on `^build`; root `bun run build` produces installable `cora` binary.
 
 ## Stack Touched in Phase 1
 
-- [x] Project scaffold (pnpm, turbo, tsdown, TypeScript strict)
+- [x] Project scaffold (Bun, turbo, tsdown, TypeScript strict)
 - [x] Core parse + validate pipeline (no ELK, no React render)
 - [x] CLI — `validate`, `schema` (render/serve/ext/doctor stubbed or absent)
 - [ ] Database — N/A (file-based diagrams only)
 - [ ] UI — N/A (renderer/web stubs only)
-- [ ] Deployment — local `pnpm build && node packages/cora/dist/cli.js` (npm publish in Phase 6)
+- [ ] Deployment — local `bun run build && bun run cora` (npm publish in Phase 6)
 
 ## Out of Scope (Deferred to Later Phases)
 

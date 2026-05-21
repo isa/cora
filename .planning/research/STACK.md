@@ -23,12 +23,12 @@
 
 | Technology | Version | Purpose | Why |
 |------------|---------|---------|-----|
-| pnpm | 9.x | Package manager | Strict hoisting, `workspace:*` protocol, significantly faster than npm/yarn, best-in-class for monorepos |
+| Bun | 1.x | Package manager + runtime | Fast installs, native TypeScript, first-class workspace support; recommended for local development |
 | Turborepo | 2.x | Task orchestration + caching | Minimal config, fast incremental builds; better fit than Nx (too much scaffolding) for a single-publish repo |
 | tsdown | latest (0.x beta, stabilising) | Library bundler | ESM-first Rolldown-powered replacement for tsup; tsup announced end-of-maintenance Nov 2025; tsdown migration is a one-command `npx tsdown-migrate` |
 | @changesets/cli | 2.x | Version management + publish | Industry standard for monorepos; OIDC-based trusted publishing eliminates long-lived NPM_TOKEN |
 
-**Internal package structure (pnpm workspace):**
+**Internal package structure (Bun workspace):**
 ```
 packages/cora/
   core/     → tsdown builds to dist/
@@ -37,14 +37,16 @@ packages/cora/
   cli/      → tsdown builds to dist/ (entry + shebang)
 ```
 
-Root `pnpm-workspace.yaml`:
-```yaml
-packages:
-  - 'packages/cora/*'
+Root `package.json` workspaces:
+```json
+{
+  "workspaces": ["packages/*"],
+  "packageManager": "bun@1.x"
+}
 ```
 
 **Do NOT use:**
-- `npm workspaces` — weaker hoisting controls, no `workspace:*` pinning
+- `npm workspaces` alone — weaker tooling vs Bun for local dev (npm still used for global publish)
 - `nx` — heavy scaffolding, opinionated generators; overkill for a single publishable
 - `lerna` — maintenance mode; use Changesets instead
 - `tsup` — explicitly transitioning to maintenance-only as of 2025
@@ -217,7 +219,7 @@ cora serve diagram.yaml
 ```
 
 **Canvas pre-bundling strategy:**
-The `web/` package is built with `vite build` during `pnpm build`. The resulting `dist/` is committed into the published npm package. `cora serve` serves these assets from within the installed package — no Vite runtime dependency at serve time. This keeps the production package clean.
+The `web/` package is built with `vite build` during `bun run build`. The resulting `dist/` is committed into the published npm package. `cora serve` serves these assets from within the installed package — no Vite runtime dependency at serve time. This keeps the production package clean.
 
 **Do NOT use:**
 - `webpack-dev-server` — slow, complex config; Vite is the modern default
@@ -258,7 +260,7 @@ program.command('doctor')
 
 | Technology | Version | Purpose | Why |
 |------------|---------|---------|-----|
-| tsx | 4.x | Run TypeScript files directly in Node.js | esbuild-backed; replaces `ts-node`; used for `pnpm dev` scripts and local testing of CLI |
+| tsx | 4.x | Run TypeScript files directly in Node.js | esbuild-backed; replaces `ts-node`; used for `bun run dev` scripts and local testing of CLI |
 | vitest | 2.x | Unit testing | Vite-aligned, fast, ESM-native; same config as the Vite build |
 
 > `tsx` is a dev dependency only — it does NOT ship in the published package. The published CLI runs compiled JS.
@@ -281,8 +283,7 @@ program.command('doctor')
 
 | Category | Recommended | Alternative | Why Not |
 |----------|-------------|-------------|---------|
-| Package manager | pnpm | npm workspaces | Weaker hoisting, no `workspace:*` strict pinning |
-| Package manager | pnpm | yarn berry | PnP mode causes friction with native addons (resvg-js); classic mode is just npm |
+| Package manager | Bun | npm / yarn | Valid alternatives; Bun chosen for local dev speed and native TypeScript |
 | Task runner | Turborepo | Nx | Nx is heavily opinionated with generators; overkill for single publishable |
 | Library bundler | tsdown | tsup | tsup is entering maintenance-only; tsdown is the recommended successor |
 | Library bundler | tsdown | esbuild direct | No tree-shaking of unused exports; no declaration file emission |
@@ -305,20 +306,20 @@ program.command('doctor')
 ## Installation
 
 ```bash
-# Core runtime dependencies
-pnpm add yaml ajv ajv-formats elkjs react react-dom commander picocolors ora semver tar
+# Core runtime dependencies (from packages/cora)
+bun add yaml ajv ajv-formats elkjs react react-dom commander picocolors ora semver tar
 
 # PDF pipeline
-pnpm add @resvg/resvg-js pdf-lib
+bun add @resvg/resvg-js pdf-lib
 
 # serve command
-pnpm add express ws chokidar
+bun add express ws chokidar
 
 # Playwright (optional; only imported if --quality=high invoked)
-pnpm add playwright-core
+bun add playwright-core
 
 # Dev tooling (root workspace)
-pnpm add -Dw typescript tsx vite @vitejs/plugin-react tsdown @changesets/cli turbo vitest
+bun add -d typescript tsx vite @vitejs/plugin-react tsdown @changesets/cli turbo vitest
 ```
 
 **Playwright note:** Add `playwright-core` to `dependencies` (not devDependencies) because the high-quality PDF path needs it at runtime. However, the Chromium browser binary is NOT downloaded at install time — Cora manages the download lazily.
@@ -327,7 +328,7 @@ pnpm add -Dw typescript tsx vite @vitejs/plugin-react tsdown @changesets/cli tur
 
 ## Version Pinning Strategy
 
-- **Monorepo internal packages:** `workspace:*` (exact workspace version)
+- **Monorepo internal packages:** `workspace:*` in package.json (Bun workspaces)
 - **External runtime deps:** `^` (minor-compatible) except native addons
 - **resvg-js and playwright-core:** pin to exact minor (`~2.6.2`) — native addons and browser control; minor bumps can break binary compatibility
 - **elkjs:** `^0.11.1` (minor-compatible; API is stable but major bumps do exist)
@@ -343,4 +344,4 @@ pnpm add -Dw typescript tsx vite @vitejs/plugin-react tsdown @changesets/cli tur
 - chokidar v5: https://github.com/paulmillr/chokidar/releases/tag/5.0.0 — HIGH confidence
 - tsdown: https://tsdown.dev — HIGH confidence (official site)
 - commander: https://npmtrends.com/commander-vs-oclif (35M vs 200K downloads) — HIGH confidence
-- pnpm + Turborepo: https://jsdev.space/complete-monorepo-guide — MEDIUM confidence (blog; cross-referenced with official docs)
+- Bun + Turborepo: https://bun.sh/docs/install/workspaces — HIGH confidence (official docs)

@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-05-21)
 Phase: 1 of 6 (Foundation — Agent Contract + Core Schema)
 Plan: 4 of 4 in current phase
 Status: Implemented — Bun monorepo, validate/schema CLI, AGENTS.md (pending verification commit)
-Last activity: 2026-05-21 — Phase 1 implemented with **Bun** (not pnpm); `bun run build` passes
+Last activity: 2026-05-21 — Phase 1 implemented with Bun; `bun run build` passes
 
 Progress: [██████████] 100% (code complete; GSD SUMMARY/VERIFICATION artifacts pending)
 
@@ -40,7 +40,7 @@ Progress: [██████████] 100% (code complete; GSD SUMMARY/VERI
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- **Package manager:** Bun workspaces (user decision; plans originally specified pnpm)
+- **Package manager:** Bun workspaces
 - GSD init: 6-phase vertical MVP roadmap; research completed with HIGH confidence
 - Phase 2 flagged for DOM-free text measurement spike before planning
 

@@ -21,11 +21,11 @@ The feature scope in PROJECT.md is well-calibrated. The anti-feature list is dis
 
 The stack is fully verified against npm registry and official documentation (HIGH confidence throughout). The single most important constraint is **Node.js 20+ minimum** — chokidar v5, required for `cora serve` file watching, dropped Node 18 support. The recommended runtime is Node 22 LTS.
 
-Library bundling uses **tsdown** (not tsup — tsup entered maintenance-only in Nov 2025). Monorepo management uses **pnpm 9 + Turborepo 2**. For YAML, `eemeli/yaml` is the only viable option — `js-yaml` discards the AST and cannot satisfy the save-back requirement. For validation, AJV 8.x is preferred over Zod because agents need a machine-readable JSON Schema, not TypeScript-first schema definitions.
+Library bundling uses **tsdown** (not tsup — tsup entered maintenance-only in Nov 2025). Monorepo management uses **Bun workspaces + Turborepo 2**. For YAML, `eemeli/yaml` is the only viable option — `js-yaml` discards the AST and cannot satisfy the save-back requirement. For validation, AJV 8.x is preferred over Zod because agents need a machine-readable JSON Schema, not TypeScript-first schema definitions.
 
 **Core technologies:**
 - `Node.js 22 LTS` / `TypeScript 5.x`: runtime and language — stable, ESM-native, required by chokidar v5
-- `pnpm 9` + `Turborepo 2`: monorepo tooling — strict hoisting, fast incremental builds
+- `Bun` + `Turborepo 2`: monorepo tooling — fast installs, workspace protocol, incremental builds
 - `tsdown`: library bundler — tsup successor, Rolldown-powered, zero-config
 - `yaml` (eemeli): YAML parse + AST — only option with comment-preserving AST; critical for save-back
 - `ajv 8.x` + `ajv-formats`: JSON Schema validation — 305M weekly downloads, machine-readable structured errors
@@ -106,7 +106,7 @@ Feature dependency analysis shows a clear build order. The agent contract must c
 
 ### Phase 1: Foundation — Agent Contract + Core Schema
 **Rationale:** The JSON Schema and structured validation errors are the contract that every subsequent phase must satisfy. Build this first so agents can start using Cora even before rendering works. Also establishes monorepo structure, tooling, and CI.
-**Delivers:** Working `cora validate --format json`, `cora schema`, YAML spec v1, JSON Schema definition, structured error codes, monorepo skeleton (pnpm + Turborepo + tsdown), `AGENTS.md` draft
+**Delivers:** Working `cora validate --format json`, `cora schema`, YAML spec v1, JSON Schema definition, structured error codes, monorepo skeleton (Bun + Turborepo + tsdown), `AGENTS.md` draft
 **Features addressed:** YAML spec, JSON Schema validation, structured errors with codes, CLI skeleton, `cora schema`
 **Pitfall avoidance:** Pitfall 12 (agent-hostile errors) — TTY detection and JSON output shape established from day one
 **Research flag:** Standard patterns — skip research phase
@@ -205,7 +205,7 @@ Feature dependency analysis shows a clear build order. The agent contract must c
 - Gemini CLI GitHub — git-based extension loading reference
 
 ### Secondary (MEDIUM confidence)
-- jsdev.space monorepo guide — pnpm + Turborepo patterns (cross-referenced with official docs)
+- jsdev.space monorepo guide — Bun/Turborepo patterns (cross-referenced with official docs)
 - text-to-diagram.com — feature comparison matrix for ecosystem positioning
 - diagrams.so comparison — D2, Mermaid, Structurizr capability comparison
 - NavyaAI blog — two-reader pattern for agent-friendly CLIs
