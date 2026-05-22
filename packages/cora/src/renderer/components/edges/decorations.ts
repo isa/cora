@@ -7,8 +7,8 @@ import type { EdgeBridge, EdgeLabelPlacement } from '../../../layout-ir.js';
 export const EDGE_LABEL_PADDING = LABELED_EDGE_LABEL_PADDING;
 export { MIN_LABELED_EDGE_STUB };
 export const EDGE_LABEL_OFFSET = 10;
-export const EDGE_BRIDGE_RADIUS = 6;
-export const EDGE_BRIDGE_HEIGHT = 4;
+export const EDGE_BRIDGE_RADIUS = 4;
+export const EDGE_BRIDGE_HEIGHT = 2;
 
 export function edgeLabelGapHalfSpan(label: EdgeLabelPlacement): number {
   return (

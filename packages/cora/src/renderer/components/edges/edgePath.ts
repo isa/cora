@@ -15,8 +15,9 @@ import {
 } from './decorations.js';
 
 const EDGE_ENDPOINT_CLEARANCE = 2;
-const EDGE_ELBOW_RADIUS = 8;
-const EDGE_MARKER_RUNWAY = 18;
+const EDGE_ELBOW_RADIUS = 6;
+const EDGE_MARKER_RUNWAY = 24;
+const MIN_VISIBLE_ELBOW_RADIUS = 3;
 
 type SegmentDecoration =
   | { kind: 'gap'; center: number; halfSpan: number }
@@ -153,7 +154,8 @@ function cornerRadius(prev: EdgeSegment, next: EdgeSegment, nextEndsAtMarker: bo
     ? Math.max(0, next.length - EDGE_MARKER_RUNWAY)
     : next.length / 2;
 
-  return Math.min(EDGE_ELBOW_RADIUS, prev.length / 2, nextLimit);
+  const radius = Math.min(EDGE_ELBOW_RADIUS, prev.length / 2, nextLimit);
+  return radius >= MIN_VISIBLE_ELBOW_RADIUS ? radius : 0;
 }
 
 function roundedSegmentPoints(

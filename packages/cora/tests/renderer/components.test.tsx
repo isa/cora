@@ -168,7 +168,7 @@ describe('edge labels', () => {
       },
     });
 
-    expect(pathData).toContain('M 71');
+    expect(pathData).toMatch(/M 6\d(?:\.\d+)? 0/);
   });
 
   it('rounds orthogonal edge elbows', () => {
@@ -182,7 +182,7 @@ describe('edge labels', () => {
       ],
     });
 
-    expect(pathData).toContain('Q 50 0 50 8');
+    expect(pathData).toContain('Q 50 0 50 6');
   });
 
   it('keeps a straight runway before arrowheads on short terminal segments', () => {
@@ -192,11 +192,47 @@ describe('edge labels', () => {
       points: [
         { x: 0, y: 0 },
         { x: 50, y: 0 },
-        { x: 50, y: 12 },
+        { x: 50, y: 26 },
       ],
     });
 
     expect(pathData).not.toContain('Q 50 0');
+  });
+
+  it('keeps rounded elbows when the terminal segment leaves room for the runway', () => {
+    const pathData = edgeLinePathData({
+      from: 'a',
+      to: 'b',
+      points: [
+        { x: 0, y: 0 },
+        { x: 50, y: 0 },
+        { x: 50, y: 50 },
+      ],
+    });
+
+    expect(pathData).toContain('Q 50 0 50 6');
+    expect(pathData).toMatch(/L 50 4\d(?:\.\d+)?/);
+  });
+
+  it('draws overlap bridges as tiny bumps', () => {
+    const pathData = edgeLinePathData({
+      from: 'a',
+      to: 'b',
+      points: [
+        { x: 0, y: 0 },
+        { x: 100, y: 0 },
+      ],
+      bridges: [
+        {
+          x: 50,
+          y: 0,
+          segmentIndex: 0,
+          orientation: 'horizontal',
+        },
+      ],
+    });
+
+    expect(pathData).toContain('L 46 0 Q 50 -2 54 0');
   });
 
   it('does not draw overlap bridges in the marker runway', () => {
