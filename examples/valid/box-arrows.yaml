@@ -6,13 +6,12 @@ diagram:
   nodes:
     - id: client
       label: Client
-      shape: rounded
+      component: page
     - id: proxy
       label: Edge Proxy
-      shape: rectangle
     - id: server
       label: Server
-      shape: rectangle
+      component: app
   edges:
     - from: client
       to: proxy

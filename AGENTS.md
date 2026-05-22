@@ -168,22 +168,39 @@ Use `cora/renderer/components` for the supported v1 renderer contract:
 
 ```ts
 import type {
-  EdgeComponentProps,
-  GroupComponentProps,
-  NodeComponentProps,
+  BoxStyleProps,
+  MarkerType,
+  SvgIconComponent,
 } from 'cora/renderer/components';
-import { Arrow, BoxNode, EdgeLabel, Group } from 'cora/renderer/components';
+import {
+  AppNode,
+  BoxNode,
+  DecisionNode,
+  Group,
+  IconNode,
+  IssueNode,
+  LabelIconNode,
+  LabelNode,
+  Line,
+  LineMarkerDefs,
+  PageNode,
+  ShapeNode,
+  WebsiteNode,
+} from 'cora/renderer/components';
 ```
 
-The contract is intentionally hybrid: `NodeComponentProps`, `EdgeComponentProps`,
-and `GroupComponentProps` expose the current layout IR object plus resolved
-`ThemeTokens`. Keep component APIs behind `renderer/components/index.ts`; do not
-re-export them from `packages/cora/src/index.ts`.
+YAML nodes use `component` as the catalog discriminator. Omit it for the default
+`box`, or set one of: `box`, `label`, `icon`, `labelIcon`, `website`, `page`,
+`app`, `decision`, `issue`, `shape`.
 
-Phase 3.1 only moved the existing renderer pieces behind this barrel. New node
-families, richer style fields, icon variants, line head/tail options, and the
-larger component catalog belong to the dedicated renderer component library
-phase.
+Box-like renderer props use `BoxStyleProps`: `backgroundColor`, `radius`,
+`borderStyle`, `borderColor`, `borderWidth`, `text`, `textColor`, and `size`.
+`borderStyle` values are `none`, `solid`, `dashed`, or `dotted`. `size` accepts
+explicit `{ width, height }` dimensions or `sm`, `md`, `lg`, `xl`, `xxl`.
+
+Lines use explicit routed points and marker values `none`, `arrow`, `circle`,
+and `filledCircle`. Keep component APIs behind `renderer/components/index.ts`;
+do not re-export them from `packages/cora/src/index.ts`.
 
 ## Examples
 
@@ -191,10 +208,10 @@ phase.
 |------|---------|
 | `examples/valid/minimal.yaml` | Smallest valid box-arrows diagram |
 | `examples/valid/box-arrows.yaml` | Box-arrows with direction |
-| `examples/valid/flowchart.yaml` | Flowchart with diamond decision node |
+| `examples/valid/flowchart.yaml` | Flowchart with a decision component |
 | `examples/valid/microservice.yaml` | Microservice topology with groups |
 | `examples/valid/infra.yaml` | Infra diagram with boundary group |
-| `examples/valid/database.yaml` | Database kind with cylinder node |
+| `examples/valid/database.yaml` | Database kind with app and data nodes |
 | `examples/invalid/missing-version.yaml` | Triggers `SCHEMA_VIOLATION` |
 | `examples/invalid/missing-edge-target.yaml` | Triggers `MISSING_EDGE_TARGET` |
 | `examples/invalid/unknown-service.yaml` | Triggers `MISSING_EXTENSION` |

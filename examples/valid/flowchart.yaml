@@ -5,22 +5,18 @@ diagram:
   nodes:
     - id: start
       label: Start
-      shape: rounded
     - id: load
       label: Load Input
-      shape: rectangle
     - id: check
       label: Valid?
-      shape: diamond
+      component: decision
     - id: process
       label: Process
-      shape: rectangle
     - id: reject
       label: Reject
-      shape: rectangle
+      component: issue
     - id: end
       label: Done
-      shape: rounded
   edges:
     - from: start
       to: load

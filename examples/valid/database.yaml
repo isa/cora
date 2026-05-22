@@ -5,16 +5,13 @@ diagram:
   nodes:
     - id: app
       label: Application
-      shape: rounded
+      component: app
     - id: cache
       label: Redis
-      shape: cylinder
     - id: primary
       label: PostgreSQL Primary
-      shape: cylinder
     - id: replica
       label: PostgreSQL Replica
-      shape: cylinder
   edges:
     - from: app
       to: cache

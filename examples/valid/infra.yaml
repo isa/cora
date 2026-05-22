@@ -6,25 +6,23 @@ diagram:
   nodes:
     - id: dns
       label: Global DNS
-      shape: cloud
+      component: website
     - id: vpc-east
       label: VPC East
-      shape: cloud
+      component: app
     - id: compute-east
       label: Compute East
-      shape: rounded
+      component: app
     - id: db-east
       label: DB East
-      shape: cylinder
     - id: vpc-west
       label: VPC West
-      shape: cloud
+      component: app
     - id: compute-west
       label: Compute West
-      shape: rounded
+      component: app
     - id: db-west
       label: DB West
-      shape: cylinder
   edges:
     - from: dns
       to: vpc-east
