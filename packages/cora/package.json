@@ -19,6 +19,10 @@
     "./renderer": {
       "import": "./dist/renderer/index.js",
       "types": "./dist/renderer/index.d.ts"
+    },
+    "./renderer/components": {
+      "import": "./dist/renderer/components/index.js",
+      "types": "./dist/renderer/components/index.d.ts"
     }
   },
   "files": [

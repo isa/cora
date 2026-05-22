@@ -161,6 +161,30 @@ Schema id: `https://cora.dev/schema/v1/diagram.json`
 
 Do not add fields that are not in the schema — validation will reject them.
 
+## Renderer Components
+
+Renderer component implementations live under `packages/cora/src/renderer/components/`.
+Use `cora/renderer/components` for the supported v1 renderer contract:
+
+```ts
+import type {
+  EdgeComponentProps,
+  GroupComponentProps,
+  NodeComponentProps,
+} from 'cora/renderer/components';
+import { Arrow, BoxNode, EdgeLabel, Group } from 'cora/renderer/components';
+```
+
+The contract is intentionally hybrid: `NodeComponentProps`, `EdgeComponentProps`,
+and `GroupComponentProps` expose the current layout IR object plus resolved
+`ThemeTokens`. Keep component APIs behind `renderer/components/index.ts`; do not
+re-export them from `packages/cora/src/index.ts`.
+
+Phase 3.1 only moved the existing renderer pieces behind this barrel. New node
+families, richer style fields, icon variants, line head/tail options, and the
+larger component catalog belong to the dedicated renderer component library
+phase.
+
 ## Examples
 
 | File | Purpose |

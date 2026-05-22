@@ -24,6 +24,13 @@ export default defineConfig([
     dts: false,
   },
   {
+    entry: ['src/renderer/components/index.ts'],
+    outDir: 'dist/renderer/components',
+    format: ['esm'],
+    fixedExtension: false,
+    dts: true,
+  },
+  {
     entry: ['src/cli/index.ts'],
     outDir: 'dist',
     format: ['esm'],
