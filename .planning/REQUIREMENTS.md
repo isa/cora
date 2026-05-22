@@ -46,7 +46,7 @@
 ### Export
 
 - [ ] **EXP-01**: `cora render -o out.svg` writes SVG via `renderToStaticMarkup`
-- [ ] **EXP-02**: `cora render -o out.pdf` produces PDF via bundled resvg + pdf-lib (default)
+- [x] **EXP-02**: `cora render -o out.pdf` produces PDF via bundled resvg + pdf-lib (default)
 - [ ] **EXP-03**: `--quality=high` uses Playwright for high-fidelity PDF
 - [ ] **EXP-04**: First `--quality=high` use prompts to download Chromium to `$HOME/.config/cora/browsers/`
 - [ ] **EXP-05**: resvg PDF path works on normal `npm install` without extra browser deps
@@ -139,7 +139,7 @@ Deferred to post-v1. Tracked but not in current roadmap.
 | REN-08 | Phase 2 | Pending |
 | CLI-05 | Phase 2 | Pending |
 | EXP-01 | Phase 2 | Pending |
-| EXP-02 | Phase 3 | Pending |
+| EXP-02 | Phase 3 | Done (03-02) |
 | EXP-03 | Phase 3 | Pending |
 | EXP-04 | Phase 3 | Pending |
 | EXP-05 | Phase 3 | Pending |

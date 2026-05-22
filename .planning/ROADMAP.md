@@ -95,8 +95,8 @@ Plans:
 **Plans:** 4 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — Wave 0: vitest + TTF Noto Sans + shared font helper + RED test stubs
-- [ ] 03-02-PLAN.md — Default PDF path end-to-end (resvg + pdf-lib + text overlay + --page)
+- [x] 03-01-PLAN.md — Wave 0: vitest + TTF Noto Sans + shared font helper + RED test stubs
+- [x] 03-02-PLAN.md — Default PDF path end-to-end (resvg + pdf-lib + text overlay + --page)
 - [ ] 03-03-PLAN.md — --quality=high Playwright lane + lazy Chromium install + JSON error
 - [ ] 03-04-PLAN.md — Clean-install smoke + AGENTS.md PDF docs + CI wiring
 
