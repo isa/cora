@@ -14,6 +14,7 @@
 | 1 | Foundation ✓ | Agent contract + monorepo skeleton | SPEC-*, CLI-01–04, CLI-08, AGT-01, AGT-03 |
 | 2 | Renderer + SVG ✓ | Professional diagrams from YAML | LAY-*, REN-*, CLI-05, EXP-01 |
 | 3 | PDF Export | Shareable PDF artifacts | EXP-02–05 |
+| 3.1 | Renderer Component Refactor (INSERTED) | Reusable React component library for renderer | REN-* (consolidation) |
 | 4 | Interactive Canvas | Human layout polish loop | CLI-06, SRV-* |
 | 5 | Extension System | Provider themes & icons | EXT-* |
 | 6 | Hardening | v1 release readiness | CLI-07, AGT-02 |
@@ -101,6 +102,29 @@ Plans:
 
 ---
 
+### Phase 3.1: Renderer Component Refactor (INSERTED)
+**Goal:** Extract the renderer's React node/edge/group components from `Diagram.tsx`, `nodes/index.tsx`, `edges/`, and `groups/` into a well-typed, reusable component library that Phase 4 (Interactive Canvas) and Phase 5 (Extension System) can consume without reaching into renderer internals.
+**Mode:** mvp
+**Requirements:** REN-* (consolidation — no new requirements; tightens existing Phase 2 surface)
+**UI hint:** no (component library; visual output unchanged)
+**Depends on:** Phase 3 (PDF path consumes the same renderer; refactor lands after PDF ships so the IR-driven text overlay isn't disturbed mid-flight)
+
+**Success Criteria:**
+1. Each diagram-kind node component (`box-arrows`, `flowchart`, `microservice`, `infra`, `database`) lives in its own file under `packages/cora/src/renderer/nodes/` with a stable `NodeComponentProps` interface
+2. Edge variants (`Arrow`, plus any decorations) and group containers are split into per-file modules with shared `EdgeComponentProps` / `GroupComponentProps` interfaces
+3. A single `renderer/components/index.ts` barrel re-exports the public component surface; `Diagram.tsx` consumes only from the barrel — no deep imports across modules
+4. Golden SVG regression suite from Phase 2 passes byte-for-byte after the refactor (no visual or coordinate changes)
+5. Component prop interfaces are documented in `AGENTS.md` under a "Renderer Components" section so Phase 5 extension authors can target stable types
+
+**Research flag:** Standard patterns — skip research-phase. Pure code-organisation refactor against a green test suite.
+
+**Pitfalls to address:**
+- Golden regression is the contract: every commit during the refactor must keep `bun run test:golden` green
+- Avoid premature theming abstraction — Phase 5 owns provider themes; this phase only stabilises the prop shapes
+- PDF text overlay (Phase 3) reads from the layouted IR, not from the components — confirm refactor does not move geometry computation out of `nodes/*` measurement helpers
+
+---
+
 ### Phase 4: Interactive Canvas (`cora serve`)
 **Goal:** Humans can drag/pin nodes, edit labels, and save back to YAML without destroying agent-authored content.
 **Mode:** mvp
@@ -163,6 +187,7 @@ Plans:
 1. **Schema before renderer** — agents consume `cora validate` immediately
 2. **Renderer before PDF** — resvg requires specific SVG structure enforced in Phase 2
 3. **Renderer before canvas** — same React tree; pure-function rule established first
+3a. **Component refactor before canvas (Phase 3.1, INSERTED)** — Phase 4 wires a live canvas around the same components, so stabilising prop shapes first avoids tearing the canvas later
 4. **Canvas before extensions** — core pipeline stable before adding theme variables
 5. **Extensions before hardening** — `cora doctor` and docs reference extension errors
 

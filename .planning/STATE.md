@@ -46,6 +46,10 @@ Recent decisions affecting current work:
 - **Layout:** ELK 0.11.x in worker thread; layered + orthogonal routing
 - Phase 2: default theme soft pastels, pure SVG renderer, golden regression per kind
 
+### Roadmap Evolution
+
+- 2026-05-22 — Phase 3.1 inserted after Phase 3 (URGENT): Renderer Component Refactor — extract React node/edge/group components into a reusable library before Phase 4 (Interactive Canvas) wires a live canvas around them.
+
 ## Deferred Items
 
 | Category | Item | Status | Deferred At |
