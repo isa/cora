@@ -44,6 +44,12 @@ const fontPaths = {
 
 const fontCache: Partial<Record<'node' | 'edge', Font>> = {};
 
+interface FontWithMetrics extends Font {
+  ascent: number;
+  descent: number;
+  unitsPerEm: number;
+}
+
 function loadFont(role: 'node' | 'edge'): Font {
   const cached = fontCache[role];
   if (cached) {
@@ -55,9 +61,13 @@ function loadFont(role: 'node' | 'edge'): Font {
   return font;
 }
 
+function fontMetrics(font: Font): FontWithMetrics {
+  return font as FontWithMetrics;
+}
+
 function measureTextWidth(font: Font, text: string, size: number): number {
   const run = font.layout(text);
-  return (run.advanceWidth * size) / font.unitsPerEm;
+  return (run.advanceWidth * size) / fontMetrics(font).unitsPerEm;
 }
 
 export function measureLabel(
@@ -67,8 +77,9 @@ export function measureLabel(
   const fontSize = FONT_SIZE_BY_ROLE[role];
   const font = loadFont(role);
   const width = measureTextWidth(font, text, fontSize);
-  const scale = fontSize / font.unitsPerEm;
-  const height = (font.ascent - font.descent) * scale;
+  const metrics = fontMetrics(font);
+  const scale = fontSize / metrics.unitsPerEm;
+  const height = (metrics.ascent - metrics.descent) * scale;
   return { width, height };
 }
 
@@ -79,8 +90,9 @@ export function baselineYForVisualCenter(
   role: 'node' | 'edge',
 ): number {
   const font = loadFont(role);
-  const scale = fontSize / font.unitsPerEm;
-  return centerY + ((font.ascent + font.descent) * scale) / 2;
+  const metrics = fontMetrics(font);
+  const scale = fontSize / metrics.unitsPerEm;
+  return centerY + ((metrics.ascent + metrics.descent) * scale) / 2;
 }
 
 export function measureNodes(nodes: DiagramNode[]): MeasuredNode[] {
