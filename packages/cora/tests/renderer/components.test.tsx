@@ -185,6 +185,20 @@ describe('edge labels', () => {
     expect(pathData).toContain('Q 50 0 50 8');
   });
 
+  it('keeps a straight runway before arrowheads on short terminal segments', () => {
+    const pathData = edgeLinePathData({
+      from: 'a',
+      to: 'b',
+      points: [
+        { x: 0, y: 0 },
+        { x: 50, y: 0 },
+        { x: 50, y: 12 },
+      ],
+    });
+
+    expect(pathData).not.toContain('Q 50 0');
+  });
+
   it('renders a backing fill behind edge labels', () => {
     const markup = renderToStaticMarkup(
       <EdgeLabel

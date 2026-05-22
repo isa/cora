@@ -16,6 +16,7 @@ import {
 
 const EDGE_ENDPOINT_CLEARANCE = 2;
 const EDGE_ELBOW_RADIUS = 8;
+const EDGE_MARKER_RUNWAY = 14;
 
 type SegmentDecoration =
   | { kind: 'gap'; center: number; halfSpan: number }
@@ -143,21 +144,27 @@ function segmentDecorations(edge: LayoutedEdge, segment: EdgeSegment): SegmentDe
   });
 }
 
-function cornerRadius(prev: EdgeSegment, next: EdgeSegment): number {
+function cornerRadius(prev: EdgeSegment, next: EdgeSegment, nextEndsAtMarker: boolean): number {
   if (prev.orientation === next.orientation) {
     return 0;
   }
 
-  return Math.min(EDGE_ELBOW_RADIUS, prev.length / 2, next.length / 2);
+  const nextLimit = nextEndsAtMarker
+    ? Math.max(0, next.length - EDGE_MARKER_RUNWAY)
+    : next.length / 2;
+
+  return Math.min(EDGE_ELBOW_RADIUS, prev.length / 2, nextLimit);
 }
 
 function roundedSegmentPoints(
   segment: EdgeSegment,
   previous: EdgeSegment | undefined,
   next: EdgeSegment | undefined,
+  nextEndsAtMarker: boolean,
 ): { a: EdgePoint; b: EdgePoint; nextStart?: EdgePoint } {
-  const startRadius = previous ? cornerRadius(previous, segment) : 0;
-  const endRadius = next ? cornerRadius(segment, next) : 0;
+  const segmentEndsAtMarker = !next;
+  const startRadius = previous ? cornerRadius(previous, segment, segmentEndsAtMarker) : 0;
+  const endRadius = next ? cornerRadius(segment, next, nextEndsAtMarker) : 0;
 
   return {
     a: startRadius > 0 ? offsetToward(segment.a, segment.b, startRadius) : segment.a,
@@ -179,7 +186,12 @@ export function edgeLinePathData(edge: LayoutedEdge): string {
     const originalSegment = segments[index]!;
     const previous = segments[index - 1];
     const next = segments[index + 1];
-    const rounded = roundedSegmentPoints(originalSegment, previous, next);
+    const rounded = roundedSegmentPoints(
+      originalSegment,
+      previous,
+      next,
+      index + 1 === segments.length - 1,
+    );
     const segment: EdgeSegment = {
       ...originalSegment,
       a: rounded.a,
