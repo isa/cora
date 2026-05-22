@@ -198,8 +198,14 @@ describe('installChromium spawn invocation', () => {
 
     expect(calls).toHaveLength(1);
     const [call] = calls;
-    expect(call!.cmd).toBe('npx');
-    expect(call!.args).toEqual(['playwright', 'install', 'chromium']);
+    // We spawn `node <playwright/cli.js> install chromium` rather than
+    // `npx playwright install chromium` — npx walks up from cwd to
+    // resolve packages, and the cora binary is typically run from a
+    // parent directory where playwright isn't installed.
+    expect(call!.cmd).toBe(process.execPath);
+    expect(call!.args.length).toBe(3);
+    expect(call!.args[0]).toMatch(/playwright[\/\\]cli\.js$/);
+    expect(call!.args.slice(1)).toEqual(['install', 'chromium']);
     expect(call!.opts.env?.PLAYWRIGHT_BROWSERS_PATH).toBe(CHROMIUM_DIR);
     expect(call!.opts.stdio).toBe('pipe');
 
@@ -218,8 +224,19 @@ describe('installChromium spawn invocation', () => {
     for (const key of sensitive) {
       expect(second.opts.env).not.toHaveProperty(key);
     }
-    // The keys present should be exactly the allowlist.
-    const allowed = ['PATH', 'HOME', 'LOCALAPPDATA', 'PLAYWRIGHT_BROWSERS_PATH'];
+    // The keys present must be a subset of the allowlist (proxy/cert
+    // vars are forwarded conditionally; only PATH/HOME/LOCALAPPDATA/
+    // PLAYWRIGHT_BROWSERS_PATH are always set).
+    const allowed = [
+      'PATH',
+      'HOME',
+      'LOCALAPPDATA',
+      'PLAYWRIGHT_BROWSERS_PATH',
+      'HTTPS_PROXY',
+      'HTTP_PROXY',
+      'NO_PROXY',
+      'NODE_EXTRA_CA_CERTS',
+    ];
     for (const key of Object.keys(second.opts.env ?? {})) {
       expect(allowed).toContain(key);
     }
@@ -236,7 +253,17 @@ describe('installChromium spawn invocation', () => {
     const { installChromium } = await import(
       '../../src/cli/playwrightInstall.js?spawn-fail'
     );
-    await expect(installChromium({ quiet: true })).rejects.toThrow(/exited 2/);
+    await expect(installChromium({ quiet: true })).rejects.toThrow(
+      /exited 2/,
+    );
+    // And the error type is the dedicated ChromiumInstallError so the
+    // CLI can emit CHROMIUM_INSTALL_FAILED (not PARSE_ERROR).
+    const { ChromiumInstallError } = await import(
+      '../../src/cli/playwrightInstall.js?spawn-fail'
+    );
+    await expect(installChromium({ quiet: true })).rejects.toBeInstanceOf(
+      ChromiumInstallError,
+    );
   });
 });
 

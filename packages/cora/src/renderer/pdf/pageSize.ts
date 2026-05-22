@@ -124,3 +124,30 @@ export function extractSvgDimensions(svg: string): { width: number; height: numb
     'extractSvgDimensions: SVG has neither a parseable viewBox nor width/height attributes',
   );
 }
+
+/**
+ * Extract the full viewBox rectangle (origin + size) in user-space units.
+ *
+ * The renderer's `computeViewBox` pads the diagram bbox by 24pt and
+ * shifts the origin to negative values when the diagram has nodes that
+ * extend beyond x=0/y=0 (e.g. group labels with negative offsets).
+ *
+ * The PDF default path needs the **origin** to map IR coordinates
+ * (which live in viewBox user-space) into the rasterised PNG's pixel
+ * frame, AND the viewBox **width/height** to size the page so the
+ * rasterised image fits without clipping. Falls back to {x:0,y:0,w,h}
+ * if no viewBox is found (uses extractSvgDimensions for the size).
+ */
+export function extractSvgViewBox(
+  svg: string,
+): { x: number; y: number; width: number; height: number } {
+  const vb = svg.match(/<svg[^>]*viewBox="([^"]+)"/);
+  if (vb) {
+    const parts = vb[1]!.trim().split(/\s+/).map(Number);
+    if (parts.length === 4 && parts.every((n) => Number.isFinite(n))) {
+      return { x: parts[0]!, y: parts[1]!, width: parts[2]!, height: parts[3]! };
+    }
+  }
+  const { width, height } = extractSvgDimensions(svg);
+  return { x: 0, y: 0, width, height };
+}

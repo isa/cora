@@ -92,14 +92,23 @@ describe('renderToPDF default path', () => {
     await terminateElkWorker();
   });
 
-  it('fit-to-content page size = bbox + 2*margin (default 24)', async () => {
+  it('fit-to-content page size = viewBox + 2*margin (default 24)', async () => {
+    // Page sizing follows the SVG viewBox (which the renderer pads
+    // around the diagram bbox), not layouted.width/height directly.
+    // This is load-bearing: if the page were smaller than the
+    // viewBox, the rasterised image would be clipped AND text would
+    // land at the wrong PDF y because the viewBox origin is offset.
     const { layouted, svg } = await buildLayoutedAndSvg('box-arrows.yaml');
+    const { extractSvgViewBox } = await import(
+      '../../src/renderer/pdf/pageSize.js'
+    );
+    const vb = extractSvgViewBox(svg);
     const bytes = await renderToPDF(layouted, svg, {});
     const { PDFDocument } = await import('pdf-lib');
     const doc = await PDFDocument.load(bytes);
     const { width, height } = doc.getPage(0).getSize();
-    expect(width).toBeCloseTo(layouted.width + 48, 2);
-    expect(height).toBeCloseTo(layouted.height + 48, 2);
+    expect(width).toBeCloseTo(vb.width + 48, 2);
+    expect(height).toBeCloseTo(vb.height + 48, 2);
     await terminateElkWorker();
   });
 

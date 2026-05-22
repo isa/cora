@@ -29,6 +29,7 @@ import {
 } from '../output.js';
 import { CHROMIUM_DIR } from '../paths.js';
 import {
+  ChromiumInstallError,
   chromiumInstalled,
   installChromium,
   promptUser,
@@ -234,17 +235,24 @@ export function registerRenderCommand(program: Command): void {
                 error instanceof Error &&
                 error.message?.startsWith('resvg font warnings');
               const isLayout = error instanceof LayoutError;
+              const isInstallFailure = error instanceof ChromiumInstallError;
 
               const code = isResvgWarning
                 ? 'RESVG_FONT_WARNING'
                 : isLayout
                   ? 'LAYOUT_ERROR'
-                  : undefined;
+                  : isInstallFailure
+                    ? 'CHROMIUM_INSTALL_FAILED'
+                    : undefined;
               if (!code) {
                 throw error;
               }
 
-              const path = isResvgWarning ? '/render/resvg' : '/render/layout';
+              const path = isResvgWarning
+                ? '/render/resvg'
+                : isInstallFailure
+                  ? '/quality'
+                  : '/render/layout';
               const message = (error as Error).message;
               if (isJsonOutput({ format: options.format })) {
                 process.stdout.write(

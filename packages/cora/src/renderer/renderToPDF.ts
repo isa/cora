@@ -6,6 +6,7 @@ import { pdfLibFontBuffers, resvgFontBuffers } from './assets/fonts.js';
 import { svgToPdf } from './pdf/coords.js';
 import {
   computePageGeometry,
+  extractSvgViewBox,
   scaleSvgToPage,
   type PageName,
 } from './pdf/pageSize.js';
@@ -72,8 +73,15 @@ export async function renderToPDF(
   svg: string,
   options: RenderToPDFOptions = {},
 ): Promise<Uint8Array> {
+  // The renderer pads the diagram bbox by 24pt and may shift the
+  // viewBox origin into negative space (computeViewBox in
+  // renderer/viewBox.ts). Page sizing MUST use the viewBox dims
+  // (otherwise the rasterised PNG is bigger than the page) and the
+  // text overlay MUST subtract the viewBox origin (otherwise IR
+  // coordinates land at the wrong PDF position relative to the image).
+  const viewBox = extractSvgViewBox(svg);
   const { pageW, pageH, scale, offsetX, offsetY } = computePageGeometry(
-    layouted,
+    { width: viewBox.width, height: viewBox.height },
     options,
   );
 
@@ -144,12 +152,15 @@ export async function renderToPDF(
 
   // 6. Overlay selectable text driven by the IR. All Y-flip / text
   //    measurement lives in this single loop.
+  //    IR coords are in viewBox user-space; shift by the viewBox
+  //    origin so they land on top of the rasterised image (which
+  //    fills the viewBox region in the same PDF rectangle).
   for (const draw of buildTextOverlay(layouted)) {
     const font: PDFFont = draw.weight === 'semibold' ? semibold : regular;
     const drawSize = draw.size * scale;
     const { x: cxPdf, y: cyPdf } = svgToPdf(
-      draw.cx,
-      draw.cy,
+      draw.cx - viewBox.x,
+      draw.cy - viewBox.y,
       pageH,
       scale,
       offsetX,
