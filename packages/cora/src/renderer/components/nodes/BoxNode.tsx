@@ -32,7 +32,7 @@ function isLayoutBoxNodeProps(props: BoxNodeProps): props is NodeComponentProps 
 }
 
 function LayoutBoxNode({ node, theme }: NodeComponentProps) {
-  const style = node.resolvedStyle ?? theme.shapes.rectangle!;
+  const style = node.resolvedStyle ?? theme.shapes.box!;
   const sw = strokeWidth(style);
 
   const renderShape = (offsetX: number, offsetY: number, paint: string, stroke?: string) => (

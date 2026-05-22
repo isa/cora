@@ -1,16 +1,21 @@
-import type { LayoutedDiagram, LayoutedNode } from '../layout-ir.js';
+import type { LayoutedDiagram, LayoutedNode, ThemeShapeStyle } from '../layout-ir.js';
 import {
+  AppNode,
   EdgeLabel,
   Group,
+  IconNode,
+  IssueNode,
+  LabelIconNode,
+  LabelNode,
   Line,
   LineMarkerDefs,
+  PageNode,
+  ShapeNode,
+  WebsiteNode,
+  WarningIcon,
 } from './components/index.js';
 import { BoxNode } from './components/nodes/BoxNode.js';
-import { CloudNode } from './components/nodes/CloudNode.js';
-import { CylinderNode } from './components/nodes/CylinderNode.js';
-import { DiamondNode } from './components/nodes/DiamondNode.js';
-import { HexagonNode } from './components/nodes/HexagonNode.js';
-import { RoundedNode } from './components/nodes/RoundedNode.js';
+import { DecisionNode } from './components/nodes/DecisionNode.js';
 import { computeViewBox } from './viewBox.js';
 
 export interface DiagramProps {
@@ -18,24 +23,66 @@ export interface DiagramProps {
 }
 
 function renderNode(node: LayoutedNode, diagram: LayoutedDiagram) {
-  const shape = node.shape ?? 'rectangle';
-  const props = { node, theme: diagram.theme };
+  const component = node.component ?? 'box';
+  const catalogProps = nodeCatalogProps(node, diagram.theme.shapes[component] ?? diagram.theme.shapes.box!);
 
-  switch (shape) {
-    case 'rounded':
-      return <RoundedNode key={node.id} {...props} />;
-    case 'cylinder':
-      return <CylinderNode key={node.id} {...props} />;
-    case 'cloud':
-      return <CloudNode key={node.id} {...props} />;
-    case 'diamond':
-      return <DiamondNode key={node.id} {...props} />;
-    case 'hexagon':
-      return <HexagonNode key={node.id} {...props} />;
-    case 'rectangle':
+  switch (component) {
+    case 'label':
+      return <LabelNode key={node.id} {...catalogProps} backgroundColor="transparent" borderStyle="none" />;
+    case 'icon':
+      return (
+        <IconNode
+          key={node.id}
+          x={node.x}
+          y={node.y}
+          size={{ width: node.measuredWidth, height: node.measuredHeight }}
+          strokeColor={catalogProps.textColor}
+          icon={WarningIcon}
+          title={node.label}
+        />
+      );
+    case 'labelIcon':
+      return <LabelIconNode key={node.id} {...catalogProps} icon={WarningIcon} />;
+    case 'website':
+      return <WebsiteNode key={node.id} {...catalogProps} />;
+    case 'page':
+      return <PageNode key={node.id} {...catalogProps} type="content" />;
+    case 'app':
+      return <AppNode key={node.id} {...catalogProps} />;
+    case 'decision':
+      return <DecisionNode key={node.id} {...catalogProps} />;
+    case 'issue':
+      return <IssueNode key={node.id} {...catalogProps} icon="warning" />;
+    case 'shape':
+      return <ShapeNode key={node.id} {...catalogProps} />;
+    case 'box':
     default:
-      return <BoxNode key={node.id} {...props} />;
+      return <BoxNode key={node.id} node={node} theme={diagram.theme} />;
   }
+}
+
+function borderStyleFor(style: ThemeShapeStyle): 'none' | 'solid' | 'dashed' | 'dotted' {
+  if (style.stroke === 'none' || style.strokeWidth === 0) {
+    return 'none';
+  }
+  if (style.strokeDasharray) {
+    return 'dashed';
+  }
+  return 'solid';
+}
+
+function nodeCatalogProps(node: LayoutedNode, style: ThemeShapeStyle) {
+  return {
+    x: node.x,
+    y: node.y,
+    size: { width: node.measuredWidth, height: node.measuredHeight },
+    backgroundColor: style.fill,
+    borderColor: style.stroke,
+    borderWidth: style.strokeWidth,
+    borderStyle: borderStyleFor(style),
+    text: node.label,
+    textColor: style.labelFill ?? '#1A1A1A',
+  } as const;
 }
 
 export function Diagram({ diagram }: DiagramProps) {

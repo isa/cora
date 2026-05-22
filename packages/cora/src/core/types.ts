@@ -42,8 +42,6 @@ export interface DiagramNode {
   id: string;
   label: string;
   component?: DiagramComponent;
-  /** @deprecated use component */
-  shape?: string;
   position?: { x: number; y: number };
   pinned?: boolean;
   provider?: string;

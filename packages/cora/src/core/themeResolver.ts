@@ -1,15 +1,11 @@
 import type { Diagram, DiagramNode, MeasuredNode, ResolvedStyle, ThemeTokens } from './types.js';
 
-function shapeKey(node: DiagramNode): string {
-  return node.shape ?? 'rectangle';
-}
-
 function resolveNodeStyle(
   node: DiagramNode,
   theme: ThemeTokens,
 ): ResolvedStyle {
-  const key = shapeKey(node);
-  const base = theme.shapes[key] ?? theme.shapes.rectangle!;
+  const key = node.component ?? 'box';
+  const base = theme.shapes[key] ?? theme.shapes.box!;
   const overrides = node.style ?? {};
 
   return {

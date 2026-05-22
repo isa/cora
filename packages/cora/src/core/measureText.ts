@@ -18,7 +18,7 @@ const fontkit = require('fontkit') as typeof import('fontkit');
 const FONT_SIZE_BY_ROLE = { node: NODE_FONT_SIZE, edge: EDGE_FONT_SIZE } as const;
 const NODE_PADDING_X = 11;
 const NODE_PADDING_Y = 6;
-const DIAMOND_EXTRA_PADDING_Y = 8;
+const DECISION_EXTRA_PADDING_Y = 8;
 
 function resolveFontPath(filename: string): string {
   const base = dirname(fileURLToPath(import.meta.url));
@@ -101,9 +101,9 @@ export function measureNodes(nodes: DiagramNode[]): MeasuredNode[] {
     let measuredWidth = width + NODE_PADDING_X * 2;
     let measuredHeight = height + NODE_PADDING_Y * 2;
 
-    const shape = node.shape ?? 'rectangle';
-    if (shape === 'diamond') {
-      measuredHeight = height + (NODE_PADDING_Y + DIAMOND_EXTRA_PADDING_Y) * 2;
+    const component = node.component ?? 'box';
+    if (component === 'decision') {
+      measuredHeight = height + (NODE_PADDING_Y + DECISION_EXTRA_PADDING_Y) * 2;
       const side = Math.max(measuredWidth, measuredHeight);
       measuredWidth = side;
       measuredHeight = side;
