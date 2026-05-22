@@ -1,12 +1,7 @@
-import type { LayoutedGroup, ThemeTokens } from '../../layout-ir.js';
-import { escapeXml, FONT_FAMILY } from '../utils.js';
+import { escapeXml, FONT_FAMILY } from '../../utils.js';
+import type { GroupComponentProps } from '../types.js';
 
-export interface GroupProps {
-  group: LayoutedGroup;
-  theme: ThemeTokens;
-}
-
-export function Group({ group, theme }: GroupProps) {
+export function Group({ group, theme }: GroupComponentProps) {
   const style = theme.shapes.group!;
   const labelY = group.y - 8;
 

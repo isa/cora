@@ -4,8 +4,9 @@ import {
   edgeShaftPoints,
   type EdgePoint,
   type EdgeSegment,
-} from '../../core/edgeGeometry.js';
-import type { LayoutedEdge, ThemeTokens } from '../../layout-ir.js';
+} from '../../../core/edgeGeometry.js';
+import type { LayoutedEdge } from '../../../layout-ir.js';
+import type { EdgeComponentProps } from '../types.js';
 import {
   bridgeHalfSpan,
   edgeLabelGapHalfSpan,
@@ -14,14 +15,8 @@ import {
   MIN_LABELED_EDGE_STUB,
 } from './decorations.js';
 
-export interface ArrowProps {
-  edge: LayoutedEdge;
-  theme: ThemeTokens;
-}
-
 const EDGE_ENDPOINT_CLEARANCE = 2;
 const ARROW_HEAD_SIZE = 5;
-const ARROW_HEAD_BASE_DEPTH = ARROW_HEAD_SIZE * Math.cos(Math.PI / 6);
 
 type SegmentDecoration =
   | { kind: 'gap'; center: number; halfSpan: number }
@@ -219,7 +214,7 @@ function buildPathData(edge: LayoutedEdge): string {
   return commands.join(' ');
 }
 
-export function Arrow({ edge, theme }: ArrowProps) {
+export function Arrow({ edge, theme }: EdgeComponentProps) {
   if (edge.points.length < 2) {
     return null;
   }

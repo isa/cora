@@ -2,7 +2,7 @@ import type { LayoutedDiagram } from '../layout-ir.js';
 import {
   EDGE_BRIDGE_HEIGHT,
   edgeLabelRenderPosition,
-} from './edges/decorations.js';
+} from './components/index.js';
 
 const VIEWBOX_PADDING = 24;
 

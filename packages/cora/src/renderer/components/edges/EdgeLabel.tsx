@@ -1,14 +1,9 @@
-import { baselineYForVisualCenter, measureLabel } from '../../core/measureText.js';
-import type { LayoutedEdge, ThemeTokens } from '../../layout-ir.js';
-import { escapeXml, FONT_FAMILY } from '../utils.js';
+import { baselineYForVisualCenter, measureLabel } from '../../../core/measureText.js';
+import { escapeXml, FONT_FAMILY } from '../../utils.js';
+import type { EdgeComponentProps } from '../types.js';
 import { edgeLabelRenderPosition } from './decorations.js';
 
-export interface EdgeLabelProps {
-  edge: LayoutedEdge;
-  theme: ThemeTokens;
-}
-
-export function EdgeLabel({ edge, theme }: EdgeLabelProps) {
+export function EdgeLabel({ edge, theme }: EdgeComponentProps) {
   if (
     !edge.label ||
     edge.labelX === undefined ||

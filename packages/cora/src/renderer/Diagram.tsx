@@ -1,15 +1,15 @@
 import type { LayoutedDiagram, LayoutedNode } from '../layout-ir.js';
-import { Arrow } from './edges/Arrow.js';
-import { EdgeLabel } from './edges/EdgeLabel.js';
-import { Group } from './groups/Group.js';
 import {
+  Arrow,
   BoxNode,
   CloudNode,
   CylinderNode,
   DiamondNode,
+  EdgeLabel,
+  Group,
   HexagonNode,
   RoundedNode,
-} from './nodes/index.js';
+} from './components/index.js';
 import { computeViewBox } from './viewBox.js';
 
 export interface DiagramProps {

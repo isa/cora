@@ -1,8 +1,8 @@
-import type { EdgeBridge, EdgeLabelPlacement } from '../../layout-ir.js';
 import {
   LABELED_EDGE_LABEL_PADDING,
   MIN_LABELED_EDGE_STUB,
-} from '../../core/labeledEdgeExpansion.js';
+} from '../../../core/labeledEdgeExpansion.js';
+import type { EdgeBridge, EdgeLabelPlacement } from '../../../layout-ir.js';
 
 export const EDGE_LABEL_PADDING = LABELED_EDGE_LABEL_PADDING;
 export { MIN_LABELED_EDGE_STUB };
