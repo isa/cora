@@ -10,16 +10,16 @@ See: .planning/PROJECT.md (updated 2026-05-21)
 ## Current Position
 
 Phase: 3 of 6 (PDF Export)
-Plan: 03-02 complete — Wave 2 (Playwright high-quality lane) next
-Status: Default PDF render path shipped end-to-end
-Last activity: 2026-05-22 — Plan 03-02 executed
+Plan: 03-04 complete — Phase 3 SHIPS
+Status: PDF default + high-quality lanes shipped; EXP-05 proof + CI live
+Last activity: 2026-05-22 — Plan 03-04 executed
 
-Progress: [████░░░░░░] 33% (2/6 phases complete)
+Progress: [█████░░░░░] 50% (3/6 phases complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 10
+- Total plans completed: 12
 - Average duration: —
 - Total execution time: —
 
@@ -29,11 +29,11 @@ Progress: [████░░░░░░] 33% (2/6 phases complete)
 |-------|-------|-------|----------|
 | 1 Foundation | 4 | 4 | — |
 | 2 Renderer + SVG | 4 | 4 | — |
-| 3 PDF Export | 2 | — | — |
+| 3 PDF Export | 4 | 4 | — |
 
 **Recent Trend:**
-- Last 5 plans: 03-02, 03-01, 02-04, 02-03, 02-02
-- Trend: PDF default path live (resvg + pdf-lib + selectable text)
+- Last 5 plans: 03-04, 03-03, 03-02, 03-01, 02-04
+- Trend: Phase 3 SHIPS — PDF (both lanes), EXP-05 proof, CI live
 
 ## Accumulated Context
 
@@ -47,6 +47,8 @@ Recent decisions affecting current work:
 - **Layout:** ELK 0.11.x in worker thread; layered + orthogonal routing
 - Phase 2: default theme soft pastels, pure SVG renderer, golden regression per kind
 - Phase 3-02: PDF default path = resvg vector raster + pdf-lib selectable text overlay (Noto Sans TTF embedded, subsetted); IR drives text positions (not SVG re-parse); single-point Y-flip in coords.svgToPdf; BASELINE_FACTOR = 0.3 named constant; --page=a4|letter|*-portrait scale-to-fit, default fit-to-content (24pt margin); resvg-js Rust log bypasses process.stderr.write (verified), so D-11 detection uses structural SVG font-family scan instead
+- Phase 3-03: Playwright --quality=high lane dynamic-imported; lazy Chromium install to $HOME/.config/cora/browsers/ via cli/playwrightInstall.ts; CHROMIUM_NOT_INSTALLED JSON error (path: /quality); no silent fallback; --yes / CORA_AUTO_INSTALL=1 consent; allowlisted spawn env (no ...process.env spread); CORA_TEST_PLAYWRIGHT_INSTALL_STUB seam for CI
+- Phase 3-04: npm pack strips .npmrc from tarballs (security feature) — Plan 03's .npmrc strategy is moot, BUT runtime `playwright` npm pkg does NOT auto-download Chromium in its own postinstall, so EXP-05 still holds. Smoke script asserts this empirically. CI (.github/workflows/ci.yml) runs vitest + smoke + golden on every push; gated Playwright lane (CORA_TEST_PLAYWRIGHT=1) stays manual
 
 ### Roadmap Evolution
 
@@ -62,5 +64,5 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-05-22
-Stopped at: Plan 03-02 complete (default PDF path shipped)
-Resume file: `.planning/phases/03-pdf-export/03-02-SUMMARY.md`
+Stopped at: Plan 03-04 complete — Phase 3 SHIPS
+Resume file: `.planning/phases/03-pdf-export/03-04-SUMMARY.md`

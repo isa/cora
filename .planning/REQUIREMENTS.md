@@ -47,9 +47,9 @@
 
 - [ ] **EXP-01**: `cora render -o out.svg` writes SVG via `renderToStaticMarkup`
 - [x] **EXP-02**: `cora render -o out.pdf` produces PDF via bundled resvg + pdf-lib (default)
-- [ ] **EXP-03**: `--quality=high` uses Playwright for high-fidelity PDF
-- [ ] **EXP-04**: First `--quality=high` use prompts to download Chromium to `$HOME/.config/cora/browsers/`
-- [ ] **EXP-05**: resvg PDF path works on normal `npm install` without extra browser deps
+- [x] **EXP-03**: `--quality=high` uses Playwright for high-fidelity PDF
+- [x] **EXP-04**: First `--quality=high` use prompts to download Chromium to `$HOME/.config/cora/browsers/`
+- [x] **EXP-05**: resvg PDF path works on normal `npm install` without extra browser deps
 
 ### Interactive Canvas
 
@@ -140,9 +140,9 @@ Deferred to post-v1. Tracked but not in current roadmap.
 | CLI-05 | Phase 2 | Pending |
 | EXP-01 | Phase 2 | Pending |
 | EXP-02 | Phase 3 | Done (03-02) |
-| EXP-03 | Phase 3 | Pending |
-| EXP-04 | Phase 3 | Pending |
-| EXP-05 | Phase 3 | Pending |
+| EXP-03 | Phase 3 | Done (03-03) |
+| EXP-04 | Phase 3 | Done (03-03) |
+| EXP-05 | Phase 3 | Done (03-04) |
 | CLI-06 | Phase 4 | Pending |
 | SRV-01 | Phase 4 | Pending |
 | SRV-02 | Phase 4 | Pending |
