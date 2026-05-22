@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 import { Command } from 'commander';
 
+import { registerPreviewCommand } from './commands/preview.js';
 import { registerRenderCommand } from './commands/render.js';
 import { registerSchemaCommand } from './commands/schema.js';
 import { registerValidateCommand } from './commands/validate.js';
@@ -31,6 +32,7 @@ program
 registerValidateCommand(program);
 registerSchemaCommand(program);
 registerRenderCommand(program);
+registerPreviewCommand(program);
 
 program.parseAsync(process.argv).catch((error: unknown) => {
   const message = error instanceof Error ? error.message : String(error);

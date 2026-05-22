@@ -30,7 +30,7 @@
     ".npmrc"
   ],
   "scripts": {
-    "build": "tsdown && cp -r src/renderer/assets dist/renderer/",
+    "build": "tsdown && vite build src/preview --base ./ --outDir ../../dist/preview --emptyOutDir false && cp -r src/renderer/assets dist/renderer/",
     "cora": "node dist/cli.js",
     "dev": "tsdown --watch",
     "typecheck": "tsc --noEmit",
@@ -52,6 +52,7 @@
     "playwright": "^1.60.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "vite": "^8.0.14",
     "web-worker": "^1.5.0",
     "yaml": "^2.7.0"
   },
