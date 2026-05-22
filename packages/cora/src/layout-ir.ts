@@ -5,6 +5,18 @@ export type DiagramKind =
   | 'infra'
   | 'database';
 
+export type DiagramComponent =
+  | 'box'
+  | 'label'
+  | 'icon'
+  | 'labelIcon'
+  | 'website'
+  | 'page'
+  | 'app'
+  | 'decision'
+  | 'issue'
+  | 'shape';
+
 export interface ThemeShapeStyle {
   fill: string;
   stroke: string;
@@ -33,6 +45,8 @@ export interface ResolvedStyle extends ThemeShapeStyle {}
 export interface DiagramNode {
   id: string;
   label: string;
+  component?: DiagramComponent;
+  /** @deprecated use component */
   shape?: string;
   position?: { x: number; y: number };
   pinned?: boolean;

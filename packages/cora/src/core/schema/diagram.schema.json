@@ -25,16 +25,19 @@
         "label": {
           "type": "string"
         },
-        "shape": {
+        "component": {
           "type": "string",
           "enum": [
-            "rectangle",
-            "rounded",
-            "cylinder",
-            "cloud",
-            "diamond",
-            "hexagon",
-            "group"
+            "box",
+            "label",
+            "icon",
+            "labelIcon",
+            "website",
+            "page",
+            "app",
+            "decision",
+            "issue",
+            "shape"
           ]
         },
         "position": {
@@ -130,49 +133,6 @@
       "allOf": [
         {
           "if": {
-            "properties": { "kind": { "const": "box-arrows" } },
-            "required": ["kind"]
-          },
-          "then": {
-            "properties": {
-              "nodes": {
-                "items": {
-                  "properties": {
-                    "shape": {
-                      "enum": ["rectangle", "rounded", "diamond"]
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": { "kind": { "const": "flowchart" } },
-            "required": ["kind"]
-          },
-          "then": {
-            "properties": {
-              "nodes": {
-                "items": {
-                  "properties": {
-                    "shape": {
-                      "enum": [
-                        "rectangle",
-                        "rounded",
-                        "diamond",
-                        "hexagon"
-                      ]
-                    }
-                  }
-                }
-              }
-            }
-          }
-        },
-        {
-          "if": {
             "properties": { "kind": { "const": "microservice" } },
             "required": ["kind"]
           },
@@ -181,30 +141,6 @@
               "groups": {
                 "items": {
                   "required": ["contains"]
-                }
-              }
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": { "kind": { "const": "database" } },
-            "required": ["kind"]
-          },
-          "then": {
-            "properties": {
-              "nodes": {
-                "items": {
-                  "properties": {
-                    "shape": {
-                      "enum": [
-                        "rectangle",
-                        "rounded",
-                        "cylinder",
-                        "diamond"
-                      ]
-                    }
-                  }
                 }
               }
             }
