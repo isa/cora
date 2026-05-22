@@ -1,8 +1,6 @@
-import { existsSync, readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-
 import { Resvg, type ResvgRenderOptions } from '@resvg/resvg-js';
+
+import { resvgFontBuffers } from './assets/fonts.js';
 
 export type PngSize = 'sm' | 'md' | 'lg' | 'xl' | 'xxl';
 
@@ -51,35 +49,6 @@ function scaleSvgDimensions(svg: string, scale: number): string {
   return svg.replace(svgTag, scaledTag);
 }
 
-function resolveFontPath(filename: string): string {
-  const base = dirname(fileURLToPath(import.meta.url));
-  const candidates = [
-    join(base, 'assets/fonts', filename),
-    join(base, '../src/renderer/assets/fonts', filename),
-  ];
-
-  for (const candidate of candidates) {
-    if (existsSync(candidate)) {
-      return candidate;
-    }
-  }
-
-  throw new Error(`Font not found: ${filename} (searched: ${candidates.join(', ')})`);
-}
-
-let fontBuffersCache: Buffer[] | undefined;
-
-/** resvg-js does not load WOFF via fontFiles; pass buffers instead. */
-function renderFontBuffers(): Buffer[] {
-  if (!fontBuffersCache) {
-    fontBuffersCache = [
-      readFileSync(resolveFontPath('NotoSans-Regular.woff')),
-      readFileSync(resolveFontPath('NotoSans-SemiBold.woff')),
-    ];
-  }
-  return fontBuffersCache;
-}
-
 export interface RenderToPNGOptions {
   /** Logical pixel scale (overrides `size` when set). */
   scale?: number;
@@ -92,7 +61,7 @@ export function renderToPNG(svg: string, options: RenderToPNGOptions = {}): Buff
   const scaledSvg = scaleSvgDimensions(svg, scale);
   const resvgOptions = {
     font: {
-      fontBuffers: renderFontBuffers(),
+      fontBuffers: resvgFontBuffers(),
       loadSystemFonts: false,
       defaultFontFamily: 'Noto Sans',
       sansSerifFamily: 'Noto Sans',
