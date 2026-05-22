@@ -15,6 +15,7 @@ Run the CLI from the repo:
 bun run cora validate diagram.yaml --format json
 bun run cora render diagram.yaml -o diagram.svg
 bun run cora render diagram.yaml -o diagram.png
+bun run cora render diagram.yaml -o diagram.pdf
 bun run cora schema
 ```
 
@@ -51,6 +52,8 @@ After `bun link` in `packages/cora`, you can use `cora` directly.
 | `MISSING_EXTENSION` | Node sets `provider` but that extension is not installed |
 | `PARSE_ERROR` | YAML/JSON syntax error |
 | `LAYOUT_ERROR` | Layout mode failed (e.g. `layout: preserve` without positions) |
+| `CHROMIUM_NOT_INSTALLED` | `--quality=high` requested but Chromium not installed and no install consent given |
+| `RESVG_FONT_WARNING` | Default PDF lane (resvg) emitted font warnings in CI mode (diagram uses a non-bundled font) |
 
 ## TTY behavior
 
@@ -61,8 +64,83 @@ Use `--format json` in CI for reliable parsing.
 
 ## CI flags
 
-- `--yes` — non-interactive mode for future install prompts.
+- `--yes` — non-interactive mode for install prompts (currently: Chromium for `--quality=high`).
 - `CORA_AUTO_INSTALL=1` — equivalent to `--yes` (read at startup).
+
+## Renderer (PDF)
+
+`cora render` writes a PDF when `-o` ends in `.pdf`. Two lanes:
+
+**Default lane (zero browser deps)** — bundled resvg + pdf-lib + embedded Noto Sans. Selectable text. Ships in `npm install cora` with no postinstall download.
+
+```bash
+cora render diagram.yaml -o out.pdf
+cora render diagram.yaml -o out.pdf --page=a4
+cora render diagram.yaml -o out.pdf --page=letter-portrait
+```
+
+`--page=<size>` overrides the default fit-to-content page (diagram bbox + 24pt margin) with a fixed page that scales-to-fit on a single page. Valid values: `a4`, `letter`, `a4-portrait`, `letter-portrait`.
+
+**High-quality lane** — Chromium via Playwright. First invocation downloads Chromium (~170MB) to `~/.config/cora/browsers/` (Linux/macOS) or `%LOCALAPPDATA%/cora/browsers/` (Windows). Cached after first install.
+
+```bash
+# Interactive: prompts once for consent, then installs and renders.
+cora render diagram.yaml -o out.pdf --quality=high
+
+# CI / non-interactive: explicit consent required, no silent fallback.
+cora render diagram.yaml -o out.pdf --quality=high --yes
+CORA_AUTO_INSTALL=1 cora render diagram.yaml -o out.pdf --quality=high
+```
+
+If Chromium is unavailable and no consent is given in a non-interactive context, the command fails with a structured `CHROMIUM_NOT_INSTALLED` error (no silent fallback to the default lane):
+
+```json
+[
+  {
+    "code": "CHROMIUM_NOT_INSTALLED",
+    "path": "/quality",
+    "message": "Chromium is required for --quality=high but is not installed. Pass --yes, set CORA_AUTO_INSTALL=1, or run interactively to accept the prompt.",
+    "suggestion": "cora render … --quality=high --yes  (downloads Chromium to ~/.config/cora/browsers/)"
+  }
+]
+```
+
+The default lane can also surface a font-fallback warning when running with `CI=1`:
+
+```json
+[
+  {
+    "code": "RESVG_FONT_WARNING",
+    "path": "/render/resvg",
+    "message": "resvg font warnings: …"
+  }
+]
+```
+
+Fix: ensure diagram labels use the bundled Noto Sans family (the default theme already does — only custom themes that name a non-bundled font trigger this).
+
+### CI integration
+
+Default push pipeline — no Chromium download needed:
+
+```yaml
+- run: bun install
+- run: bun run build
+- run: bun x vitest run
+  working-directory: packages/cora
+- run: bash packages/cora/tests/smoke/clean-install.sh
+```
+
+To exercise `--quality=high` in a downstream CI workflow (note: ~170MB Chromium download on first run, then cached):
+
+```yaml
+- name: Render high-quality PDF
+  run: cora render diagram.yaml -o out.pdf --quality=high --yes --format=json
+  env:
+    CORA_AUTO_INSTALL: '1'
+```
+
+Parse failures by reading the JSON array on stdout when exit code is non-zero; switch on the `code` field (`CHROMIUM_NOT_INSTALLED`, `RESVG_FONT_WARNING`, `LAYOUT_ERROR`, `SCHEMA_VIOLATION`, etc.).
 
 ## Spec contract
 
