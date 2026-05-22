@@ -112,6 +112,8 @@ export function CatalogText({
   text,
   color = '#0f172a',
   fontSize = 13,
+  paddingX = 8,
+  minFontSize = 9,
 }: {
   x: number;
   y: number;
@@ -120,18 +122,29 @@ export function CatalogText({
   text?: string;
   color?: string;
   fontSize?: number;
+  paddingX?: number;
+  minFontSize?: number;
 }) {
   if (!text) return null;
+
+  const maxTextWidth = Math.max(1, width - paddingX * 2);
+  const estimatedWidth = text.length * fontSize * 0.56;
+  const fittedFontSize = estimatedWidth > maxTextWidth
+    ? Math.max(minFontSize, (maxTextWidth / Math.max(text.length * 0.56, 1)))
+    : fontSize;
+  const stillTooWide = text.length * fittedFontSize * 0.56 > maxTextWidth;
 
   return (
     <text
       x={x + width / 2}
-      y={baselineYForVisualCenter(y + height / 2, fontSize, 'node')}
+      y={baselineYForVisualCenter(y + height / 2, fittedFontSize, 'node')}
       textAnchor="middle"
       fontFamily={FONT_FAMILY}
-      fontSize={fontSize}
+      fontSize={fittedFontSize}
       fontWeight={600}
       fill={color}
+      textLength={stillTooWide ? maxTextWidth : undefined}
+      lengthAdjust={stillTooWide ? 'spacingAndGlyphs' : undefined}
     >
       {text}
     </text>

@@ -18,16 +18,17 @@ export function PageNode(props: PageNodeProps) {
   const frame = resolvedCatalogFrame({ size: 'lg', ...props });
   const skeletonColorDark = props.skeletonColorDark ?? '#94a3b8';
   const skeletonColorLight = props.skeletonColorLight ?? '#e2e8f0';
-  const bandHeight = frame.height * TYPE_BANDS[props.type];
+  const bandHeight = Math.min(frame.height * TYPE_BANDS[props.type], frame.height - 42);
   const left = frame.x + 14;
   const width = frame.width - 28;
+  const rowY = frame.y + bandHeight + 20;
 
   return (
     <CatalogFrame {...props} size={props.size ?? 'lg'}>
       <rect x={left} y={frame.y + 12} width={width} height={bandHeight} rx="4" fill={skeletonColorLight} />
       <rect x={left} y={frame.y + 20} width={width * 0.55} height="6" rx="3" fill={skeletonColorDark} />
-      <rect x={left} y={frame.y + bandHeight + 20} width={width * 0.8} height="5" rx="2.5" fill={skeletonColorLight} />
-      <rect x={left} y={frame.y + bandHeight + 32} width={width * 0.62} height="5" rx="2.5" fill={skeletonColorLight} />
+      <rect x={left} y={rowY} width={width * 0.8} height="5" rx="2.5" fill={skeletonColorLight} />
+      <rect x={left} y={rowY + 12} width={width * 0.62} height="5" rx="2.5" fill={skeletonColorLight} />
       <CatalogText
         x={frame.x}
         y={frame.y + frame.height - 26}

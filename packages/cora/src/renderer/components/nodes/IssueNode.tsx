@@ -22,15 +22,16 @@ const ISSUE_ICONS: Record<IssueIconType, SvgIconComponent> = {
 
 export function IssueNode(props: IssueNodeProps) {
   const frame = resolvedCatalogFrame(props);
-  const iconSize = Math.min(22, frame.height * 0.45);
+  const iconSize = Math.min(18, frame.height * 0.42);
   const iconColor = props.iconColor ?? frame.textColor;
-  const labelX = frame.x + iconSize + 18;
+  const iconX = frame.x + 10;
+  const labelX = iconX + iconSize + 8;
 
   return (
     <CatalogFrame {...props}>
       <CatalogIconSlot
         icon={ISSUE_ICONS[props.icon]}
-        x={frame.x + 12}
+        x={iconX}
         y={frame.y + (frame.height - iconSize) / 2}
         size={iconSize}
         color={iconColor}
@@ -39,10 +40,11 @@ export function IssueNode(props: IssueNodeProps) {
       <CatalogText
         x={labelX}
         y={frame.y}
-        width={frame.width - iconSize - 24}
+        width={Math.max(1, frame.x + frame.width - labelX - 6)}
         height={frame.height}
         text={frame.text}
         color={frame.textColor}
+        paddingX={2}
       />
     </CatalogFrame>
   );

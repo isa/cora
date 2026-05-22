@@ -19,6 +19,15 @@ const FONT_SIZE_BY_ROLE = { node: NODE_FONT_SIZE, edge: EDGE_FONT_SIZE } as cons
 const NODE_PADDING_X = 11;
 const NODE_PADDING_Y = 6;
 const DECISION_EXTRA_PADDING_Y = 8;
+const ICON_LABEL_EXTRA_WIDTH = 34;
+const COMPONENT_MIN_SIZE = {
+  app: { width: 112, height: 56 },
+  icon: { width: 40, height: 40 },
+  issue: { width: 112, height: 46 },
+  labelIcon: { width: 112, height: 46 },
+  page: { width: 128, height: 84 },
+  website: { width: 128, height: 56 },
+} as const;
 
 function resolveFontPath(filename: string): string {
   const base = dirname(fileURLToPath(import.meta.url));
@@ -102,11 +111,22 @@ export function measureNodes(nodes: DiagramNode[]): MeasuredNode[] {
     let measuredHeight = height + NODE_PADDING_Y * 2;
 
     const component = node.component ?? 'box';
+
+    if (component === 'issue' || component === 'labelIcon') {
+      measuredWidth += ICON_LABEL_EXTRA_WIDTH;
+    }
+
     if (component === 'decision') {
       measuredHeight = height + (NODE_PADDING_Y + DECISION_EXTRA_PADDING_Y) * 2;
       const side = Math.max(measuredWidth, measuredHeight);
       measuredWidth = side;
       measuredHeight = side;
+    }
+
+    const minSize = COMPONENT_MIN_SIZE[component as keyof typeof COMPONENT_MIN_SIZE];
+    if (minSize) {
+      measuredWidth = Math.max(measuredWidth, minSize.width);
+      measuredHeight = Math.max(measuredHeight, minSize.height);
     }
 
     return {

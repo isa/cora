@@ -118,6 +118,15 @@ describe('renderer catalog nodes', () => {
     }
   });
 
+  it('fits constrained catalog labels inside their available width', () => {
+    const markup = renderToStaticMarkup(
+      <IssueNode icon="warning" text="Reject" size={{ width: 64, height: 46 }} />,
+    );
+
+    expect(markup).toContain('textLength=');
+    expect(markup).toContain('spacingAndGlyphs');
+  });
+
   it('renders DecisionNode geometry and text', () => {
     const markup = renderToStaticMarkup(<DecisionNode text="Approved?" />);
 
