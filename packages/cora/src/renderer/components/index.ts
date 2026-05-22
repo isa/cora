@@ -33,7 +33,6 @@ export {
 } from './icons.js';
 export type { SvgIconComponent, SvgIconProps } from './icons.js';
 
-export { Arrow } from './edges/Arrow.js';
 export { EdgeLabel } from './edges/EdgeLabel.js';
 export {
   bridgeHalfSpan,
@@ -57,8 +56,3 @@ export { AppNode } from './nodes/AppNode.js';
 export { DecisionNode } from './nodes/DecisionNode.js';
 export { IssueNode } from './nodes/IssueNode.js';
 export { ShapeNode } from './nodes/ShapeNode.js';
-export { CloudNode } from './nodes/CloudNode.js';
-export { CylinderNode } from './nodes/CylinderNode.js';
-export { DiamondNode } from './nodes/DiamondNode.js';
-export { HexagonNode } from './nodes/HexagonNode.js';
-export { RoundedNode } from './nodes/RoundedNode.js';

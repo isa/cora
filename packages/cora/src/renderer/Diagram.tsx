@@ -1,16 +1,16 @@
 import type { LayoutedDiagram, LayoutedNode } from '../layout-ir.js';
 import {
-  BoxNode,
-  CloudNode,
-  CylinderNode,
-  DiamondNode,
   EdgeLabel,
   Group,
-  HexagonNode,
   Line,
   LineMarkerDefs,
-  RoundedNode,
 } from './components/index.js';
+import { BoxNode } from './components/nodes/BoxNode.js';
+import { CloudNode } from './components/nodes/CloudNode.js';
+import { CylinderNode } from './components/nodes/CylinderNode.js';
+import { DiamondNode } from './components/nodes/DiamondNode.js';
+import { HexagonNode } from './components/nodes/HexagonNode.js';
+import { RoundedNode } from './components/nodes/RoundedNode.js';
 import { computeViewBox } from './viewBox.js';
 
 export interface DiagramProps {
