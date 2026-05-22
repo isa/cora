@@ -1,8 +1,19 @@
 export type {
+  BorderStyle,
+  BoxStyleProps,
+  ComponentDimensions,
+  ComponentSize,
   EdgeComponentProps,
   GroupComponentProps,
   NodeComponentProps,
+  SizePreset,
 } from './types.js';
+export {
+  borderDasharray,
+  isNoBorder,
+  resolveComponentSize,
+  SIZE_PRESETS,
+} from './styles.js';
 
 export { Arrow } from './edges/Arrow.js';
 export { EdgeLabel } from './edges/EdgeLabel.js';
