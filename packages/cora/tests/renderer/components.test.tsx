@@ -182,7 +182,7 @@ describe('edge labels', () => {
       ],
     });
 
-    expect(pathData).toContain('Q 50 0 50 8');
+    expect(pathData).toContain('Q 50 0 50 4');
   });
 
   it('keeps a straight runway before arrowheads on short terminal segments', () => {
@@ -192,11 +192,26 @@ describe('edge labels', () => {
       points: [
         { x: 0, y: 0 },
         { x: 50, y: 0 },
-        { x: 50, y: 26 },
+        { x: 50, y: 16 },
       ],
     });
 
     expect(pathData).not.toContain('Q 50 0');
+  });
+
+  it('rounds terminal bends while preserving visible arrow runway', () => {
+    const pathData = edgeLinePathData({
+      from: 'a',
+      to: 'b',
+      points: [
+        { x: 0, y: 0 },
+        { x: 50, y: 0 },
+        { x: 50, y: 30 },
+      ],
+    });
+
+    expect(pathData).toContain('Q 50 0 50 4');
+    expect(pathData).toMatch(/L 50 2\d(?:\.\d+)?/);
   });
 
   it('keeps rounded elbows when the terminal segment leaves room for the runway', () => {
@@ -210,7 +225,7 @@ describe('edge labels', () => {
       ],
     });
 
-    expect(pathData).toContain('Q 50 0 50 8');
+    expect(pathData).toContain('Q 50 0 50 4');
     expect(pathData).toMatch(/L 50 4\d(?:\.\d+)?/);
   });
 

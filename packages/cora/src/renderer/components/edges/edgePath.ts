@@ -15,8 +15,9 @@ import {
 } from './decorations.js';
 
 const EDGE_ENDPOINT_CLEARANCE = 2;
-const EDGE_ELBOW_RADIUS = 8;
+const EDGE_ELBOW_RADIUS = 4;
 const EDGE_MARKER_RUNWAY = 24;
+const EDGE_TERMINAL_CORNER_RUNWAY = 12;
 const MIN_VISIBLE_ELBOW_RADIUS = 3;
 
 type SegmentDecoration =
@@ -151,7 +152,7 @@ function cornerRadius(prev: EdgeSegment, next: EdgeSegment, nextEndsAtMarker: bo
   }
 
   const nextLimit = nextEndsAtMarker
-    ? Math.max(0, next.length - EDGE_MARKER_RUNWAY)
+    ? Math.max(0, next.length - EDGE_TERMINAL_CORNER_RUNWAY)
     : next.length / 2;
 
   const radius = Math.min(EDGE_ELBOW_RADIUS, prev.length / 2, nextLimit);
