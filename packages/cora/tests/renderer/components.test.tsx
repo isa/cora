@@ -3,10 +3,25 @@ import { describe, expect, it } from 'vitest';
 
 import {
   borderDasharray,
+  DecisionNode,
+  IconNode,
+  IssueNode,
+  LabelIconNode,
   Line,
   LineMarkerDefs,
+  PageNode,
   resolveComponentSize,
+  ShapeNode,
+  type SvgIconProps,
 } from '../../src/renderer/components/index.js';
+
+function TestIcon({ x = 0, y = 0, size, color }: SvgIconProps) {
+  return (
+    <g transform={`translate(${x} ${y})`} data-icon="test">
+      <path d={`M 0 0 H ${size} V ${size} H 0 Z`} fill="none" stroke={color} />
+    </g>
+  );
+}
 
 describe('renderer component primitives', () => {
   it('resolves size presets and explicit dimensions', () => {
@@ -53,5 +68,70 @@ describe('renderer component primitives', () => {
     expect(markup).toContain('id="cora-marker-arrow"');
     expect(markup).toContain('id="cora-marker-circle"');
     expect(markup).toContain('id="cora-marker-filled-circle"');
+  });
+});
+
+describe('renderer catalog nodes', () => {
+  it('renders IconNode through the provided icon renderer only', () => {
+    const markup = renderToStaticMarkup(
+      <IconNode
+        icon={TestIcon}
+        strokeColor="#abcdef"
+        size={{ width: 40, height: 40 }}
+        {...({ text: 'Hidden label' } as Record<string, unknown>)}
+      />,
+    );
+
+    expect(markup).toContain('data-icon="test"');
+    expect(markup).toContain('stroke="#abcdef"');
+    expect(markup).not.toContain('Hidden label');
+  });
+
+  it('renders LabelIconNode with icon markup and text', () => {
+    const markup = renderToStaticMarkup(
+      <LabelIconNode icon={TestIcon} iconColor="#111111" text="Deploy" />,
+    );
+
+    expect(markup).toContain('data-icon="test"');
+    expect(markup).toContain('Deploy');
+  });
+
+  it('renders PageNode skeleton colors for landing pages', () => {
+    const markup = renderToStaticMarkup(
+      <PageNode
+        type="landing"
+        skeletonColorDark="#111111"
+        skeletonColorLight="#eeeeee"
+        text="Home"
+      />,
+    );
+
+    expect(markup).toContain('fill="#111111"');
+    expect(markup).toContain('fill="#eeeeee"');
+  });
+
+  it('renders every IssueNode icon variant', () => {
+    for (const icon of ['bug', 'warning', 'error', 'stop'] as const) {
+      const markup = renderToStaticMarkup(<IssueNode icon={icon} text={icon} />);
+      expect(markup).toContain(icon);
+      expect(markup).toContain('<g');
+    }
+  });
+
+  it('renders DecisionNode geometry and text', () => {
+    const markup = renderToStaticMarkup(<DecisionNode text="Approved?" />);
+
+    expect(markup).toContain('<polygon');
+    expect(markup).toContain('Approved?');
+  });
+
+  it('renders ShapeNode children', () => {
+    const markup = renderToStaticMarkup(
+      <ShapeNode>
+        <circle cx="5" cy="5" r="3" data-child="shape" />
+      </ShapeNode>,
+    );
+
+    expect(markup).toContain('data-child="shape"');
   });
 });
