@@ -1,0 +1,55 @@
+# Cora CI — runs on every push + pull request.
+#
+# Pipeline:
+#   1. checkout
+#   2. setup-bun (project canonical runtime)
+#   3. bun install + bun run build
+#   4. bun x vitest run        — unit + integration tests
+#   5. clean-install.sh        — EXP-05 proof: `npm install cora` does NOT
+#                                download Chromium (load-bearing for Phase 3)
+#   6. bun run test:golden     — golden SVG fixtures
+#
+# NOTE: We intentionally do NOT set CORA_TEST_PLAYWRIGHT=1 in this default
+# pipeline. The gated Playwright integration test (high-quality.test.ts)
+# downloads ~170MB of Chromium and is run manually before /gsd:verify-work
+# per the Phase 3 validation sampling plan. Adding it to push CI would
+# blow CI minutes and is unnecessary for guarding regressions on every PR.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Setup Node (for `npm pack` in smoke test)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build
+        run: bun run build
+
+      - name: Unit + integration tests
+        run: bun x vitest run
+        working-directory: packages/cora
+
+      - name: Clean-install smoke (EXP-05 — no Chromium download)
+        run: bash packages/cora/tests/smoke/clean-install.sh
+
+      - name: Golden SVG fixtures
+        run: bun run test:golden
+        working-directory: packages/cora
