@@ -15,7 +15,7 @@ import {
 } from './decorations.js';
 
 const EDGE_ENDPOINT_CLEARANCE = 2;
-const EDGE_ELBOW_RADIUS = 6;
+const EDGE_ELBOW_RADIUS = 8;
 const EDGE_MARKER_RUNWAY = 24;
 const MIN_VISIBLE_ELBOW_RADIUS = 3;
 

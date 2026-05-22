@@ -182,7 +182,7 @@ describe('edge labels', () => {
       ],
     });
 
-    expect(pathData).toContain('Q 50 0 50 6');
+    expect(pathData).toContain('Q 50 0 50 8');
   });
 
   it('keeps a straight runway before arrowheads on short terminal segments', () => {
@@ -210,7 +210,7 @@ describe('edge labels', () => {
       ],
     });
 
-    expect(pathData).toContain('Q 50 0 50 6');
+    expect(pathData).toContain('Q 50 0 50 8');
     expect(pathData).toMatch(/L 50 4\d(?:\.\d+)?/);
   });
 

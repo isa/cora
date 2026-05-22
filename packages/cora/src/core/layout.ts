@@ -18,8 +18,8 @@ import type {
 
 const VIEWBOX_PADDING = 24;
 const NODE_GAP = 24;
-const NODE_BETWEEN_LAYERS_GAP = 24;
-const EDGE_NODE_BETWEEN_LAYERS_GAP = 12;
+const NODE_BETWEEN_LAYERS_GAP = 36;
+const EDGE_NODE_BETWEEN_LAYERS_GAP = 18;
 
 export class LayoutError extends Error {
   readonly code = 'LAYOUT_ERROR' as const;
@@ -44,6 +44,12 @@ function baseLayoutOptions(diagram: Diagram): Record<string, string> {
     'elk.layered.edgeRouting': 'ORTHOGONAL',
     'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
     'elk.spacing.nodeNode': String(NODE_GAP),
+    'elk.layered.spacing.nodeNodeBetweenLayers': String(
+      NODE_BETWEEN_LAYERS_GAP,
+    ),
+    'elk.layered.spacing.edgeNodeBetweenLayers': String(
+      EDGE_NODE_BETWEEN_LAYERS_GAP,
+    ),
     'org.eclipse.elk.layered.spacing.nodeNodeBetweenLayers': String(
       NODE_BETWEEN_LAYERS_GAP,
     ),
@@ -330,7 +336,7 @@ function buildElkGraph(
   const rootChildren: ElkNode[] = [];
 
   for (const group of groups) {
-    rootChildren.push(buildGroupElkNode(group, measuredById, diagram.layout));
+    rootChildren.push(buildGroupElkNode(group, measuredById, diagram));
   }
 
   for (const node of measuredNodes) {
@@ -354,17 +360,17 @@ function buildElkGraph(
 function buildGroupElkNode(
   group: DiagramGroup,
   measuredById: Map<string, MeasuredNode>,
-  layoutMode: Diagram['layout'],
+  diagram: Diagram,
 ): ElkNode {
   const children = (group.contains ?? [])
     .map((nodeId) => measuredById.get(nodeId))
     .filter((node): node is MeasuredNode => node !== undefined)
-    .map((node) => buildElkNode(node, layoutMode));
+    .map((node) => buildElkNode(node, diagram.layout));
 
   return {
     id: group.id,
     layoutOptions: {
-      'elk.algorithm': 'layered',
+      ...baseLayoutOptions(diagram),
       'elk.padding': '[16,16,16,16]',
     },
     children,
