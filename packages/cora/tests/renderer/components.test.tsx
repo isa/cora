@@ -192,7 +192,7 @@ describe('edge labels', () => {
       points: [
         { x: 0, y: 0 },
         { x: 50, y: 0 },
-        { x: 50, y: 16 },
+        { x: 50, y: 8 },
       ],
     });
 
