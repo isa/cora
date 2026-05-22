@@ -45,16 +45,16 @@
 
 ### Renderer Component Library
 
-- [ ] **RCL-01**: Public component catalog includes `Group`, `BoxNode`, `LabelNode`, `IconNode`, `LabelIconNode`, `WebsiteNode`, `PageNode`, `AppNode`, `DecisionNode`, `IssueNode`, `ShapeNode`, `Line`, and reusable markers
-- [ ] **RCL-02**: Legacy shape-specific public components and shape values are removed or replaced consistently across renderer, schema, examples, goldens, and docs
-- [ ] **RCL-03**: Box-like components share `BoxStyleProps` with `backgroundColor`, `radius`, `borderStyle`, `borderColor`, `borderWidth`, `text`, `textColor`, and `size`
-- [ ] **RCL-04**: `borderStyle` values are `none | solid | dashed | dotted`; `size` supports `{ width: number; height: number } | "sm" | "md" | "lg" | "xl" | "xxl"`
-- [ ] **RCL-05**: Specialized props are normalized: `PageNode.type = landing | form | content | profile | settings`, `IssueNode.icon = bug | warning | error | stop`, icon-bearing nodes use `iconColor`, and `PageNode` uses `skeletonColorDark` / `skeletonColorLight`
-- [ ] **RCL-06**: `WebsiteNode` and `AppNode` support optional `text`; box-driven nodes may bear icons where appropriate
-- [ ] **RCL-07**: `IconNode` is icon-only and renders an SVG icon from the component-side icon slot/pack contract without implementing extension loading
-- [ ] **RCL-08**: `Line` takes explicit routed `points: Array<{ x: number; y: number }>` and supports `lineStyle`, `strokeColor`, `strokeWidth`, `startMarker`, and `endMarker`
-- [ ] **RCL-09**: Marker values are `none | arrow | circle | filledCircle`; `Line` is the public edge primitive and `Arrow` is internal compatibility only
-- [ ] **RCL-10**: Components remain pure React/SVG functions with no DOM dependency and no direct YAML parsing
+- [x] **RCL-01**: Public component catalog includes `Group`, `BoxNode`, `LabelNode`, `IconNode`, `LabelIconNode`, `WebsiteNode`, `PageNode`, `AppNode`, `DecisionNode`, `IssueNode`, `ShapeNode`, `Line`, and reusable markers
+- [x] **RCL-02**: Legacy shape-specific public components and shape values are removed or replaced consistently across renderer, schema, examples, goldens, and docs
+- [x] **RCL-03**: Box-like components share `BoxStyleProps` with `backgroundColor`, `radius`, `borderStyle`, `borderColor`, `borderWidth`, `text`, `textColor`, and `size`
+- [x] **RCL-04**: `borderStyle` values are `none | solid | dashed | dotted`; `size` supports `{ width: number; height: number } | "sm" | "md" | "lg" | "xl" | "xxl"`
+- [x] **RCL-05**: Specialized props are normalized: `PageNode.type = landing | form | content | profile | settings`, `IssueNode.icon = bug | warning | error | stop`, icon-bearing nodes use `iconColor`, and `PageNode` uses `skeletonColorDark` / `skeletonColorLight`
+- [x] **RCL-06**: `WebsiteNode` and `AppNode` support optional `text`; box-driven nodes may bear icons where appropriate
+- [x] **RCL-07**: `IconNode` is icon-only and renders an SVG icon from the component-side icon slot/pack contract without implementing extension loading
+- [x] **RCL-08**: `Line` takes explicit routed `points: Array<{ x: number; y: number }>` and supports `lineStyle`, `strokeColor`, `strokeWidth`, `startMarker`, and `endMarker`
+- [x] **RCL-09**: Marker values are `none | arrow | circle | filledCircle`; `Line` is the public edge primitive and `Arrow` is internal compatibility only
+- [x] **RCL-10**: Components remain pure React/SVG functions with no DOM dependency and no direct YAML parsing
 
 ### Export
 
@@ -150,16 +150,16 @@ Deferred to post-v1. Tracked but not in current roadmap.
 | REN-06 | Phase 2 | Pending |
 | REN-07 | Phase 2 | Pending |
 | REN-08 | Phase 2 | Pending |
-| RCL-01 | Phase 3.2 | Pending |
-| RCL-02 | Phase 3.2 | Pending |
-| RCL-03 | Phase 3.2 | Pending |
-| RCL-04 | Phase 3.2 | Pending |
-| RCL-05 | Phase 3.2 | Pending |
-| RCL-06 | Phase 3.2 | Pending |
-| RCL-07 | Phase 3.2 | Pending |
-| RCL-08 | Phase 3.2 | Pending |
-| RCL-09 | Phase 3.2 | Pending |
-| RCL-10 | Phase 3.2 | Pending |
+| RCL-01 | Phase 3.2 | Done (3.2-04) |
+| RCL-02 | Phase 3.2 | Done (3.2-04) |
+| RCL-03 | Phase 3.2 | Done (3.2-04) |
+| RCL-04 | Phase 3.2 | Done (3.2-04) |
+| RCL-05 | Phase 3.2 | Done (3.2-04) |
+| RCL-06 | Phase 3.2 | Done (3.2-04) |
+| RCL-07 | Phase 3.2 | Done (3.2-04) |
+| RCL-08 | Phase 3.2 | Done (3.2-04) |
+| RCL-09 | Phase 3.2 | Done (3.2-04) |
+| RCL-10 | Phase 3.2 | Done (3.2-04) |
 | CLI-05 | Phase 2 | Pending |
 | EXP-01 | Phase 2 | Pending |
 | EXP-02 | Phase 3 | Done (03-02) |
@@ -192,4 +192,4 @@ Deferred to post-v1. Tracked but not in current roadmap.
 
 ---
 *Requirements defined: 2026-05-21*
-*Last updated: 2026-05-22 after Phase 3.2 context discussion*
+*Last updated: 2026-05-22 after Phase 3.2 execution*

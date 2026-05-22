@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-05-21)
 
 **Core value:** An AI agent can write a YAML diagram, run `cora validate` and `cora render`, and produce a professional-looking architectural diagram without touching a visual editor — while humans can still polish the result when needed.
-**Current focus:** Phase 3.2 — Renderer Component Library
+**Current focus:** Phase 3.3 — Component Preview Canvas
 
 ## Current Position
 
-Phase: 3.2 of 9 (Renderer Component Library)
-Plan: 4 plans ready — Renderer component library
-Status: Ready to execute Phase 3.2
-Last activity: 2026-05-22 — Phase 3.2 plans created
+Phase: 3.3 of 9 (Component Preview Canvas)
+Plan: Not planned
+Status: Phase 3.2 complete; ready to discuss/plan Phase 3.3
+Last activity: 2026-05-22 — Phase 3.2 executed and verified
 
-Progress: [████░░░░░░] 44% (4/9 phases complete)
+Progress: [█████░░░░░] 56% (5/9 phases complete)
 
 ## Performance Metrics
 
@@ -31,11 +31,11 @@ Progress: [████░░░░░░] 44% (4/9 phases complete)
 | 2 Renderer + SVG | 4 | 4 | — |
 | 3 PDF Export | 4 | 4 | — |
 | 3.1 Renderer Component Refactor | 1 | 1 | — |
-| 3.2 Renderer Component Library | 0 | 4 | — |
+| 3.2 Renderer Component Library | 4 | 4 | — |
 
 **Recent Trend:**
-- Last 5 plans: 3.1-01, 03-04, 03-03, 03-02, 03-01
-- Trend: Renderer component contract established after PDF export; Phase 3.2 can build the larger catalog on the new barrel.
+- Last 5 plans: 3.2-04, 3.2-03, 3.2-02, 3.2-01, 3.1-01
+- Trend: Renderer component catalog is complete; Phase 3.3 can build the preview canvas against the typed catalog.
 
 ## Accumulated Context
 
@@ -54,7 +54,7 @@ Recent decisions affecting current work:
 - Phase 3.1: renderer components now live under `packages/cora/src/renderer/components/`; `Diagram.tsx` consumes `./components/index.js`; package subpath `cora/renderer/components` exports `NodeComponentProps`, `EdgeComponentProps`, `GroupComponentProps`, existing node components, `Arrow`, `EdgeLabel`, `Group`, and edge decoration helpers. Top-level `cora` export remains free of component exports. Build emits `dist/renderer/components/index.{js,d.ts}`.
 - Phase 3.2 context: replace old shape-specific public model with catalog components (`Group`, `BoxNode`, `LabelNode`, `IconNode`, `LabelIconNode`, `WebsiteNode`, `PageNode`, `AppNode`, `DecisionNode`, `IssueNode`, `ShapeNode`, `Line`, markers); remove old shape support consistently across renderer/schema/examples/goldens/docs; `Line` is public and `Arrow` is internal compatibility only.
 - Phase 3.2 research: recommended four-plan sequence — catalog style/line primitives, node catalog/icon slot, renderer/barrel migration, then schema/examples/goldens/docs consistency sweep. Validation strategy added with typecheck/build/vitest/golden gates.
-- Phase 3.2 planning: four executable plans created across three waves. Wave 1 adds primitives and node catalog in parallel; Wave 2 migrates renderer/barrel; Wave 3 removes old shape vocabulary across schema/examples/goldens/docs.
+- Phase 3.2 complete: public catalog exports `Group`, `BoxNode`, `LabelNode`, `IconNode`, `LabelIconNode`, `WebsiteNode`, `PageNode`, `AppNode`, `DecisionNode`, `IssueNode`, `ShapeNode`, `Line`, marker helpers, shared `BoxStyleProps`, and icon slot types. Schema/examples/docs use `component` instead of legacy `shape`; old shape-specific node files were removed. Full typecheck/build/test/golden verification passed.
 
 ### Roadmap Evolution
 
@@ -72,5 +72,5 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-05-22
-Stopped at: Phase 3.2 planned
-Resume file: `.planning/phases/3.2-renderer-component-library/3.2-01-PLAN.md`
+Stopped at: Phase 3.2 complete
+Resume file: None

@@ -15,7 +15,7 @@
 | 2 | Renderer + SVG ✓ | Professional diagrams from YAML | LAY-*, REN-*, CLI-05, EXP-01 |
 | 3 | PDF Export | Shareable PDF artifacts | EXP-02–05 |
 | 3.1 | Renderer Component Refactor (INSERTED) | Reusable React component library for renderer | REN-* (consolidation) |
-| 3.2 | Renderer Component Library (INSERTED) | Full reusable renderer component catalog and style vocabulary | RCL-* (new) |
+| 3.2 | Renderer Component Library (INSERTED) ✓ | Full reusable renderer component catalog and style vocabulary | RCL-* (new) |
 | 3.3 | Component Preview Canvas (INSERTED) | `cora preview` browser SPA for browsing + tuning components | PREV-* (new) |
 | 4 | Interactive Canvas | Human layout polish loop | CLI-06, SRV-* |
 | 5 | Extension System | Provider themes & icons | EXT-* |
@@ -132,7 +132,7 @@ Plans:
 
 ---
 
-### Phase 3.2: Renderer Component Library (INSERTED)
+### Phase 3.2: Renderer Component Library (INSERTED) ✓ 2026-05-22
 **Goal:** Build the full reusable renderer component catalog and normalized style vocabulary before the preview, canvas, and extension phases grow the codebase around a too-small component abstraction.
 **Mode:** mvp
 **Requirements:** RCL-01–10
@@ -169,10 +169,10 @@ Plans:
 **Plans:** 4 plans
 
 Plans:
-- [ ] 3.2-01-PLAN.md — Wave 1: shared style/size contract, `Line`, marker primitives, and primitive tests
-- [ ] 3.2-02-PLAN.md — Wave 1: node catalog components and component-side icon slot contract
-- [ ] 3.2-03-PLAN.md — Wave 2 *(blocked on Wave 1 completion)*: migrate renderer path to `Line` and clean the public barrel
-- [ ] 3.2-04-PLAN.md — Wave 3 *(blocked on Wave 2 completion)*: schema/examples/goldens/docs consistency sweep
+- [x] 3.2-01-PLAN.md — Wave 1: shared style/size contract, `Line`, marker primitives, and primitive tests
+- [x] 3.2-02-PLAN.md — Wave 1: node catalog components and component-side icon slot contract
+- [x] 3.2-03-PLAN.md — Wave 2 *(blocked on Wave 1 completion)*: migrate renderer path to `Line` and clean the public barrel
+- [x] 3.2-04-PLAN.md — Wave 3 *(blocked on Wave 2 completion)*: schema/examples/goldens/docs consistency sweep
 
 ---
 
