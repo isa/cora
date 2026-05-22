@@ -231,11 +231,20 @@ export function registerRenderCommand(program: Command): void {
                 writeFileSync(options.output, Buffer.from(pdfBytes));
               }
             } catch (error) {
+              // Lazy-load the HighQualityRenderError class so the
+              // default PDF path doesn't have to import the
+              // Playwright-bound module just to do an instanceof check.
+              const { HighQualityRenderError } = await import(
+                '../../renderer/renderToPDFHighQuality.js'
+              );
+
               const isResvgWarning =
                 error instanceof Error &&
                 error.message?.startsWith('resvg font warnings');
               const isLayout = error instanceof LayoutError;
               const isInstallFailure = error instanceof ChromiumInstallError;
+              const isHighQualityFailure =
+                error instanceof HighQualityRenderError;
 
               const code = isResvgWarning
                 ? 'RESVG_FONT_WARNING'
@@ -243,14 +252,16 @@ export function registerRenderCommand(program: Command): void {
                   ? 'LAYOUT_ERROR'
                   : isInstallFailure
                     ? 'CHROMIUM_INSTALL_FAILED'
-                    : undefined;
+                    : isHighQualityFailure
+                      ? 'HIGH_QUALITY_RENDER_FAILED'
+                      : undefined;
               if (!code) {
                 throw error;
               }
 
               const path = isResvgWarning
                 ? '/render/resvg'
-                : isInstallFailure
+                : isInstallFailure || isHighQualityFailure
                   ? '/quality'
                   : '/render/layout';
               const message = (error as Error).message;
