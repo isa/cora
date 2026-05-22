@@ -14,6 +14,12 @@ export {
   resolveComponentSize,
   SIZE_PRESETS,
 } from './styles.js';
+export { Line } from './lines/Line.js';
+export type { LineProps } from './lines/Line.js';
+export { LineMarkerDefs, markerUrl } from './lines/markers.js';
+export type { MarkerType } from './lines/markers.js';
+export { lineDasharray } from './lines/styles.js';
+export type { LineStyle } from './lines/styles.js';
 
 export { Arrow } from './edges/Arrow.js';
 export { EdgeLabel } from './edges/EdgeLabel.js';
