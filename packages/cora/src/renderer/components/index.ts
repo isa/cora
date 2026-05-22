@@ -48,6 +48,15 @@ export {
 } from './edges/decorations.js';
 export { Group } from './groups/Group.js';
 export { BoxNode } from './nodes/BoxNode.js';
+export { LabelNode } from './nodes/LabelNode.js';
+export { IconNode } from './nodes/IconNode.js';
+export { LabelIconNode } from './nodes/LabelIconNode.js';
+export { WebsiteNode } from './nodes/WebsiteNode.js';
+export { PageNode } from './nodes/PageNode.js';
+export { AppNode } from './nodes/AppNode.js';
+export { DecisionNode } from './nodes/DecisionNode.js';
+export { IssueNode } from './nodes/IssueNode.js';
+export { ShapeNode } from './nodes/ShapeNode.js';
 export { CloudNode } from './nodes/CloudNode.js';
 export { CylinderNode } from './nodes/CylinderNode.js';
 export { DiamondNode } from './nodes/DiamondNode.js';
