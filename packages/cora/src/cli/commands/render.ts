@@ -21,7 +21,18 @@ import { renderToPDF } from '../../renderer/renderToPDF.js';
 import { type PageName, PAGE_SIZES } from '../../renderer/pdf/pageSize.js';
 import { renderToPNG, resolvePngScale, type PngSize } from '../../renderer/renderToPNG.js';
 import { renderToSVG } from '../../renderer/renderToSVG.js';
-import { formatValidationResult, isJsonOutput } from '../output.js';
+import {
+  formatValidationResult,
+  isJsonOutput,
+  isNonInteractive,
+  shouldAutoInstall,
+} from '../output.js';
+import { CHROMIUM_DIR } from '../paths.js';
+import {
+  chromiumInstalled,
+  installChromium,
+  promptUser,
+} from '../playwrightInstall.js';
 
 function outputFormat(path: string): 'svg' | 'png' | 'pdf' {
   const ext = extname(path).toLowerCase();
@@ -158,28 +169,71 @@ export function registerRenderCommand(program: Command): void {
 
               const ciMode =
                 process.env.CI === '1' || process.env.CI === 'true';
+              const yes = program.opts().yes === true;
 
               if (options.quality === 'high') {
-                // Plan 03 wires high-quality lane here — falls through to default for now
-              }
+                // High-quality lane: lazy Chromium install + Playwright render.
+                if (!chromiumInstalled()) {
+                  if (shouldAutoInstall({ yes })) {
+                    await installChromium({
+                      quiet: isNonInteractive({ format: options.format }),
+                    });
+                  } else if (isNonInteractive({ format: options.format })) {
+                    // No TTY / CI / --format=json AND no auto-install consent →
+                    // hard fail with a structured JSON error (D-07, D-08).
+                    const err = {
+                      code: 'CHROMIUM_NOT_INSTALLED' as const,
+                      path: '/quality',
+                      message:
+                        'Chromium is required for --quality=high but is not installed. ' +
+                        'Pass --yes, set CORA_AUTO_INSTALL=1, or run interactively to accept the prompt.',
+                      suggestion: `cora render … --quality=high --yes  (downloads Chromium to ${CHROMIUM_DIR})`,
+                    };
+                    if (isJsonOutput({ format: options.format })) {
+                      process.stdout.write(
+                        JSON.stringify([err], null, 2) + '\n',
+                      );
+                    } else {
+                      process.stderr.write(
+                        pc.red(`✖ [${err.code}] ${err.message}\n`),
+                      );
+                    }
+                    process.exitCode = 1;
+                    return;
+                  } else {
+                    // Interactive TTY — one prompt; cached after first install.
+                    const confirmed = await promptUser(
+                      `Cora needs to download Chromium (~170MB) to ${CHROMIUM_DIR}. Proceed?`,
+                    );
+                    if (!confirmed) {
+                      process.exitCode = 1;
+                      return;
+                    }
+                    await installChromium({ quiet: false });
+                  }
+                }
 
-              const pdfBytes = await renderToPDF(layouted, svg, {
-                page: options.page as PageName | undefined,
-                ciMode,
-              });
-              writeFileSync(options.output, Buffer.from(pdfBytes));
+                // D-09: no silent fallback. Any failure inside the
+                // high-quality branch propagates and exits non-zero.
+                const { renderToPDFHighQuality } = await import(
+                  '../../renderer/renderToPDFHighQuality.js'
+                );
+                const pdfBytes = await renderToPDFHighQuality(svg, {
+                  page: options.page as PageName | undefined,
+                });
+                writeFileSync(options.output, pdfBytes);
+              } else {
+                const pdfBytes = await renderToPDF(layouted, svg, {
+                  page: options.page as PageName | undefined,
+                  ciMode,
+                });
+                writeFileSync(options.output, Buffer.from(pdfBytes));
+              }
             } catch (error) {
               const isResvgWarning =
                 error instanceof Error &&
                 error.message?.startsWith('resvg font warnings');
-              const isChromiumMissing =
-                (error as { code?: string })?.code === 'CHROMIUM_NOT_INSTALLED';
               const isLayout = error instanceof LayoutError;
-
-              if (isChromiumMissing) {
-                // Plan 03 owns CHROMIUM_NOT_INSTALLED emission; rethrow.
-                throw error;
-              }
 
               const code = isResvgWarning
                 ? 'RESVG_FONT_WARNING'
