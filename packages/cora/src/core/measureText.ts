@@ -12,9 +12,6 @@ import {
 
 import type { DiagramNode, MeasuredNode } from './types.js';
 
-const require = createRequire(import.meta.url);
-const fontkit = require('fontkit') as typeof import('fontkit');
-
 const FONT_SIZE_BY_ROLE = { node: NODE_FONT_SIZE, edge: EDGE_FONT_SIZE } as const;
 const NODE_PADDING_X = 11;
 const NODE_PADDING_Y = 6;
@@ -52,6 +49,7 @@ const fontPaths = {
 };
 
 const fontCache: Partial<Record<'node' | 'edge', Font>> = {};
+let fontkitCache: typeof import('fontkit') | undefined;
 
 interface FontWithMetrics extends Font {
   ascent: number;
@@ -65,6 +63,9 @@ function loadFont(role: 'node' | 'edge'): Font {
     return cached;
   }
 
+  const require = createRequire(import.meta.url);
+  const fontkit = fontkitCache ?? (require('fontkit') as typeof import('fontkit'));
+  fontkitCache = fontkit;
   const font = fontkit.openSync(fontPaths[role]());
   fontCache[role] = font;
   return font;
@@ -84,6 +85,12 @@ export function measureLabel(
   role: 'node' | 'edge',
 ): { width: number; height: number } {
   const fontSize = FONT_SIZE_BY_ROLE[role];
+  if (typeof window !== 'undefined') {
+    return {
+      width: text.length * fontSize * 0.62,
+      height: fontSize * 1.2,
+    };
+  }
   const font = loadFont(role);
   const width = measureTextWidth(font, text, fontSize);
   const metrics = fontMetrics(font);
@@ -98,6 +105,9 @@ export function baselineYForVisualCenter(
   fontSize: number,
   role: 'node' | 'edge',
 ): number {
+  if (typeof window !== 'undefined') {
+    return centerY + fontSize * 0.34;
+  }
   const font = loadFont(role);
   const metrics = fontMetrics(font);
   const scale = fontSize / metrics.unitsPerEm;
