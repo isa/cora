@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Phase 3.3 UI-SPEC approved
-last_updated: "2026-05-22T20:08:59.436Z"
-last_activity: 2026-05-22 -- Phase 3.3 planning complete
+status: verifying
+stopped_at: Completed 3.3-04-PLAN.md
+last_updated: "2026-05-22T20:55:50.813Z"
+last_activity: 2026-05-22 -- Phase 3.3 execution started
 progress:
   total_phases: 9
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 21
-  completed_plans: 17
-  percent: 56
+  completed_plans: 21
+  percent: 67
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-21)
 
 **Core value:** An AI agent can write a YAML diagram, run `cora validate` and `cora render`, and produce a professional-looking architectural diagram without touching a visual editor — while humans can still polish the result when needed.
-**Current focus:** Phase 3.3 — Component Preview Canvas
+**Current focus:** Phase 3.3 — Component Preview Canvas verification
 
 ## Current Position
 
 Phase: 3.3 of 9 (Component Preview Canvas)
-Plan: Not planned
-Status: Ready to execute
-Last activity: 2026-05-22 -- Phase 3.3 planning complete
+Plan: 4 of 4 complete
+Status: Ready to verify
+Last activity: 2026-05-22 -- Phase 3.3 execution complete
 
-Progress: [█████░░░░░] 56% (5/9 phases complete)
+Progress: [███████░░░] 67% (6/9 phases complete)
 
 ## Performance Metrics
 
@@ -73,6 +73,7 @@ Recent decisions affecting current work:
 - Phase 3.2 context: replace old shape-specific public model with catalog components (`Group`, `BoxNode`, `LabelNode`, `IconNode`, `LabelIconNode`, `WebsiteNode`, `PageNode`, `AppNode`, `DecisionNode`, `IssueNode`, `ShapeNode`, `Line`, markers); remove old shape support consistently across renderer/schema/examples/goldens/docs; `Line` is public and `Arrow` is internal compatibility only.
 - Phase 3.2 research: recommended four-plan sequence — catalog style/line primitives, node catalog/icon slot, renderer/barrel migration, then schema/examples/goldens/docs consistency sweep. Validation strategy added with typecheck/build/vitest/golden gates.
 - Phase 3.2 complete: public catalog exports `Group`, `BoxNode`, `LabelNode`, `IconNode`, `LabelIconNode`, `WebsiteNode`, `PageNode`, `AppNode`, `DecisionNode`, `IssueNode`, `ShapeNode`, `Line`, marker helpers, shared `BoxStyleProps`, and icon slot types. Schema/examples/docs use `component` instead of legacy `shape`; old shape-specific node files were removed. Full typecheck/build/test/golden verification passed.
+- Phase 3.3 complete: `cora preview` is a Vite-backed local workbench with built-in component pack, primary/secondary node selection, typed prop controls, connected/grouped scenarios, drag-updated line endpoints, distributed attachment slot overlay, `dist/preview` package assets, and clean-install smoke coverage. Full typecheck/build/Vitest/smoke verification passed; in-app browser automation was unavailable, so localhost runtime was probed through the served root and entry module.
 
 ### Roadmap Evolution
 
@@ -89,6 +90,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-22T19:55:39.395Z
-Stopped at: Phase 3.3 UI-SPEC approved
-Resume file: .planning/phases/3.3-component-preview-canvas/3.3-UI-SPEC.md
+Last session: 2026-05-22T20:55:50.813Z
+Stopped at: Completed 3.3-04-PLAN.md
+Resume file: None

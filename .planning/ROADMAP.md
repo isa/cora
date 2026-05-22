@@ -16,7 +16,7 @@
 | 3 | PDF Export | Shareable PDF artifacts | EXP-02–05 |
 | 3.1 | Renderer Component Refactor (INSERTED) | Reusable React component library for renderer | REN-* (consolidation) |
 | 3.2 | Renderer Component Library (INSERTED) ✓ | Full reusable renderer component catalog and style vocabulary | RCL-* (new) |
-| 3.3 | Component Preview Canvas (INSERTED) | `cora preview` browser SPA for browsing + tuning components | PREV-* (new) |
+| 3.3 | Component Preview Canvas (INSERTED) ✓ | `cora preview` browser SPA for browsing + tuning components | PREV-* |
 | 4 | Interactive Canvas | Human layout polish loop | CLI-06, SRV-* |
 | 5 | Extension System | Provider themes & icons | EXT-* |
 | 6 | Hardening | v1 release readiness | CLI-07, AGT-02 |
@@ -176,20 +176,20 @@ Plans:
 
 ---
 
-### Phase 3.3: Component Preview Canvas (INSERTED)
+### Phase 3.3: Component Preview Canvas (INSERTED) ✓ 2026-05-22
 **Goal:** `bun run cora preview` boots a local dev server + opens a browser SPA where the user can pick a component pack from a sidebar, drill into individual components, render them on an isolated canvas with various combinations, tune attributes (color, border-width, text, font weight, padding, etc.) live, and visualise edge/line attachment points.
 **Mode:** mvp
-**Requirements:** PREV-01–06 (new requirement family — see REQUIREMENTS.md to be drafted in discuss-phase)
+**Requirements:** PREV-01–06
 **UI hint:** yes — first phase with a real interactive UI (Phase 4 will reuse infrastructure)
 **Depends on:** Phase 3.2 (consumes the full typed renderer component catalog and style vocabulary). Soft dep on Phase 5: when extensions ship, the "pack" picker grows from "built-ins only" to "built-ins + installed extensions" without breaking the v1 contract.
 
-**Tentative requirements (PREV-*):**
-- **PREV-01:** `cora preview` boots a local dev server (Vite or similar), opens a default browser, and exits cleanly on Ctrl-C
-- **PREV-02:** Sidebar lists component packs; v1 ships with one pack ("built-ins") containing every typed node/group/line component from Phase 3.2's catalog
-- **PREV-03:** Selecting a component renders it in isolation on a centered canvas with default props; user can also pick "combinations" (presets: alone, two-connected, three-with-group, etc.)
-- **PREV-04:** A controls panel exposes each prop in the component's typed interface (color = color picker, border-width = number slider, text = text input, font weight = select). Editing a control re-renders live
-- **PREV-05:** A "line attachments" overlay draws the geometric attachment points the renderer uses for edge endpoints (top/right/bottom/left + any corner anchors), so designers can verify where edges will hit
-- **PREV-06:** No diagram YAML is required — the preview drives components directly from their prop interfaces, decoupled from the layout engine
+**Requirements (PREV-*):**
+- **PREV-01:** `cora preview` boots a local dev server, opens a browser by default, supports no-open/test mode, and exits cleanly on Ctrl-C
+- **PREV-02:** Built-in pack lists every Phase 3.2 node component and includes group/line scenario metadata without treating groups or lines as selected components
+- **PREV-03:** Workbench supports primary and secondary selected nodes with scenarios: isolated, connected, grouped, and grouped + connected
+- **PREV-04:** Typed prop controls expose valid component props and update the canvas live while preventing invalid values
+- **PREV-05:** Attachment overlay shows computed distributed slots, subtle side guides, toggleable labels, and live drag updates
+- **PREV-06:** Preview drives renderer components directly from prop/control state and does not require or persist diagram YAML
 
 **Success Criteria:**
 1. `bun run cora preview` opens a browser at a localhost URL with a sidebar + canvas + controls panel
@@ -205,6 +205,14 @@ Plans:
 - Avoid coupling the controls panel to a UI framework that pollutes the renderer (preview UI = React, but live in `packages/cora-preview/` or under `src/preview/`, not in `src/renderer/`)
 - The pack registry must be open to extensions (Phase 5) but closed to ad-hoc imports — define a `PackManifest` interface up front
 - Bundled-asset path: the preview SPA's HTML/JS must ship in the npm tarball so `cora preview` works after `npm install cora` with no extra deps
+
+**Plans:** 4 plans
+
+Plans:
+- [x] 3.3-01-PLAN.md — Preview CLI command, Vite server helper, SPA shell, and build output
+- [x] 3.3-02-PLAN.md — Internal built-in pack, typed controls, scenarios, and two-node state model
+- [x] 3.3-03-PLAN.md — Workbench UI, drag geometry, live connection endpoints, and attachment overlay
+- [x] 3.3-04-PLAN.md — PREV requirements, package asset checks, clean-install smoke, and docs
 
 ---
 
