@@ -1,6 +1,6 @@
 # Cora
 
-Open-source diagram tool for AI coding agents and the humans who review their output. Agents author architectural diagrams as YAML; the CLI validates and renders professional SVG or PNG artifacts.
+Open-source diagram tool for AI coding agents and the humans who review their output. Agents author architectural diagrams as YAML; the CLI validates and renders professional SVG, PNG, or PDF artifacts.
 
 > **AI agents: read [AGENTS.md](./AGENTS.md) first** — validate loop, JSON error shape, schema contract, and error codes.
 
@@ -10,10 +10,11 @@ Open-source diagram tool for AI coding agents and the humans who review their ou
 |-------|--------|-----------|
 | 1 — Foundation | Complete | `cora validate`, `cora schema`, v1 JSON Schema, structured errors |
 | 2 — Renderer + SVG | Complete | `cora render` → `.svg` / `.png`, ELK layout, pure SVG renderer, default theme |
-| 3 — PDF Export | Next | `cora render -o diagram.pdf` |
+| 3 — PDF Export | Complete | `cora render -o diagram.pdf` |
+| 3.3 — Component Preview Canvas | In progress | `cora preview` local component workbench |
 | 4+ | Planned | `cora serve`, extensions (`cora ext`), `cora doctor` |
 
-**Today:** validate any diagram, export schema, render all five v1 diagram kinds to SVG or PNG. Edge labels sit offset from the line with a gap in the stroke; orthogonal crossings can show bridge jumps. Provider icons require extensions (not bundled in core).
+**Today:** validate any diagram, export schema, render all five v1 diagram kinds to SVG, PNG, or PDF, and run `cora preview` as a local workbench for built-in renderer components. Provider icons require extensions (not bundled in core).
 
 ## Install
 
@@ -64,6 +65,9 @@ bun run cora render examples/valid/box-arrows.yaml -o /tmp/diagram.png
 
 # Export JSON Schema
 bun run cora schema --out cora-schema.json
+
+# Open the local component preview workbench
+bun run cora preview --no-open
 ```
 
 ## Commands
@@ -159,6 +163,24 @@ Print the v1 diagram JSON Schema (`https://cora.dev/schema/v1/diagram.json`).
 ```bash
 cora schema
 cora schema --out cora-schema.json
+```
+
+### `cora preview`
+
+Start a local browser workbench for built-in renderer components. The preview
+does not take a YAML input file and does not persist YAML or layout changes.
+Selected components are nodes only, with a maximum of one primary and one
+secondary node; lines and groups are relationship context.
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--host <host>` | `127.0.0.1` | Host interface for the local server |
+| `--port <port>` | `4173` | Preferred local port |
+| `--no-open` | off | Do not open the default browser |
+
+```bash
+cora preview
+cora preview --no-open
 ```
 
 ## Diagram format

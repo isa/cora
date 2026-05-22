@@ -16,10 +16,24 @@ bun run cora validate diagram.yaml --format json
 bun run cora render diagram.yaml -o diagram.svg
 bun run cora render diagram.yaml -o diagram.png
 bun run cora render diagram.yaml -o diagram.pdf
+bun run cora preview
+bun run cora preview --no-open
 bun run cora schema
 ```
 
 After `bun link` in `packages/cora`, you can use `cora` directly.
+
+## Preview workbench
+
+`cora preview` starts a local component workbench for built-in renderer
+components. It does not require a diagram YAML file. Use `cora preview --no-open`
+or `bun run cora preview --no-open` in tests and automation to avoid launching a
+browser.
+
+Preview selection means nodes only, with at most a primary node and secondary
+node selected at once. Lines/connections and groups are context for inspecting
+relationships and grouped layouts; they are not selected components. Dragging is
+preview-local and does not persist YAML, layout, or source-file changes.
 
 ## Recommended agent loop
 

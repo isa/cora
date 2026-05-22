@@ -56,6 +56,15 @@
 - [x] **RCL-09**: Marker values are `none | arrow | circle | filledCircle`; `Line` is the public edge primitive and `Arrow` is internal compatibility only
 - [x] **RCL-10**: Components remain pure React/SVG functions with no DOM dependency and no direct YAML parsing
 
+### Component Preview Canvas
+
+- [ ] **PREV-01**: `cora preview` boots a local dev server, opens a browser by default, supports no-open/test mode, and exits cleanly on Ctrl-C
+- [ ] **PREV-02**: Built-in pack lists every Phase 3.2 node component and includes group/line scenario metadata without treating groups or lines as selected components
+- [ ] **PREV-03**: Workbench supports primary and secondary selected nodes with scenarios: isolated, connected, grouped, and grouped + connected
+- [ ] **PREV-04**: Typed prop controls expose valid component props and update the canvas live while preventing invalid values
+- [ ] **PREV-05**: Attachment overlay shows computed distributed slots, subtle side guides, toggleable labels, and live drag updates
+- [ ] **PREV-06**: Preview drives renderer components directly from prop/control state and does not require or persist diagram YAML
+
 ### Export
 
 - [ ] **EXP-01**: `cora render -o out.svg` writes SVG via `renderToStaticMarkup`
@@ -160,6 +169,12 @@ Deferred to post-v1. Tracked but not in current roadmap.
 | RCL-08 | Phase 3.2 | Done (3.2-04) |
 | RCL-09 | Phase 3.2 | Done (3.2-04) |
 | RCL-10 | Phase 3.2 | Done (3.2-04) |
+| PREV-01 | Phase 3.3 | Planned |
+| PREV-02 | Phase 3.3 | Planned |
+| PREV-03 | Phase 3.3 | Planned |
+| PREV-04 | Phase 3.3 | Planned |
+| PREV-05 | Phase 3.3 | Planned |
+| PREV-06 | Phase 3.3 | Planned |
 | CLI-05 | Phase 2 | Pending |
 | EXP-01 | Phase 2 | Pending |
 | EXP-02 | Phase 3 | Done (03-02) |
@@ -186,10 +201,10 @@ Deferred to post-v1. Tracked but not in current roadmap.
 | AGT-02 | Phase 6 | Pending |
 
 **Coverage:**
-- v1 requirements: 54 total
-- Mapped to phases: 54
+- v1 requirements: 60 total
+- Mapped to phases: 60
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-05-21*
-*Last updated: 2026-05-22 after Phase 3.2 execution*
+*Last updated: 2026-05-22 during Phase 3.3 execution*

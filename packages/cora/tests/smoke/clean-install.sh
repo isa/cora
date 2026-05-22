@@ -21,7 +21,7 @@ echo "[smoke] SMOKE_DIR=$SMOKE_DIR"
 ( cd "$PKG_DIR" && bun run build >/dev/null )
 
 # Pack the local cora package into a tarball.
-( cd "$PKG_DIR" && npm pack --pack-destination "$SMOKE_DIR" >/dev/null )
+( cd "$PKG_DIR" && npm_config_cache="$SMOKE_DIR/npm-cache" npm pack --pack-destination "$SMOKE_DIR" >/dev/null )
 TARBALL="$(ls "$SMOKE_DIR"/cora-*.tgz | head -1)"
 test -n "$TARBALL" || { echo "[smoke] FAIL: no tarball produced"; exit 1; }
 
@@ -61,6 +61,13 @@ test -f "$SMOKE_DIR/install/node_modules/cora/dist/renderer/assets/fonts/NotoSan
 test -d "$SMOKE_DIR/install/node_modules/playwright" \
   || { echo "[smoke] FAIL: playwright runtime dep not installed; no-Chromium assertion is vacuous"; exit 1; }
 
+# Assertion 5: preview browser assets ship and preview help is available without
+# launching a server or browser.
+test -f "$SMOKE_DIR/install/node_modules/cora/dist/preview/index.html" \
+  || { echo "[smoke] FAIL: dist/preview/index.html missing from published package"; exit 1; }
+"$SMOKE_DIR/install/node_modules/.bin/cora" preview --help | grep -q -- "--no-open" \
+  || { echo "[smoke] FAIL: cora preview --help missing --no-open"; exit 1; }
+
 # Note on .npmrc strategy (Plan 03):
 #   npm pack INTENTIONALLY strips `.npmrc` from published tarballs (security:
 #   prevents credentials leaking and prevents shipped configs from overriding
@@ -73,4 +80,4 @@ test -d "$SMOKE_DIR/install/node_modules/playwright" \
 #   code path, gated behind `--quality=high` + consent.
 #   This script is the load-bearing proof that this remains true.
 
-echo "[smoke] PASS: cora installs cleanly, no Chromium downloaded, fonts shipped, playwright runtime present"
+echo "[smoke] PASS: cora installs cleanly, no Chromium downloaded, fonts and preview assets shipped"
