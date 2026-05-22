@@ -1,6 +1,5 @@
 import type { LayoutedDiagram, LayoutedNode } from '../layout-ir.js';
 import {
-  Arrow,
   BoxNode,
   CloudNode,
   CylinderNode,
@@ -8,6 +7,8 @@ import {
   EdgeLabel,
   Group,
   HexagonNode,
+  Line,
+  LineMarkerDefs,
   RoundedNode,
 } from './components/index.js';
 import { computeViewBox } from './viewBox.js';
@@ -50,9 +51,10 @@ export function Diagram({ diagram }: DiagramProps) {
           y="-50%"
           width="200%"
           height="200%"
-        >
+      >
           <feGaussianBlur stdDeviation={diagram.theme.shadowBlur} />
         </filter>
+        <LineMarkerDefs color={diagram.theme.edge.stroke} />
       </defs>
       <rect x={vx} y={vy} width={vw} height={vh} fill={diagram.theme.background} />
       <g id="groups">
@@ -65,10 +67,12 @@ export function Diagram({ diagram }: DiagramProps) {
       </g>
       <g id="edges">
         {diagram.edges.map((edge) => (
-          <Arrow
+          <Line
             key={`${edge.from}-${edge.to}-${edge.label ?? ''}`}
-            edge={edge}
-            theme={diagram.theme}
+            points={edge.points}
+            strokeColor={diagram.theme.edge.stroke}
+            strokeWidth={diagram.theme.edge.strokeWidth}
+            endMarker="arrow"
           />
         ))}
       </g>

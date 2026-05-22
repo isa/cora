@@ -7,6 +7,7 @@ import {
 } from '../../../core/edgeGeometry.js';
 import type { LayoutedEdge } from '../../../layout-ir.js';
 import type { EdgeComponentProps } from '../types.js';
+import { Line } from '../lines/Line.js';
 import {
   bridgeHalfSpan,
   edgeLabelGapHalfSpan,
@@ -222,21 +223,13 @@ export function Arrow({ edge, theme }: EdgeComponentProps) {
   const pathData = buildPathData(edge);
   const points = displayTipPoints(edge);
 
-  const last = points[points.length - 1]!;
-  const prev = points[points.length - 2]!;
-
   return (
-    <g>
-      <path
-        d={pathData}
-        fill="none"
-        stroke={theme.edge.stroke}
-        strokeWidth={theme.edge.strokeWidth}
-      />
-      <polygon
-        points={arrowHead(prev, last)}
-        fill={theme.edge.stroke}
-      />
-    </g>
+    <Line
+      points={points}
+      pathData={pathData}
+      strokeColor={theme.edge.stroke}
+      strokeWidth={theme.edge.strokeWidth}
+      endMarker="arrow"
+    />
   );
 }

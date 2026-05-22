@@ -3,6 +3,7 @@ import { lineDasharray, type LineStyle } from './styles.js';
 
 export interface LineProps {
   points: Array<{ x: number; y: number }>;
+  pathData?: string;
   lineStyle?: LineStyle;
   strokeColor?: string;
   strokeWidth?: number;
@@ -24,6 +25,7 @@ function pathData(points: LineProps['points']): string {
 
 export function Line({
   points,
+  pathData: explicitPathData,
   lineStyle = 'solid',
   strokeColor = 'currentColor',
   strokeWidth = 1,
@@ -36,7 +38,7 @@ export function Line({
 
   return (
     <path
-      d={pathData(points)}
+      d={explicitPathData ?? pathData(points)}
       fill="none"
       stroke={strokeColor}
       strokeWidth={strokeWidth}
