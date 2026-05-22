@@ -640,26 +640,26 @@ No `./CLAUDE.md` file exists in the project root (verified by `cat`). No project
 
 User confirmation needed: A1, A3, A4 are the load-bearing assumptions. Wave 0 of the plan should resolve these empirically rather than locking them in.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **TTF source for Noto Sans.**
    - What we know: Noto Sans is OFL 1.1, available from notofonts.github.io (TTF) and Google Fonts (TTF/variable).
    - What's unclear: Whether to bundle full TTF (~600KB each) or use static subsets. pdf-lib's `embedFont(buf, { subset: true })` does the subsetting at PDF-build time, so file size on disk is the only concern.
-   - Recommendation: Vendor `NotoSans-Regular.ttf` + `NotoSans-SemiBold.ttf` from `notofonts/notofonts.github.io` repo (static OpenType folder). ~600KB extra in published npm tarball is acceptable; the alternative is to depend on `@fontsource/noto-sans` at runtime, which adds a dependency for a static asset.
+   - **RESOLVED:** Vendor `NotoSans-Regular.ttf` + `NotoSans-SemiBold.ttf` from `notofonts/notofonts.github.io` (static OpenType folder), pinned to a specific release commit and documented in `assets/fonts/SOURCES.md`. ~600KB extra in the published npm tarball is acceptable; adding a runtime dep on `@fontsource/noto-sans` for a static asset is rejected.
 
 2. **resvg warning text matching.**
    - What we know: Warning format is approximately `Warning: No match for font-family: ...`.
    - What's unclear: Whether the exact substring is stable across resvg-js patch versions, or whether other warning categories (e.g., unsupported SVG filters) should also fail CI.
-   - Recommendation: Match the broad pattern `/^Warning: /` for CI failure (per D-11: "treat as errors"). Document the exact substrings observed in tests.
+   - **RESOLVED:** Match the broad pattern `/^Warning: /` (case-insensitive on `warn`) for CI failure (per D-11: "treat as errors"). Tests record the exact observed substrings; the broad pattern protects against minor resvg-js patch-version drift.
 
 3. **Should `--page=auto` exist?**
    - What we know: D-01 says fit-to-content is the default *behavior* (no flag).
    - What's unclear: Whether `--page=auto` should also be accepted as an alias for "explicit fit-to-content," for symmetry with `--page=a4`.
-   - Recommendation: Skip — adding alias complicates docs and tests for no user benefit. Just omit `--page` to get fit-to-content.
+   - **RESOLVED:** No `--page=auto` alias — adding it complicates docs and tests for no user benefit. Omit `--page` to get fit-to-content.
 
 4. **Should `--quality=high` work without `-o`?**
    - What we know: render command already requires `-o`.
-   - Recommendation: Same constraint applies; no change needed.
+   - **RESOLVED:** Same constraint applies — `-o <path>` is required for all render invocations regardless of `--quality`. No change needed.
 
 ## Environment Availability
 
