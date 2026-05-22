@@ -10,7 +10,6 @@ import {
   bridgeHalfSpan,
   edgeLabelGapHalfSpan,
   edgeLabelUsesPathGap,
-  EDGE_BRIDGE_HEIGHT,
   MIN_LABELED_EDGE_STUB,
 } from './decorations.js';
 
@@ -35,15 +34,6 @@ function pointOnSegment(
   return segment.orientation === 'horizontal'
     ? { x: scalar, y: segment.a.y }
     : { x: segment.a.x, y: scalar };
-}
-
-function controlPoint(
-  segment: EdgeSegment,
-  center: number,
-): EdgePoint {
-  return segment.orientation === 'horizontal'
-    ? { x: center, y: segment.a.y - EDGE_BRIDGE_HEIGHT }
-    : { x: segment.a.x + EDGE_BRIDGE_HEIGHT, y: center };
 }
 
 function samePoint(a: EdgePoint, b: EdgePoint): boolean {
@@ -258,8 +248,7 @@ export function edgeLinePathData(edge: LayoutedEdge): string {
       if (decoration.kind === 'gap') {
         commands.push(`M ${endPoint.x} ${endPoint.y}`);
       } else {
-        const control = controlPoint(segment, decoration.center);
-        commands.push(`Q ${control.x} ${control.y} ${endPoint.x} ${endPoint.y}`);
+        commands.push(`L ${endPoint.x} ${endPoint.y}`);
       }
 
       cursor = endPoint;
@@ -330,10 +319,7 @@ export function edgeBridgeMaskPathData(edge: LayoutedEdge): string {
 
       const startPoint = pointOnSegment(segment, startScalar);
       const endPoint = pointOnSegment(segment, endScalar);
-      const control = controlPoint(segment, decoration.center);
-      commands.push(
-        `M ${startPoint.x} ${startPoint.y} Q ${control.x} ${control.y} ${endPoint.x} ${endPoint.y}`,
-      );
+      commands.push(`M ${startPoint.x} ${startPoint.y} L ${endPoint.x} ${endPoint.y}`);
     }
   }
 

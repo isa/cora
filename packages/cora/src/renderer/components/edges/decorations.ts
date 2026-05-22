@@ -8,7 +8,6 @@ export const EDGE_LABEL_PADDING = LABELED_EDGE_LABEL_PADDING;
 export { MIN_LABELED_EDGE_STUB };
 export const EDGE_LABEL_OFFSET = 10;
 export const EDGE_BRIDGE_RADIUS = 3;
-export const EDGE_BRIDGE_HEIGHT = 1.5;
 
 export function edgeLabelGapHalfSpan(label: EdgeLabelPlacement): number {
   return (

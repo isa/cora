@@ -36,7 +36,6 @@ export type { SvgIconComponent, SvgIconProps } from './icons.js';
 export { EdgeLabel } from './edges/EdgeLabel.js';
 export {
   bridgeHalfSpan,
-  EDGE_BRIDGE_HEIGHT,
   EDGE_BRIDGE_RADIUS,
   EDGE_LABEL_OFFSET,
   EDGE_LABEL_PADDING,

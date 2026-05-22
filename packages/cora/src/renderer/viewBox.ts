@@ -1,8 +1,5 @@
 import type { LayoutedDiagram } from '../layout-ir.js';
-import {
-  EDGE_BRIDGE_HEIGHT,
-  edgeLabelRenderPosition,
-} from './components/index.js';
+import { edgeLabelRenderPosition } from './components/index.js';
 
 const VIEWBOX_PADDING = 24;
 
@@ -46,13 +43,6 @@ export function computeViewBox(diagram: LayoutedDiagram): string {
     } else if (edge.labelX !== undefined && edge.labelY !== undefined) {
       consider(edge.labelX - 20, edge.labelY - 10);
       consider(edge.labelX + 20, edge.labelY + 10);
-    }
-    for (const bridge of edge.bridges ?? []) {
-      if (bridge.orientation === 'horizontal') {
-        consider(bridge.x, bridge.y - EDGE_BRIDGE_HEIGHT);
-      } else {
-        consider(bridge.x + EDGE_BRIDGE_HEIGHT, bridge.y);
-      }
     }
   }
 

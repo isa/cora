@@ -233,7 +233,7 @@ describe('edge labels', () => {
     expect(pathData).toMatch(/L 50 4\d(?:\.\d+)?/);
   });
 
-  it('draws overlap bridges as tiny bumps', () => {
+  it('keeps overlap bridge crossings straight', () => {
     const pathData = edgeLinePathData({
       from: 'a',
       to: 'b',
@@ -251,10 +251,11 @@ describe('edge labels', () => {
       ],
     });
 
-    expect(pathData).toContain('L 47 0 Q 50 -1.5 53 0');
+    expect(pathData).toContain('L 47 0 L 53 0');
+    expect(pathData).not.toContain('Q 50');
   });
 
-  it('exposes bridge mask paths for hiding the crossed stroke below bumps', () => {
+  it('exposes straight bridge mask paths for hiding the crossed stroke below', () => {
     const maskPathData = edgeBridgeMaskPathData({
       from: 'a',
       to: 'b',
@@ -272,7 +273,7 @@ describe('edge labels', () => {
       ],
     });
 
-    expect(maskPathData).toBe('M 47 0 Q 50 -1.5 53 0');
+    expect(maskPathData).toBe('M 47 0 L 53 0');
   });
 
   it('adds bridges when a segment endpoint touches another segment interior', () => {
