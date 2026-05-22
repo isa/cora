@@ -15,6 +15,7 @@ import {
 } from './decorations.js';
 
 const EDGE_ENDPOINT_CLEARANCE = 2;
+const EDGE_ELBOW_RADIUS = 8;
 
 type SegmentDecoration =
   | { kind: 'gap'; center: number; halfSpan: number }
@@ -44,6 +45,10 @@ function controlPoint(
 
 function samePoint(a: EdgePoint, b: EdgePoint): boolean {
   return Math.abs(a.x - b.x) < 0.001 && Math.abs(a.y - b.y) < 0.001;
+}
+
+function segmentLength(a: EdgePoint, b: EdgePoint): number {
+  return Math.hypot(b.x - a.x, b.y - a.y);
 }
 
 function offsetToward(from: EdgePoint, to: EdgePoint, distance: number): EdgePoint {
@@ -138,6 +143,29 @@ function segmentDecorations(edge: LayoutedEdge, segment: EdgeSegment): SegmentDe
   });
 }
 
+function cornerRadius(prev: EdgeSegment, next: EdgeSegment): number {
+  if (prev.orientation === next.orientation) {
+    return 0;
+  }
+
+  return Math.min(EDGE_ELBOW_RADIUS, prev.length / 2, next.length / 2);
+}
+
+function roundedSegmentPoints(
+  segment: EdgeSegment,
+  previous: EdgeSegment | undefined,
+  next: EdgeSegment | undefined,
+): { a: EdgePoint; b: EdgePoint; nextStart?: EdgePoint } {
+  const startRadius = previous ? cornerRadius(previous, segment) : 0;
+  const endRadius = next ? cornerRadius(segment, next) : 0;
+
+  return {
+    a: startRadius > 0 ? offsetToward(segment.a, segment.b, startRadius) : segment.a,
+    b: endRadius > 0 ? offsetToward(segment.b, segment.a, endRadius) : segment.b,
+    nextStart: next && endRadius > 0 ? offsetToward(segment.b, next.b, endRadius) : undefined,
+  };
+}
+
 export function edgeLinePathData(edge: LayoutedEdge): string {
   const points = edgeShaftPoints(edge.points);
   if (points.length === 0) {
@@ -147,12 +175,27 @@ export function edgeLinePathData(edge: LayoutedEdge): string {
   const commands = [`M ${points[0]!.x} ${points[0]!.y}`];
   const segments = edgeSegments(points);
 
-  for (const segment of segments) {
+  for (let index = 0; index < segments.length; index++) {
+    const originalSegment = segments[index]!;
+    const previous = segments[index - 1];
+    const next = segments[index + 1];
+    const rounded = roundedSegmentPoints(originalSegment, previous, next);
+    const segment: EdgeSegment = {
+      ...originalSegment,
+      a: rounded.a,
+      b: rounded.b,
+      length: segmentLength(rounded.a, rounded.b),
+    };
+
     let cursor = segment.a;
     const segmentStart = axisValue(segment.a, segment.orientation);
     const segmentEnd = axisValue(segment.b, segment.orientation);
     const min = Math.min(segmentStart, segmentEnd);
     const max = Math.max(segmentStart, segmentEnd);
+
+    if (!samePoint(commands.length === 1 ? points[0]! : cursor, segment.a)) {
+      commands.push(`L ${segment.a.x} ${segment.a.y}`);
+    }
 
     for (const decoration of segmentDecorations(edge, segment)) {
       const effectiveHalfSpan = Math.max(
@@ -190,6 +233,12 @@ export function edgeLinePathData(edge: LayoutedEdge): string {
 
     if (!samePoint(cursor, segment.b)) {
       commands.push(`L ${segment.b.x} ${segment.b.y}`);
+    }
+
+    if (rounded.nextStart) {
+      commands.push(
+        `Q ${originalSegment.b.x} ${originalSegment.b.y} ${rounded.nextStart.x} ${rounded.nextStart.y}`,
+      );
     }
   }
 

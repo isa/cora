@@ -171,6 +171,20 @@ describe('edge labels', () => {
     expect(pathData).toContain('M 71');
   });
 
+  it('rounds orthogonal edge elbows', () => {
+    const pathData = edgeLinePathData({
+      from: 'a',
+      to: 'b',
+      points: [
+        { x: 0, y: 0 },
+        { x: 50, y: 0 },
+        { x: 50, y: 50 },
+      ],
+    });
+
+    expect(pathData).toContain('Q 50 0 50 8');
+  });
+
   it('renders a backing fill behind edge labels', () => {
     const markup = renderToStaticMarkup(
       <EdgeLabel
