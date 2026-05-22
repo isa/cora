@@ -1,6 +1,9 @@
 import type { ElkExtendedEdge, ElkNode } from 'elkjs/lib/elk-api';
 
-import { expandLayoutForLabeledEdges } from './labeledEdgeExpansion.js';
+import {
+  expandLayoutForLabeledEdges,
+  updateLabeledEdgePlacements,
+} from './labeledEdgeExpansion.js';
 import { edgeBridgeMap, edgePathMidpoint, edgeShaftMidpoint } from './edgeGeometry.js';
 import { runElkLayout } from './layoutWorker.js';
 import { measureLabel } from './measureText.js';
@@ -444,6 +447,7 @@ function layoutPreserve(
 
   const nodeById = new Map(nodes.map((node) => [node.id, node]));
   const edges = buildLayoutedEdges(diagram.edges, nodeById, undefined);
+  updateLabeledEdgePlacements(nodes, edges);
   const groups: LayoutedGroup[] = (diagram.groups ?? []).map((group) => ({
     id: group.id,
     label: group.label,
