@@ -53,6 +53,7 @@ Recent decisions affecting current work:
 ### Roadmap Evolution
 
 - 2026-05-22 — Phase 3.1 inserted after Phase 3 (URGENT): Renderer Component Refactor — extract React node/edge/group components into a reusable library before Phase 4 (Interactive Canvas) wires a live canvas around them.
+- 2026-05-22 — Phase 3.2 inserted after Phase 3.1: Component Preview Canvas — `cora preview` browser SPA with pack/component picker, live attribute controls (color, border-width, text, etc.), and line-attachment overlay. Browser SPA delivery (not static HTML, not Storybook). Depends on Phase 3.1's typed component surface; seeds dev-server infrastructure Phase 4 reuses.
 
 ## Deferred Items
 
