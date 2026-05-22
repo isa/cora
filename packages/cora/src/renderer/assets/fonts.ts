@@ -20,7 +20,15 @@ const base = dirname(fileURLToPath(import.meta.url));
  */
 export function resolveFontPath(filename: string): string {
   const candidates = [
+    // dist flat layout: dist/renderer/assets/fonts/<filename>, when this
+    // module compiles into dist/renderer/ alongside an `assets/` dir.
     join(base, 'assets/fonts', filename),
+    // dev layout: this module is src/renderer/assets/fonts.ts and the
+    // fonts live in a sibling `fonts/` dir (vitest, tsx — base ends in
+    // assets/, so `<base>/fonts/<filename>` resolves correctly).
+    join(base, 'fonts', filename),
+    // dev fallback when the module is loaded with a different base:
+    // src/renderer/<...>/assets/fonts/<filename> from dist/renderer/foo.
     join(base, '../src/renderer/assets/fonts', filename),
   ];
 
