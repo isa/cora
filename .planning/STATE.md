@@ -11,8 +11,8 @@ See: .planning/PROJECT.md (updated 2026-05-21)
 
 Phase: 3.2 of 9 (Renderer Component Library)
 Plan: none yet
-Status: Phase 3.2 context gathered; ready to plan
-Last activity: 2026-05-22 — Phase 3.2 component catalog decisions captured
+Status: Phase 3.2 research gathered; ready to plan
+Last activity: 2026-05-22 — Phase 3.2 component library research captured
 
 Progress: [████░░░░░░] 44% (4/9 phases complete)
 
@@ -52,6 +52,7 @@ Recent decisions affecting current work:
 - Phase 3-04: npm pack strips .npmrc from tarballs (security feature) — Plan 03's .npmrc strategy is moot, BUT runtime `playwright` npm pkg does NOT auto-download Chromium in its own postinstall, so EXP-05 still holds. Smoke script asserts this empirically. CI (.github/workflows/ci.yml) runs vitest + smoke + golden on every push; gated Playwright lane (CORA_TEST_PLAYWRIGHT=1) stays manual
 - Phase 3.1: renderer components now live under `packages/cora/src/renderer/components/`; `Diagram.tsx` consumes `./components/index.js`; package subpath `cora/renderer/components` exports `NodeComponentProps`, `EdgeComponentProps`, `GroupComponentProps`, existing node components, `Arrow`, `EdgeLabel`, `Group`, and edge decoration helpers. Top-level `cora` export remains free of component exports. Build emits `dist/renderer/components/index.{js,d.ts}`.
 - Phase 3.2 context: replace old shape-specific public model with catalog components (`Group`, `BoxNode`, `LabelNode`, `IconNode`, `LabelIconNode`, `WebsiteNode`, `PageNode`, `AppNode`, `DecisionNode`, `IssueNode`, `ShapeNode`, `Line`, markers); remove old shape support consistently across renderer/schema/examples/goldens/docs; `Line` is public and `Arrow` is internal compatibility only.
+- Phase 3.2 research: recommended four-plan sequence — catalog style/line primitives, node catalog/icon slot, renderer/barrel migration, then schema/examples/goldens/docs consistency sweep. Validation strategy added with typecheck/build/vitest/golden gates.
 
 ### Roadmap Evolution
 
@@ -69,5 +70,5 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-05-22
-Stopped at: Phase 3.2 context gathered
-Resume file: `.planning/phases/3.2-renderer-component-library/3.2-CONTEXT.md`
+Stopped at: Phase 3.2 research gathered
+Resume file: `.planning/phases/3.2-renderer-component-library/3.2-RESEARCH.md`
