@@ -166,6 +166,14 @@ Plans:
 - Keep marker geometry centralized so future line endpoints do not duplicate trimming/attachment math
 - Preserve pure SVG and headless render compatibility; preview interactivity comes in Phase 3.3
 
+**Plans:** 4 plans
+
+Plans:
+- [ ] 3.2-01-PLAN.md — Wave 1: shared style/size contract, `Line`, marker primitives, and primitive tests
+- [ ] 3.2-02-PLAN.md — Wave 1: node catalog components and component-side icon slot contract
+- [ ] 3.2-03-PLAN.md — Wave 2 *(blocked on Wave 1 completion)*: migrate renderer path to `Line` and clean the public barrel
+- [ ] 3.2-04-PLAN.md — Wave 3 *(blocked on Wave 2 completion)*: schema/examples/goldens/docs consistency sweep
+
 ---
 
 ### Phase 3.3: Component Preview Canvas (INSERTED)
