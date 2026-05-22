@@ -199,6 +199,27 @@ describe('edge labels', () => {
     expect(pathData).not.toContain('Q 50 0');
   });
 
+  it('does not draw overlap bridges in the marker runway', () => {
+    const pathData = edgeLinePathData({
+      from: 'a',
+      to: 'b',
+      points: [
+        { x: 0, y: 0 },
+        { x: 80, y: 0 },
+      ],
+      bridges: [
+        {
+          x: 70,
+          y: 0,
+          segmentIndex: 0,
+          orientation: 'horizontal',
+        },
+      ],
+    });
+
+    expect(pathData).not.toContain('Q');
+  });
+
   it('renders a backing fill behind edge labels', () => {
     const markup = renderToStaticMarkup(
       <EdgeLabel

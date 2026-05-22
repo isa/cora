@@ -16,7 +16,7 @@ import {
 
 const EDGE_ENDPOINT_CLEARANCE = 2;
 const EDGE_ELBOW_RADIUS = 8;
-const EDGE_MARKER_RUNWAY = 14;
+const EDGE_MARKER_RUNWAY = 18;
 
 type SegmentDecoration =
   | { kind: 'gap'; center: number; halfSpan: number }
@@ -173,6 +173,28 @@ function roundedSegmentPoints(
   };
 }
 
+function decorationBounds(
+  segment: EdgeSegment,
+  endsAtMarker: boolean,
+): { min: number; max: number } {
+  const segmentStart = axisValue(segment.a, segment.orientation);
+  const segmentEnd = axisValue(segment.b, segment.orientation);
+  let min = Math.min(segmentStart, segmentEnd);
+  let max = Math.max(segmentStart, segmentEnd);
+
+  if (!endsAtMarker) {
+    return { min, max };
+  }
+
+  if (segmentEnd >= segmentStart) {
+    max = Math.max(min, segmentEnd - EDGE_MARKER_RUNWAY);
+  } else {
+    min = Math.min(max, segmentEnd + EDGE_MARKER_RUNWAY);
+  }
+
+  return { min, max };
+}
+
 export function edgeLinePathData(edge: LayoutedEdge): string {
   const points = edgeShaftPoints(edge.points);
   if (points.length === 0) {
@@ -200,10 +222,7 @@ export function edgeLinePathData(edge: LayoutedEdge): string {
     };
 
     let cursor = segment.a;
-    const segmentStart = axisValue(segment.a, segment.orientation);
-    const segmentEnd = axisValue(segment.b, segment.orientation);
-    const min = Math.min(segmentStart, segmentEnd);
-    const max = Math.max(segmentStart, segmentEnd);
+    const { min, max } = decorationBounds(segment, !next);
 
     if (!samePoint(commands.length === 1 ? points[0]! : cursor, segment.a)) {
       commands.push(`L ${segment.a.x} ${segment.a.y}`);
