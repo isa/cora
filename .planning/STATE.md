@@ -11,8 +11,8 @@ See: .planning/PROJECT.md (updated 2026-05-21)
 
 Phase: 3 of 6 (PDF Export)
 Plan: Not started
-Status: Phase 2 complete — ready for discuss/plan Phase 3
-Last activity: 2026-05-21 — Phase 2 execute complete
+Status: Phase 3 context gathered — ready for plan-phase
+Last activity: 2026-05-22 — Phase 3 discuss complete
 
 Progress: [████░░░░░░] 33% (2/6 phases complete)
 
@@ -55,6 +55,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-21
-Stopped at: Phase 2 complete
-Resume file: `.planning/phases/03-pdf-export/` (not yet created)
+Last session: 2026-05-22
+Stopped at: Phase 3 context gathered
+Resume file: `.planning/phases/03-pdf-export/03-CONTEXT.md`
