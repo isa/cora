@@ -14,6 +14,9 @@ import {
   ShapeNode,
   type SvgIconProps,
 } from '../../src/renderer/components/index.js';
+import { EdgeLabel } from '../../src/renderer/components/edges/EdgeLabel.js';
+import { edgeLinePathData } from '../../src/renderer/components/edges/edgePath.js';
+import { defaultTheme } from '../../src/renderer/themes/default.js';
 
 function TestIcon({ x = 0, y = 0, size, color }: SvgIconProps) {
   return (
@@ -142,5 +145,60 @@ describe('renderer catalog nodes', () => {
     );
 
     expect(markup).toContain('data-child="shape"');
+  });
+});
+
+describe('edge labels', () => {
+  it('cuts path gaps around inline edge labels', () => {
+    const pathData = edgeLinePathData({
+      from: 'a',
+      to: 'b',
+      label: 'request',
+      points: [
+        { x: 0, y: 0 },
+        { x: 100, y: 0 },
+      ],
+      labelPlacement: {
+        x: 50,
+        y: 0,
+        width: 36,
+        height: 8,
+        segmentIndex: 0,
+        orientation: 'horizontal',
+      },
+    });
+
+    expect(pathData).toContain('M 71');
+  });
+
+  it('renders a backing fill behind edge labels', () => {
+    const markup = renderToStaticMarkup(
+      <EdgeLabel
+        edge={{
+          from: 'a',
+          to: 'b',
+          label: 'response',
+          points: [
+            { x: 0, y: 0 },
+            { x: 100, y: 0 },
+          ],
+          labelX: 50,
+          labelY: 0,
+          labelPlacement: {
+            x: 50,
+            y: 0,
+            width: 42,
+            height: 8,
+            segmentIndex: 0,
+            orientation: 'horizontal',
+          },
+        }}
+        theme={defaultTheme}
+      />,
+    );
+
+    expect(markup).toContain('<rect');
+    expect(markup).toContain(`fill="${defaultTheme.background}"`);
+    expect(markup).toContain('response');
   });
 });

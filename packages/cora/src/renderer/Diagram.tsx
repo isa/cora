@@ -16,6 +16,7 @@ import {
 } from './components/index.js';
 import { BoxNode } from './components/nodes/BoxNode.js';
 import { DecisionNode } from './components/nodes/DecisionNode.js';
+import { edgeLineMarkerPoints, edgeLinePathData } from './components/edges/edgePath.js';
 import { computeViewBox } from './viewBox.js';
 
 export interface DiagramProps {
@@ -116,7 +117,8 @@ export function Diagram({ diagram }: DiagramProps) {
         {diagram.edges.map((edge) => (
           <Line
             key={`${edge.from}-${edge.to}-${edge.label ?? ''}`}
-            points={edge.points}
+            points={edgeLineMarkerPoints(edge)}
+            pathData={edgeLinePathData(edge)}
             strokeColor={diagram.theme.edge.stroke}
             strokeWidth={diagram.theme.edge.strokeWidth}
             endMarker="arrow"
