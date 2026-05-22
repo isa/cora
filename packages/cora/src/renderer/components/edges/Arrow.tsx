@@ -1,6 +1,10 @@
 import type { EdgeComponentProps } from '../types.js';
 import { Line } from '../lines/Line.js';
-import { edgeLineMarkerPoints, edgeLinePathData } from './edgePath.js';
+import {
+  edgeBridgeMaskPathData,
+  edgeLineMarkerPoints,
+  edgeLinePathData,
+} from './edgePath.js';
 
 export function Arrow({ edge, theme }: EdgeComponentProps) {
   if (edge.points.length < 2) {
@@ -8,15 +12,34 @@ export function Arrow({ edge, theme }: EdgeComponentProps) {
   }
 
   const pathData = edgeLinePathData(edge);
+  const bridgeMaskPathData = edgeBridgeMaskPathData(edge);
   const points = edgeLineMarkerPoints(edge);
 
   return (
-    <Line
-      points={points}
-      pathData={pathData}
-      strokeColor={theme.edge.stroke}
-      strokeWidth={theme.edge.strokeWidth}
-      endMarker="arrow"
-    />
+    <>
+      <Line
+        points={points}
+        pathData={pathData}
+        strokeColor={theme.edge.stroke}
+        strokeWidth={theme.edge.strokeWidth}
+        endMarker="arrow"
+      />
+      {bridgeMaskPathData ? (
+        <>
+          <Line
+            points={points}
+            pathData={bridgeMaskPathData}
+            strokeColor={theme.background}
+            strokeWidth={theme.edge.strokeWidth + 3}
+          />
+          <Line
+            points={points}
+            pathData={bridgeMaskPathData}
+            strokeColor={theme.edge.stroke}
+            strokeWidth={theme.edge.strokeWidth}
+          />
+        </>
+      ) : null}
+    </>
   );
 }

@@ -14,8 +14,12 @@ import {
   ShapeNode,
   type SvgIconProps,
 } from '../../src/renderer/components/index.js';
+import { edgeBridgeMap } from '../../src/core/edgeGeometry.js';
 import { EdgeLabel } from '../../src/renderer/components/edges/EdgeLabel.js';
-import { edgeLinePathData } from '../../src/renderer/components/edges/edgePath.js';
+import {
+  edgeBridgeMaskPathData,
+  edgeLinePathData,
+} from '../../src/renderer/components/edges/edgePath.js';
 import { defaultTheme } from '../../src/renderer/themes/default.js';
 
 function TestIcon({ x = 0, y = 0, size, color }: SvgIconProps) {
@@ -247,7 +251,58 @@ describe('edge labels', () => {
       ],
     });
 
-    expect(pathData).toContain('L 46 0 Q 50 -2 54 0');
+    expect(pathData).toContain('L 47 0 Q 50 -1.5 53 0');
+  });
+
+  it('exposes bridge mask paths for hiding the crossed stroke below bumps', () => {
+    const maskPathData = edgeBridgeMaskPathData({
+      from: 'a',
+      to: 'b',
+      points: [
+        { x: 0, y: 0 },
+        { x: 100, y: 0 },
+      ],
+      bridges: [
+        {
+          x: 50,
+          y: 0,
+          segmentIndex: 0,
+          orientation: 'horizontal',
+        },
+      ],
+    });
+
+    expect(maskPathData).toBe('M 47 0 Q 50 -1.5 53 0');
+  });
+
+  it('adds bridges when a segment endpoint touches another segment interior', () => {
+    const bridges = edgeBridgeMap([
+      {
+        from: 'a',
+        to: 'b',
+        points: [
+          { x: 0, y: 40 },
+          { x: 80, y: 40 },
+        ],
+      },
+      {
+        from: 'c',
+        to: 'd',
+        points: [
+          { x: 40, y: 0 },
+          { x: 40, y: 40 },
+        ],
+      },
+    ]);
+
+    expect(bridges.get(0)).toEqual([
+      {
+        x: 40,
+        y: 40,
+        segmentIndex: 0,
+        orientation: 'horizontal',
+      },
+    ]);
   });
 
   it('does not draw overlap bridges in the marker runway', () => {

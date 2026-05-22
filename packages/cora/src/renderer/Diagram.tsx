@@ -16,7 +16,11 @@ import {
 } from './components/index.js';
 import { BoxNode } from './components/nodes/BoxNode.js';
 import { DecisionNode } from './components/nodes/DecisionNode.js';
-import { edgeLineMarkerPoints, edgeLinePathData } from './components/edges/edgePath.js';
+import {
+  edgeBridgeMaskPathData,
+  edgeLineMarkerPoints,
+  edgeLinePathData,
+} from './components/edges/edgePath.js';
 import { computeViewBox } from './viewBox.js';
 
 export interface DiagramProps {
@@ -124,6 +128,34 @@ export function Diagram({ diagram }: DiagramProps) {
             endMarker="arrow"
           />
         ))}
+      </g>
+      <g id="edge-bridge-masks">
+        {diagram.edges.map((edge) => {
+          const bridgeMaskPathData = edgeBridgeMaskPathData(edge);
+          return bridgeMaskPathData ? (
+            <Line
+              key={`bridge-mask-${edge.from}-${edge.to}-${edge.label ?? ''}`}
+              points={edgeLineMarkerPoints(edge)}
+              pathData={bridgeMaskPathData}
+              strokeColor={diagram.theme.background}
+              strokeWidth={diagram.theme.edge.strokeWidth + 3}
+            />
+          ) : null;
+        })}
+      </g>
+      <g id="edge-bridges">
+        {diagram.edges.map((edge) => {
+          const bridgePathData = edgeBridgeMaskPathData(edge);
+          return bridgePathData ? (
+            <Line
+              key={`bridge-${edge.from}-${edge.to}-${edge.label ?? ''}`}
+              points={edgeLineMarkerPoints(edge)}
+              pathData={bridgePathData}
+              strokeColor={diagram.theme.edge.stroke}
+              strokeWidth={diagram.theme.edge.strokeWidth}
+            />
+          ) : null;
+        })}
       </g>
       <g id="edge-labels">
         {diagram.edges.map((edge) => (

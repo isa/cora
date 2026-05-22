@@ -278,3 +278,64 @@ export function edgeLinePathData(edge: LayoutedEdge): string {
 
   return commands.join(' ');
 }
+
+export function edgeBridgeMaskPathData(edge: LayoutedEdge): string {
+  const points = edgeShaftPoints(edge.points);
+  if (points.length === 0) {
+    return '';
+  }
+
+  const commands: string[] = [];
+  const segments = edgeSegments(points);
+
+  for (let index = 0; index < segments.length; index++) {
+    const originalSegment = segments[index]!;
+    const previous = segments[index - 1];
+    const next = segments[index + 1];
+    const rounded = roundedSegmentPoints(
+      originalSegment,
+      previous,
+      next,
+      index + 1 === segments.length - 1,
+    );
+    const segment: EdgeSegment = {
+      ...originalSegment,
+      a: rounded.a,
+      b: rounded.b,
+      length: segmentLength(rounded.a, rounded.b),
+    };
+    const { min, max } = decorationBounds(segment, !next);
+
+    for (const decoration of segmentDecorations(edge, segment)) {
+      if (decoration.kind !== 'bridge') {
+        continue;
+      }
+
+      const effectiveHalfSpan = Math.max(
+        0,
+        Math.min(
+          decoration.halfSpan,
+          segment.length / 2 - MIN_LABELED_EDGE_STUB,
+        ),
+      );
+      if (effectiveHalfSpan <= 0) {
+        continue;
+      }
+
+      const startScalar = Math.max(min, decoration.center - effectiveHalfSpan);
+      const endScalar = Math.min(max, decoration.center + effectiveHalfSpan);
+      if (endScalar <= startScalar) {
+        continue;
+      }
+
+      const startPoint = pointOnSegment(segment, startScalar);
+      const endPoint = pointOnSegment(segment, endScalar);
+      const control = controlPoint(segment, decoration.center);
+      commands.push(
+        `M ${startPoint.x} ${startPoint.y} Q ${control.x} ${control.y} ${endPoint.x} ${endPoint.y}`,
+      );
+    }
+  }
+
+  return commands.join(' ');
+}

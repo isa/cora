@@ -144,6 +144,12 @@ function isInteriorPoint(value: number, start: number, end: number): boolean {
   return value > min + EPSILON && value < max - EPSILON;
 }
 
+function isOnSegment(value: number, start: number, end: number): boolean {
+  const min = Math.min(start, end);
+  const max = Math.max(start, end);
+  return value >= min - EPSILON && value <= max + EPSILON;
+}
+
 function overlaps(aStart: number, aEnd: number, bStart: number, bEnd: number): boolean {
   return Math.max(Math.min(aStart, aEnd), Math.min(bStart, bEnd)) <
     Math.min(Math.max(aStart, aEnd), Math.max(bStart, bEnd)) - EPSILON;
@@ -173,28 +179,35 @@ export function edgeBridgeMap(edges: LayoutedEdge[]): Map<number, LayoutedEdge['
           const crossingX = vertical.a.x;
           const crossingY = horizontal.a.y;
 
-          if (
-            !isInteriorPoint(crossingX, horizontal.a.x, horizontal.b.x) ||
-            !isInteriorPoint(crossingY, vertical.a.y, vertical.b.y)
-          ) {
+          const crossesHorizontal = isOnSegment(crossingX, horizontal.a.x, horizontal.b.x);
+          const crossesVertical = isOnSegment(crossingY, vertical.a.y, vertical.b.y);
+          if (!crossesHorizontal || !crossesVertical) {
             continue;
           }
 
-          const overEdgeBridges = bridges.get(overIndex) ?? [];
-          const alreadyCovered = overEdgeBridges.some(
+          const horizontalInterior = isInteriorPoint(crossingX, horizontal.a.x, horizontal.b.x);
+          const verticalInterior = isInteriorPoint(crossingY, vertical.a.y, vertical.b.y);
+          if (!horizontalInterior && !verticalInterior) {
+            continue;
+          }
+
+          const bridgeSegment = horizontalInterior ? horizontal : vertical;
+          const bridgeIndex = bridgeSegment === overSegment ? overIndex : underIndex;
+          const edgeBridges = bridges.get(bridgeIndex) ?? [];
+          const alreadyCovered = edgeBridges.some(
             (bridge) =>
               Math.abs(bridge.x - crossingX) < EPSILON &&
               Math.abs(bridge.y - crossingY) < EPSILON,
           );
 
           if (!alreadyCovered) {
-            overEdgeBridges.push({
+            edgeBridges.push({
               x: crossingX,
               y: crossingY,
-              segmentIndex: overSegment.index,
-              orientation: overSegment.orientation,
+              segmentIndex: bridgeSegment.index,
+              orientation: bridgeSegment.orientation,
             });
-            bridges.set(overIndex, overEdgeBridges);
+            bridges.set(bridgeIndex, edgeBridges);
           }
         }
       }
