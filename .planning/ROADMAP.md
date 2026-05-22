@@ -135,21 +135,25 @@ Plans:
 ### Phase 3.2: Renderer Component Library (INSERTED)
 **Goal:** Build the full reusable renderer component catalog and normalized style vocabulary before the preview, canvas, and extension phases grow the codebase around a too-small component abstraction.
 **Mode:** mvp
-**Requirements:** RCL-01–06 (new requirement family — see REQUIREMENTS.md to be drafted in discuss-phase)
+**Requirements:** RCL-01–10
 **UI hint:** no (component library; preview/UI comes next)
 **Depends on:** Phase 3.1 (component folders, public prop interfaces, and barrel are established first)
 
-**Tentative requirements (RCL-*):**
-- **RCL-01:** Component catalog includes `Group`, `BoxNode`, `LabelNode`, `IconNode`, `LabelIconNode`, `WebsiteNode`, `PageNode`, `AppNode`, `DecisionNode`, `IssueNode`, `Line`, and reusable line markers.
-- **RCL-02:** Shared box-like style props are normalized as `backgroundColor`, `radius`, `borderStyle`, `borderColor`, `borderWidth`, `text`, `textColor`, and `size`; `borderStyle` values are `none | solid | dashed | dotted`.
-- **RCL-03:** Specialized props are normalized: `PageNode.type = landing | form | content | profile | settings`; `IssueNode.icon = bug | warning | error | stop`; icon-bearing components use `iconColor`.
-- **RCL-04:** Lines support `lineStyle = solid | dashed | dotted`, `strokeColor`, `strokeWidth`, `startMarker`, and `endMarker`; marker values are `none | arrow | circle | filledCircle`.
-- **RCL-05:** Components remain pure React/SVG functions with no DOM dependency and no direct YAML parsing; schema and YAML mapping are explicitly handled outside the component layer.
-- **RCL-06:** Existing renderer output remains supported while the new catalog becomes the foundation for Phase 3.3 preview, Phase 4 canvas, and Phase 5 extension packs.
+**Requirements (RCL-*):**
+- **RCL-01:** Public component catalog includes `Group`, `BoxNode`, `LabelNode`, `IconNode`, `LabelIconNode`, `WebsiteNode`, `PageNode`, `AppNode`, `DecisionNode`, `IssueNode`, `ShapeNode`, `Line`, and reusable markers.
+- **RCL-02:** Legacy shape-specific public components and shape values are removed or replaced consistently across renderer, schema, examples, goldens, and docs.
+- **RCL-03:** Box-like components share `BoxStyleProps` with `backgroundColor`, `radius`, `borderStyle`, `borderColor`, `borderWidth`, `text`, `textColor`, and `size`.
+- **RCL-04:** `borderStyle` values are `none | solid | dashed | dotted`; `size` supports `{ width: number; height: number } | "sm" | "md" | "lg" | "xl" | "xxl"`.
+- **RCL-05:** Specialized props are normalized: `PageNode.type = landing | form | content | profile | settings`, `IssueNode.icon = bug | warning | error | stop`, icon-bearing nodes use `iconColor`, and `PageNode` uses `skeletonColorDark` / `skeletonColorLight`.
+- **RCL-06:** `WebsiteNode` and `AppNode` support optional `text`; box-driven nodes may bear icons where appropriate.
+- **RCL-07:** `IconNode` is icon-only and renders an SVG icon from the component-side icon slot/pack contract without implementing extension loading.
+- **RCL-08:** `Line` takes explicit routed `points: Array<{ x: number; y: number }>` and supports `lineStyle`, `strokeColor`, `strokeWidth`, `startMarker`, and `endMarker`.
+- **RCL-09:** Marker values are `none | arrow | circle | filledCircle`; `Line` is the public edge primitive and `Arrow` is internal compatibility only.
+- **RCL-10:** Components remain pure React/SVG functions with no DOM dependency and no direct YAML parsing.
 
 **Success Criteria:**
 1. Component modules are organized under `packages/cora/src/renderer/components/` by `nodes/`, `groups/`, and `lines/` (or `edges/` where preserving existing names is required)
-2. Public prop/types capture the full catalog and style vocabulary without forcing YAML schema changes in this phase
+2. Public prop/types capture the full catalog and style vocabulary; schema/examples/goldens/docs are updated only where needed to remove the old shape model consistently
 3. At least one representative component from each family renders through tests or fixtures: group, node, issue/page-style node, line, and marker
 4. Existing v1 diagram render path still works and continues to use the Phase 3.1 barrel
 5. AGENTS.md documents the component catalog and style vocabulary for future extension authors
@@ -157,7 +161,7 @@ Plans:
 **Research flag:** Standard patterns — skip research-phase. This is an internal component-library design phase grounded in the Phase 3.1 API.
 
 **Pitfalls to address:**
-- Do not couple component props to YAML schema shape; schema mapping belongs to core/renderer integration
+- Do not couple raw component props to YAML schema shape; schema mapping belongs to core/renderer integration
 - Avoid one-off prop names (`bg-color`, `stroke-color`) in code; normalize to TypeScript-friendly camelCase
 - Keep marker geometry centralized so future line endpoints do not duplicate trimming/attachment math
 - Preserve pure SVG and headless render compatibility; preview interactivity comes in Phase 3.3
