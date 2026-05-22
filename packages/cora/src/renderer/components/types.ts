@@ -41,3 +41,23 @@ export interface BoxStyleProps {
   textColor?: string;
   size?: ComponentSize;
 }
+
+export type PageNodeType = 'landing' | 'form' | 'content' | 'profile' | 'settings';
+
+export type IssueIconType = 'bug' | 'warning' | 'error' | 'stop';
+
+export interface IconBearingProps {
+  iconColor?: string;
+}
+
+export interface PageNodeProps extends BoxStyleProps {
+  type: PageNodeType;
+  skeletonColorDark?: string;
+  skeletonColorLight?: string;
+  iconColor?: string;
+}
+
+export interface IssueNodeProps extends BoxStyleProps {
+  icon: IssueIconType;
+  iconColor?: string;
+}
