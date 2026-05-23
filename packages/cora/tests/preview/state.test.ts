@@ -6,6 +6,7 @@ import {
   createDefaultWorkbenchState,
   selectCanvasItem,
   setGroupSize,
+  updateConnectionProps,
   updateNodeProps,
 } from '../../src/preview/state.js';
 
@@ -90,5 +91,19 @@ describe('preview drag canvas state', () => {
     expect(resized.groups[0]?.size).toEqual({ width: 320, height: 220 });
     expect(deselected.groups).toHaveLength(1);
     expect(deselected.selected).toBeUndefined();
+  });
+
+  it('rejects invalid connection prop updates', () => {
+    const state = addNodeToCanvas(
+      addNodeToCanvas(createDefaultWorkbenchState(), 'box', { x: 10, y: 20 }),
+      'page',
+      { x: 220, y: 20 },
+    );
+    const connection = state.connections[0]!;
+    const invalid = updateConnectionProps(state, connection.id, 'strokeWidth', 99);
+    const valid = updateConnectionProps(state, connection.id, 'strokeWidth', 4);
+
+    expect(invalid.connections[0]?.props.strokeWidth).toBe(connection.props.strokeWidth);
+    expect(valid.connections[0]?.props.strokeWidth).toBe(4);
   });
 });

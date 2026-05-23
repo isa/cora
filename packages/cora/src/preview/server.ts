@@ -24,8 +24,6 @@ function packageRoot(): string {
     resolve(here),
     resolve(here, 'preview'),
     resolve(here, '../preview'),
-    resolve(process.cwd(), 'src/preview'),
-    resolve(process.cwd(), 'dist/preview'),
   ];
   return candidates.find((candidate) => existsSync(join(candidate, 'index.html'))) ?? candidates[0]!;
 }

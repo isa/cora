@@ -1,6 +1,6 @@
 import type { PackManifest, PreviewComponentDefinition } from './pack/types.js';
 import { builtInPack } from './pack/builtins.js';
-import { connectionDefaults, type ConnectionProps, type PreviewNodeProps } from './controls/defaults.js';
+import { connectionControls, connectionDefaults, type ConnectionProps, type PreviewNodeProps } from './controls/defaults.js';
 import { isValidControlValue } from './controls/schema.js';
 
 export interface PreviewPosition {
@@ -171,6 +171,16 @@ export function updateConnectionProps(
   key: keyof ConnectionProps,
   value: ConnectionProps[keyof ConnectionProps],
 ): WorkbenchState {
+  const connection = state.connections.find((item) => item.id === connectionId);
+  if (!connection) {
+    return state;
+  }
+  const control = connectionControls.find((item) => item.key === key);
+
+  if (!control || !isValidControlValue(control, value)) {
+    return state;
+  }
+
   return {
     ...state,
     connections: state.connections.map((connection) =>
