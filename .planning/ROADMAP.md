@@ -17,7 +17,7 @@
 | 3.1 | Renderer Component Refactor (INSERTED) | Reusable React component library for renderer | REN-* (consolidation) |
 | 3.2 | Renderer Component Library (INSERTED) ✓ | Full reusable renderer component catalog and style vocabulary | RCL-* (new) |
 | 3.3 | Component Preview Canvas (INSERTED) ✓ | `cora preview` browser SPA for browsing + tuning components | PREV-* |
-| 3.4 | ASCII Export + SKILL.md (INSERTED) | Text-native diagram export and agent skill handoff docs | ASCII-*, AGT-04 |
+| 3.4 | ASCII Export + SKILL.md (INSERTED) ✓ | Text-native diagram export and agent skill handoff docs | ASCII-*, AGT-04 |
 | 3.5 | Default Component Look Lockdown (INSERTED) | Canonical component styling, colors, fonts, and sensible defaults | LOOK-* |
 | 3.6 | Component/Icon Package Surface Lockdown (INSERTED) | Shipped component/icon set and package contents contract | PACK-* |
 | 4 | Interactive Canvas | Human layout polish loop | CLI-06, SRV-* |
@@ -219,7 +219,7 @@ Plans:
 
 ---
 
-### Phase 3.4: ASCII Export + SKILL.md (INSERTED)
+### Phase 3.4: ASCII Export + SKILL.md (INSERTED) ✓ 2026-05-23
 **Goal:** `cora render diagram.yaml` and `cora render diagram.yaml -o diagram.txt` produce readable text architecture diagrams, with Unicode box drawing by default and explicit ASCII fallback, and `SKILL.md` captures reusable agent-facing guidance for generating, validating, and consuming Cora diagrams.
 **Mode:** mvp
 **Requirements:** ASCII-01–05, AGT-04
@@ -253,16 +253,16 @@ Plans:
 
 Plans:
 **Wave 1**
-- [ ] 3.4-01-PLAN.md — Text renderer core over layouted IR with Unicode default and ASCII fallback
+- [x] 3.4-01-PLAN.md — Text renderer core over layouted IR with Unicode default and ASCII fallback
 
 **Wave 2 *(blocked on Wave 1 completion)***
-- [ ] 3.4-02-PLAN.md — CLI `.txt`, stdout text rendering, charset flag, and JSON error preservation
+- [x] 3.4-02-PLAN.md — CLI `.txt`, stdout text rendering, charset flag, and JSON error preservation
 
 **Wave 3 *(blocked on Wave 2 completion)***
-- [ ] 3.4-03-PLAN.md — Root `SKILL.md`, docs, package inclusion, and clean-install smoke proof
+- [x] 3.4-03-PLAN.md — Root `SKILL.md`, docs, package inclusion, and clean-install smoke proof
 
 **Wave 4 *(blocked on Waves 1-3 completion)***
-- [ ] 3.4-04-PLAN.md — Requirements traceability, all-kind text coverage, and full regression verification
+- [x] 3.4-04-PLAN.md — Requirements traceability, all-kind text coverage, and full regression verification
 
 Cross-cutting constraints:
 - Text rendering must consume existing layouted IR rather than introducing a new layout model.

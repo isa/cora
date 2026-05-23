@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Phase 3.4 planning complete
-last_updated: "2026-05-23T11:25:27.295Z"
-last_activity: 2026-05-23 -- Phase 3.4 planning complete
+stopped_at: Phase 3.4 complete
+last_updated: "2026-05-23T12:55:00.000Z"
+last_activity: 2026-05-23 -- Phase 3.4 complete
 progress:
   total_phases: 12
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 25
-  completed_plans: 21
-  percent: 50
+  completed_plans: 25
+  percent: 58
 ---
 
 # Project State
@@ -21,22 +21,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-21)
 
 **Core value:** An AI agent can write a YAML diagram, run `cora validate` and `cora render`, and produce a professional-looking architectural diagram without touching a visual editor — while humans can still polish the result when needed.
-**Current focus:** Phase 3.4 — ASCII Export + SKILL.md ready to execute
+**Current focus:** Phase 3.5 — Default Component Look Lockdown
 
 ## Current Position
 
-Phase: 3.4 of 12 (ASCII Export + SKILL.md)
-Plan: 0 of 4 planned
-Status: Ready to execute
-Last activity: 2026-05-23 -- Phase 3.4 planning complete
+Phase: 3.5 of 12 (Default Component Look Lockdown)
+Plan: 0 of 0 planned
+Status: Pending discussion/planning
+Last activity: 2026-05-23 -- Phase 3.4 complete
 
-Progress: [█████░░░░░] 50% (6/12 phases complete)
+Progress: [██████░░░░] 58% (7/12 phases complete)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 21
+- Total plans completed: 25
 - Average duration: —
 - Total execution time: —
 
@@ -50,14 +50,14 @@ Progress: [█████░░░░░] 50% (6/12 phases complete)
 | 3.1 Renderer Component Refactor | 1 | 1 | — |
 | 3.2 Renderer Component Library | 4 | 4 | — |
 | 3.3 Component Preview Canvas | 4 | 4 | — |
-| 3.4 ASCII Export + SKILL.md | 0 | 4 | — |
+| 3.4 ASCII Export + SKILL.md | 4 | 4 | — |
 | 3.5 Default Component Look Lockdown | 0 | 0 | — |
 | 3.6 Component/Icon Package Surface Lockdown | 0 | 0 | — |
 
 **Recent Trend:**
 
-- Last 5 plans: 3.3-04, 3.3-03, 3.3-02, 3.3-01, 3.2-04
-- Trend: Component preview canvas is complete; Phase 3.4 can add a text-native export lane and agent skills handoff before Interactive Canvas.
+- Last 5 plans: 3.4-04, 3.4-03, 3.4-02, 3.4-01, 3.3-04
+- Trend: ASCII export and agent skill handoff are complete; Phase 3.5 can lock the default visual system before Interactive Canvas.
 
 ## Accumulated Context
 
@@ -78,6 +78,7 @@ Recent decisions affecting current work:
 - Phase 3.2 research: recommended four-plan sequence — catalog style/line primitives, node catalog/icon slot, renderer/barrel migration, then schema/examples/goldens/docs consistency sweep. Validation strategy added with typecheck/build/vitest/golden gates.
 - Phase 3.2 complete: public catalog exports `Group`, `BoxNode`, `LabelNode`, `IconNode`, `LabelIconNode`, `WebsiteNode`, `PageNode`, `AppNode`, `DecisionNode`, `IssueNode`, `ShapeNode`, `Line`, marker helpers, shared `BoxStyleProps`, and icon slot types. Schema/examples/docs use `component` instead of legacy `shape`; old shape-specific node files were removed. Full typecheck/build/test/golden verification passed.
 - Phase 3.3 complete: `cora preview` is a Vite-backed local workbench with built-in component pack, primary/secondary node selection, typed prop controls, connected/grouped scenarios, drag-updated line endpoints, distributed attachment slot overlay, `dist/preview` package assets, and clean-install smoke coverage. Full typecheck/build/Vitest/smoke verification passed; in-app browser automation was unavailable, so localhost runtime was probed through the served root and entry module.
+- Phase 3.4 complete: `cora render` now supports stdout text rendering, `.txt` output, `--charset ascii`, and root `SKILL.md` packaging. The text renderer consumes the layouted IR, preserves labels with a deterministic legend, and keeps structured JSON failures unchanged.
 
 ### Roadmap Evolution
 
@@ -97,6 +98,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-23T11:25:27.295Z
-Stopped at: Phase 3.4 planning complete
-Resume file: .planning/phases/3.4-ascii-diagram-export-and-skills-md-file/3.4-01-PLAN.md
+Last session: 2026-05-23T12:55:00.000Z
+Stopped at: Phase 3.4 complete
+Resume file: .planning/ROADMAP.md
