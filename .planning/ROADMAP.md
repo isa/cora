@@ -18,8 +18,10 @@
 | 3.2 | Renderer Component Library (INSERTED) ✓ | Full reusable renderer component catalog and style vocabulary | RCL-* (new) |
 | 3.3 | Component Preview Canvas (INSERTED) ✓ | `cora preview` browser SPA for browsing + tuning components | PREV-* |
 | 3.4 | ASCII Export + SKILL.md (INSERTED) ✓ | Text-native diagram export and agent skill handoff docs | ASCII-*, AGT-04 |
-| 3.5 | Default Component Look Lockdown (INSERTED) | Canonical component styling, colors, fonts, and sensible defaults | LOOK-* |
-| 3.6 | Component/Icon Package Surface Lockdown (INSERTED) | Shipped component/icon set and package contents contract | PACK-* |
+| 3.5 | Preview Visual Beauty (INSERTED) | Visual beauty, polish, and product feel of the preview workbench | BEAUTY-* |
+| 3.6 | Default Component Look Lockdown (INSERTED) | Canonical component styling, colors, fonts, and sensible defaults | LOOK-* |
+| 3.7 | Component/Icon Package Surface Lockdown (INSERTED) | Shipped component/icon set and package contents contract | PACK-* |
+| 3.8 | Grid Capability Expansion (INSERTED) | More capable diagram grid behavior before the interactive canvas | GRID-* |
 | 4 | Interactive Canvas | Human layout polish loop | CLI-06, SRV-* |
 | 5 | Extension System | Provider themes & icons | EXT-* |
 | 6 | Hardening | v1 release readiness | CLI-07, AGT-02 |
@@ -267,16 +269,59 @@ Plans:
 Cross-cutting constraints:
 - Text rendering must consume existing layouted IR rather than introducing a new layout model.
 - JSON failure output must remain a structured array when `--format json` is requested.
-- Preview distribution cleanup remains out of scope for Phase 3.4 and belongs to Phase 3.6.
+- Preview distribution cleanup remains out of scope for Phase 3.4 and belongs to Phase 3.7.
 
 ---
 
-### Phase 3.5: Default Component Look Lockdown (INSERTED)
+### Phase 3.5: Preview Visual Beauty (INSERTED)
+**Goal:** Talk through and lock a stronger visual direction for the `cora preview` workbench so the app feels visually beautiful, intentional, and worth using before later phases harden defaults and build the interactive canvas on top of it.
+**Mode:** mvp
+**Requirements:** BEAUTY-*
+**UI hint:** yes — this phase is explicitly about preview app visual polish and product feel
+**Depends on:** Phase 3.3 (preview exists and can be inspected) and Phase 3.4 (agent-facing text output is complete, so attention can return to the visual workbench)
+
+**Success Criteria:**
+1. The preview workbench has an explicit visual direction covering layout density, typography, spacing, color, interaction feedback, and component presentation
+2. Existing preview screens are audited for visual quality issues, including hierarchy, clutter, awkward spacing, weak contrast, and confusing control placement
+3. Any chosen visual changes improve the actual workbench experience rather than adding marketing-style decoration
+4. The direction can inform Phase 3.6 default component look decisions without conflating preview UI polish with renderer component defaults
+5. Visual acceptance criteria are concrete enough for screenshots or browser verification during execution
+
+**Research flag:** Light visual audit recommended — run the preview, inspect desktop/mobile-ish viewports where applicable, and compare against the component workflow the preview is meant to support.
+
+**Pitfalls to address:**
+- Do not turn preview into a landing page; keep the workbench as the first screen
+- Do not hide component inspection controls behind decorative composition
+- Avoid one-note palettes and oversized marketing treatments that make repeated technical use slower
+- Keep preview-only UI beauty separate from renderer output defaults, which are locked in Phase 3.6
+
+**Plans:** 4 plans
+
+Plans:
+**Wave 1**
+- [ ] 03.5-01-PLAN.md — Preview visual shell tokens and reference composition foundation
+
+**Wave 2 *(blocked on Wave 1 completion)***
+- [ ] 03.5-02-PLAN.md — Branded catalog and reference-style inspector polish
+- [ ] 03.5-03-PLAN.md — Premium dotted canvas, split tools, and motion
+
+**Wave 3 *(blocked on Waves 1-2 completion)***
+- [ ] 03.5-04-PLAN.md — Visual contract tests, browser verification, and final QA
+
+Cross-cutting constraints:
+- Keep the first screen a focused preview workbench, not a landing page.
+- Match the agreed NodeFlow-style reference direction: branded left library, dotted canvas, right inspector, soft white panels, black action surfaces, and controlled purple accent.
+- Remove primary visible `Labels` chrome and visible generated IDs such as `node-1` from the normal preview UI.
+- Keep visual beauty preview-local; renderer component defaults and shipped package surface remain Phase 3.6 and Phase 3.7 responsibilities.
+
+---
+
+### Phase 3.6: Default Component Look Lockdown (INSERTED)
 **Goal:** Lock down Cora's built-in component appearance, color palette, font choices, spacing, and sensible defaults so rendered diagrams and preview/canvas components feel consistent before Phase 4 makes them directly editable.
 **Mode:** mvp
 **Requirements:** LOOK-01–07
 **UI hint:** no (visual system and renderer defaults; no new interactive surface)
-**Depends on:** Phase 3.3 (component preview exposes the catalog for inspection) and Phase 3.4 (ASCII export should remain independent from visual styling)
+**Depends on:** Phase 3.5 (preview visual direction should inform but not dictate component defaults) and Phase 3.4 (ASCII export should remain independent from visual styling)
 
 **Requirements (LOOK-*):**
 - **LOOK-01:** Define a canonical default visual language for all built-in nodes, groups, lines, labels, markers, and component states.
@@ -305,16 +350,16 @@ Cross-cutting constraints:
 **Plans:** 0 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 3.5 to break down)
+- [ ] TBD (run /gsd-plan-phase 3.6 to break down)
 
 ---
 
-### Phase 3.6: Component/Icon Package Surface Lockdown (INSERTED)
+### Phase 3.7: Component/Icon Package Surface Lockdown (INSERTED)
 **Goal:** Decide and enforce exactly which default components, SVG icon assets, renderer APIs, CLI commands, and built package files ship in the public `cora` package, with preview retained as a development-phase tool rather than a distributed user feature.
 **Mode:** mvp
 **Requirements:** PACK-01–08
 **UI hint:** no (package/API contract and asset surface; no new UI)
-**Depends on:** Phase 3.5 (default look contract should be locked before deciding what ships) and Phase 3.3 (preview proved the component catalog but does not define the package surface)
+**Depends on:** Phase 3.6 (default look contract should be locked before deciding what ships) and Phase 3.3 (preview proved the component catalog but does not define the package surface)
 
 **Requirements (PACK-*):**
 - **PACK-01:** Define the canonical built-in component set that ships as supported v1 renderer components.
@@ -345,7 +390,36 @@ Plans:
 **Plans:** 0 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 3.6 to break down)
+- [ ] TBD (run /gsd-plan-phase 3.7 to break down)
+
+---
+
+### Phase 3.8: Grid Capability Expansion (INSERTED)
+**Goal:** Give Cora's diagram grid more capability before the interactive canvas depends on it, so layout, snapping, visual grid affordances, and future edit interactions have a stronger foundation.
+**Mode:** mvp
+**Requirements:** GRID-*
+**UI hint:** yes — grid behavior affects preview/canvas ergonomics and the upcoming Interactive Canvas
+**Depends on:** Phase 3.6 (default look should define grid-adjacent visual defaults) and Phase 3.7 (package surface should decide whether grid helpers are public or internal)
+
+**Success Criteria:**
+1. Grid behavior expectations are explicit for renderer, preview, and future canvas usage
+2. Snapping, spacing, coordinate, or alignment defaults are defined where the current grid model is too weak
+3. Any new grid capabilities stay compatible with existing SVG/PDF/text rendering paths
+4. Preview/canvas-facing behavior is documented enough for Phase 4 to consume without re-deciding grid semantics
+5. Tests or fixtures protect grid behavior that affects generated output or edit-time interactions
+
+**Research flag:** Light research recommended — inspect current preview/grid code and renderer coordinate assumptions before planning implementation.
+
+**Pitfalls to address:**
+- Do not let edit-time grid affordances leak into static text export
+- Keep existing valid examples and golden outputs stable unless the grid capability intentionally changes layout
+- Avoid making preview-only helpers part of the package surface after Phase 3.7 locks distribution rules
+- Preserve pinned-node and layout-mode semantics from earlier phases
+
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 3.8 to break down)
 
 ---
 
@@ -415,8 +489,10 @@ Plans:
 3b. **Component library before preview (Phase 3.2, INSERTED)** — define the full reusable component catalog and style vocabulary while the codebase is still small
 3c. **Preview after library (Phase 3.3, INSERTED)** — once components are typed and cataloged they can be browsed/tuned in isolation; preview tool also seeds the dev-server abstraction Phase 4 reuses
 3d. **ASCII export before interactive canvas (Phase 3.4, INSERTED)** — add a text-native agent output lane and skills handoff before the roadmap shifts to YAML writeback and human editing
-3e. **Default look lockdown before interactive canvas (Phase 3.5, INSERTED)** — stabilize the built-in visual contract before users begin editing and saving component styling through the canvas
-3f. **Package surface lockdown before interactive canvas (Phase 3.6, INSERTED)** — decide what components, icons, assets, and commands are actually shipped before `cora serve` expands the installed runtime surface
+3e. **Preview visual beauty before default lockdown (Phase 3.5, INSERTED)** — decide what makes the preview workbench feel beautiful and useful before locking renderer defaults and canvas behavior around it
+3f. **Default look lockdown before interactive canvas (Phase 3.6, INSERTED)** — stabilize the built-in visual contract before users begin editing and saving component styling through the canvas
+3g. **Package surface lockdown before interactive canvas (Phase 3.7, INSERTED)** — decide what components, icons, assets, and commands are actually shipped before `cora serve` expands the installed runtime surface
+3h. **Grid capability expansion before interactive canvas (Phase 3.8, INSERTED)** — strengthen grid behavior before Phase 4 builds direct manipulation, snapping, and layout polish on top of it
 4. **Canvas before extensions** — core pipeline stable before adding theme variables
 5. **Extensions before hardening** — `cora doctor` and docs reference extension errors
 
