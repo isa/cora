@@ -17,6 +17,9 @@
 | 3.1 | Renderer Component Refactor (INSERTED) | Reusable React component library for renderer | REN-* (consolidation) |
 | 3.2 | Renderer Component Library (INSERTED) ✓ | Full reusable renderer component catalog and style vocabulary | RCL-* (new) |
 | 3.3 | Component Preview Canvas (INSERTED) ✓ | `cora preview` browser SPA for browsing + tuning components | PREV-* |
+| 3.4 | ASCII Export + SKILL.md (INSERTED) | Text-native diagram export and agent skill handoff docs | ASCII-*, AGT-04 |
+| 3.5 | Default Component Look Lockdown (INSERTED) | Canonical component styling, colors, fonts, and sensible defaults | LOOK-* |
+| 3.6 | Component/Icon Package Surface Lockdown (INSERTED) | Shipped component/icon set and package contents contract | PACK-* |
 | 4 | Interactive Canvas | Human layout polish loop | CLI-06, SRV-* |
 | 5 | Extension System | Provider themes & icons | EXT-* |
 | 6 | Hardening | v1 release readiness | CLI-07, AGT-02 |
@@ -216,6 +219,136 @@ Plans:
 
 ---
 
+### Phase 3.4: ASCII Export + SKILL.md (INSERTED)
+**Goal:** `cora render diagram.yaml` and `cora render diagram.yaml -o diagram.txt` produce readable text architecture diagrams, with Unicode box drawing by default and explicit ASCII fallback, and `SKILL.md` captures reusable agent-facing guidance for generating, validating, and consuming Cora diagrams.
+**Mode:** mvp
+**Requirements:** ASCII-01–05, AGT-04
+**UI hint:** no
+**Depends on:** Phase 3.3 (uses the stable renderer component catalog and preview-learned component vocabulary before Phase 4 adds YAML writeback)
+
+**Requirements (ASCII-*):**
+- **ASCII-01:** `cora render diagram.yaml -o diagram.txt` selects a text export path from the output extension, and `cora render diagram.yaml` without `-o` prints text output to stdout.
+- **ASCII-02:** Text output preserves nodes, groups, labels, and directional relationships in a readable fixed-width layout suitable for terminals, Markdown, pull requests, and agent logs.
+- **ASCII-03:** Text export is deterministic in CI and does not require browser, SVG, PDF, or image dependencies.
+- **ASCII-04:** Validation and render failures keep the existing structured JSON error behavior when `--format json` is requested.
+- **ASCII-05:** Documentation explains text export limitations versus SVG/PDF, including layout simplification and unsupported visual styling.
+- **AGT-04:** `SKILL.md` documents practical agent workflows, triggers, examples, and references to README/AGENTS for Cora diagram authoring and review.
+
+**Success Criteria:**
+1. `cora render examples/valid/minimal.yaml -o diagram.txt` writes a deterministic text artifact with visible node labels and edges
+2. Text export works for representative box-arrows, flowchart, microservice, infra, and database examples without throwing renderer-specific errors
+3. `--format json` remains machine-readable for validation/render errors on the text export path
+4. README/AGENTS docs mention text export alongside SVG, PNG, and PDF where appropriate
+5. `SKILL.md` exists with concise, reusable guidance for AI agents authoring Cora diagrams
+
+**Research flag:** Research completed. Implement against the existing parsed/layouted IR rather than introducing a new diagram model.
+
+**Pitfalls to address:**
+- Keep output pure text and deterministic; avoid terminal color, default to Unicode box drawing, and provide explicit `--charset ascii` fallback
+- Do not let ASCII constraints leak back into SVG/PDF rendering or component APIs
+- Preserve the one-diagram-per-file and schema-first agent contract
+- Make `SKILL.md` actionable without duplicating all of AGENTS.md
+
+**Plans:** 4 plans
+
+Plans:
+**Wave 1**
+- [ ] 3.4-01-PLAN.md — Text renderer core over layouted IR with Unicode default and ASCII fallback
+
+**Wave 2 *(blocked on Wave 1 completion)***
+- [ ] 3.4-02-PLAN.md — CLI `.txt`, stdout text rendering, charset flag, and JSON error preservation
+
+**Wave 3 *(blocked on Wave 2 completion)***
+- [ ] 3.4-03-PLAN.md — Root `SKILL.md`, docs, package inclusion, and clean-install smoke proof
+
+**Wave 4 *(blocked on Waves 1-3 completion)***
+- [ ] 3.4-04-PLAN.md — Requirements traceability, all-kind text coverage, and full regression verification
+
+Cross-cutting constraints:
+- Text rendering must consume existing layouted IR rather than introducing a new layout model.
+- JSON failure output must remain a structured array when `--format json` is requested.
+- Preview distribution cleanup remains out of scope for Phase 3.4 and belongs to Phase 3.6.
+
+---
+
+### Phase 3.5: Default Component Look Lockdown (INSERTED)
+**Goal:** Lock down Cora's built-in component appearance, color palette, font choices, spacing, and sensible defaults so rendered diagrams and preview/canvas components feel consistent before Phase 4 makes them directly editable.
+**Mode:** mvp
+**Requirements:** LOOK-01–07
+**UI hint:** no (visual system and renderer defaults; no new interactive surface)
+**Depends on:** Phase 3.3 (component preview exposes the catalog for inspection) and Phase 3.4 (ASCII export should remain independent from visual styling)
+
+**Requirements (LOOK-*):**
+- **LOOK-01:** Define a canonical default visual language for all built-in nodes, groups, lines, labels, markers, and component states.
+- **LOOK-02:** Lock default colors for backgrounds, borders, text, lines, semantic states, and muted UI surfaces with sufficient contrast.
+- **LOOK-03:** Lock default typography around bundled Noto Sans, including font weights, label sizes, line heights, and truncation/wrapping behavior.
+- **LOOK-04:** Normalize component sizing, padding, radii, shadows, line widths, marker sizes, and group spacing across renderer and preview usage.
+- **LOOK-05:** Ensure YAML/component omitted props resolve to sensible defaults without producing visually sparse or inconsistent diagrams.
+- **LOOK-06:** Preserve SVG/PDF golden stability and keep ASCII export unaffected by visual defaults.
+- **LOOK-07:** Document the default look contract for future themes, extensions, and Interactive Canvas editing controls.
+
+**Success Criteria:**
+1. Default component props produce polished output for every built-in catalog component without requiring per-node styling
+2. Representative valid examples render with consistent colors, typography, spacing, line treatments, and group styling
+3. Golden coverage protects the locked default look from accidental drift
+4. Preview controls and renderer defaults agree on initial values for size, color, typography, borders, shadows, markers, and labels
+5. Docs describe the default visual contract and when authors should override it
+
+**Research flag:** Light visual audit recommended — use the existing preview and golden examples to compare the current defaults, then codify the chosen tokens and defaults.
+
+**Pitfalls to address:**
+- Do not invent a full theme marketplace here; Phase 5 owns extension themes
+- Avoid one-off per-component magic values; define shared tokens/default helpers where the renderer already has seams
+- Do not regress PDF text overlay alignment or font embedding
+- Keep defaults agent-friendly: omitted YAML fields should render well without extra styling advice
+
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 3.5 to break down)
+
+---
+
+### Phase 3.6: Component/Icon Package Surface Lockdown (INSERTED)
+**Goal:** Decide and enforce exactly which default components, SVG icon assets, renderer APIs, CLI commands, and built package files ship in the public `cora` package, with preview retained as a development-phase tool rather than a distributed user feature.
+**Mode:** mvp
+**Requirements:** PACK-01–08
+**UI hint:** no (package/API contract and asset surface; no new UI)
+**Depends on:** Phase 3.5 (default look contract should be locked before deciding what ships) and Phase 3.3 (preview proved the component catalog but does not define the package surface)
+
+**Requirements (PACK-*):**
+- **PACK-01:** Define the canonical built-in component set that ships as supported v1 renderer components.
+- **PACK-02:** Define the default SVG icon set that ships in core, including names, purposes, licensing assumptions, and how icon slots resolve without extensions.
+- **PACK-03:** Decide which component/icon APIs are public package exports and which remain internal implementation details.
+- **PACK-04:** Remove preview from the distributed package surface; preview may remain available for local development/testing but must not be advertised or required as a user-facing installed feature.
+- **PACK-05:** Update packaging rules so npm artifacts include only runtime-required CLI, schema, renderer, fonts, examples/docs, and approved assets.
+- **PACK-06:** Add package smoke checks that fail if development-only preview assets or commands leak into the published tarball.
+- **PACK-07:** Document the package contents contract for agents, downstream users, and future extension authors.
+- **PACK-08:** Reconcile README, AGENTS.md, examples, and CLI help so they describe only the supported shipped surface.
+
+**Success Criteria:**
+1. A documented list of supported built-in components and default SVG icons exists, with clear public/internal boundaries
+2. `npm pack` or the clean-install smoke path proves preview assets are not shipped as a distributed feature
+3. CLI help and docs no longer present `cora preview` as an installed-user workflow if it is development-only
+4. Package `files`/build output include all required renderer/runtime assets and exclude development-only preview artifacts
+5. Tests or smoke scripts catch accidental package-surface drift
+
+**Research flag:** Standard patterns — inspect npm package contents and existing exports/build rules; no external research required.
+
+**Pitfalls to address:**
+- Do not break prior preview work silently; preserve it as a local development aid if still useful
+- Do not ship unlicensed or ambiguous SVG icon assets in core
+- Keep extension-system room open: default icons should not preclude provider icon packs in Phase 5
+- Avoid making internal renderer implementation details part of the public API by accident
+- Keep AGENTS.md aligned with the real installable package, not development-only conveniences
+
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 3.6 to break down)
+
+---
+
 ### Phase 4: Interactive Canvas
 **Goal:** Humans can drag/pin nodes, edit labels, and save back to YAML without destroying agent-authored content.
 **Mode:** mvp
@@ -281,6 +414,9 @@ Plans:
 3a. **Component refactor before library (Phase 3.1, INSERTED)** — move the current renderer into a stable `renderer/components/` surface before adding more component families
 3b. **Component library before preview (Phase 3.2, INSERTED)** — define the full reusable component catalog and style vocabulary while the codebase is still small
 3c. **Preview after library (Phase 3.3, INSERTED)** — once components are typed and cataloged they can be browsed/tuned in isolation; preview tool also seeds the dev-server abstraction Phase 4 reuses
+3d. **ASCII export before interactive canvas (Phase 3.4, INSERTED)** — add a text-native agent output lane and skills handoff before the roadmap shifts to YAML writeback and human editing
+3e. **Default look lockdown before interactive canvas (Phase 3.5, INSERTED)** — stabilize the built-in visual contract before users begin editing and saving component styling through the canvas
+3f. **Package surface lockdown before interactive canvas (Phase 3.6, INSERTED)** — decide what components, icons, assets, and commands are actually shipped before `cora serve` expands the installed runtime surface
 4. **Canvas before extensions** — core pipeline stable before adding theme variables
 5. **Extensions before hardening** — `cora doctor` and docs reference extension errors
 
