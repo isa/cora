@@ -16,6 +16,9 @@ bun run cora validate diagram.yaml --format json
 bun run cora render diagram.yaml -o diagram.svg
 bun run cora render diagram.yaml -o diagram.png
 bun run cora render diagram.yaml -o diagram.pdf
+bun run cora render diagram.yaml -o diagram.txt
+bun run cora render diagram.yaml
+bun run cora render diagram.yaml --charset ascii
 bun run cora preview
 bun run cora preview --no-open
 bun run cora schema
@@ -40,8 +43,9 @@ preview-local and does not persist YAML, layout, or source-file changes.
 1. Write or edit a diagram YAML file (`version: 1` required).
 2. Run `cora validate path.yaml --format json`.
 3. Fix errors using `code` and `path` from the JSON array.
-4. Run `cora render path.yaml -o out.svg` (or `-o out.png`) to produce SVG or PNG.
-5. When adding fields, run `cora schema` (or `cora schema --out cora-schema.json`) — do not invent fields outside the schema.
+4. Run `cora render path.yaml -o out.svg` (or `-o out.png`, `-o out.pdf`, `-o out.txt`) to produce an artifact.
+5. If no output flag is given, `cora render path.yaml` prints the text diagram to stdout; use `--charset ascii` for plain ASCII logs.
+6. When adding fields, run `cora schema` (or `cora schema --out cora-schema.json`) — do not invent fields outside the schema.
 
 ## JSON error shape
 
@@ -71,10 +75,23 @@ preview-local and does not persist YAML, layout, or source-file changes.
 
 ## TTY behavior
 
-- Interactive terminal + default `--format text` → human-readable, colored lines.
-- `--format json` **or** non-TTY stdout (piped/CI) → JSON array only, no extra prose.
+- Interactive terminal + default `--format text` → human-readable, colored validation/error lines.
+- `--format json` **or** non-TTY stdout (piped/CI) on validation/error paths → JSON array only, no extra prose.
+- Successful `cora render diagram.yaml` without `-o` prints the text diagram to stdout even when piped.
 
 Use `--format json` in CI for reliable parsing.
+
+## Renderer (Text)
+
+`cora render` writes text output when `-o` ends in `.txt`. If no `-o` is provided, it prints the text diagram to stdout.
+
+```bash
+cora render diagram.yaml
+cora render diagram.yaml -o diagram.txt
+cora render diagram.yaml --charset ascii
+```
+
+Text output is a simplified graph-like terminal representation derived from the existing layouted IR. It preserves labels and directional relationships for terminals, Markdown, pull requests, and agent logs; it is not SVG/PDF visual parity and does not carry all styling.
 
 ## CI flags
 

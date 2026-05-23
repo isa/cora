@@ -1,6 +1,6 @@
 # Cora
 
-Open-source diagram tool for AI coding agents and the humans who review their output. Agents author architectural diagrams as YAML; the CLI validates and renders professional SVG, PNG, or PDF artifacts.
+Open-source diagram tool for AI coding agents and the humans who review their output. Agents author architectural diagrams as YAML; the CLI validates and renders professional SVG, PNG, PDF, or text artifacts.
 
 > **AI agents: read [AGENTS.md](./AGENTS.md) first** — validate loop, JSON error shape, schema contract, and error codes.
 
@@ -11,10 +11,11 @@ Open-source diagram tool for AI coding agents and the humans who review their ou
 | 1 — Foundation | Complete | `cora validate`, `cora schema`, v1 JSON Schema, structured errors |
 | 2 — Renderer + SVG | Complete | `cora render` → `.svg` / `.png`, ELK layout, pure SVG renderer, default theme |
 | 3 — PDF Export | Complete | `cora render -o diagram.pdf` |
-| 3.3 — Component Preview Canvas | In progress | `cora preview` local component workbench |
+| 3.3 — Component Preview Canvas | Complete | `cora preview` local component workbench |
+| 3.4 — Text Export + SKILL.md | In progress | `cora render` stdout text, `.txt`, `--charset ascii`, agent skill guide |
 | 4+ | Planned | `cora serve`, extensions (`cora ext`), `cora doctor` |
 
-**Today:** validate any diagram, export schema, render all five v1 diagram kinds to SVG, PNG, or PDF, and run `cora preview` as a local workbench for built-in renderer components. Provider icons require extensions (not bundled in core).
+**Today:** validate any diagram, export schema, render all five v1 diagram kinds to SVG, PNG, PDF, or simplified graph-like text, and run `cora preview` as a local workbench for built-in renderer components. Provider icons require extensions (not bundled in core).
 
 ## Install
 
@@ -63,6 +64,10 @@ bun run cora render examples/valid/box-arrows.yaml -o /tmp/diagram.svg
 # Render PNG (default 2× scale)
 bun run cora render examples/valid/box-arrows.yaml -o /tmp/diagram.png
 
+# Render text to stdout or a .txt file
+bun run cora render examples/valid/box-arrows.yaml
+bun run cora render examples/valid/box-arrows.yaml -o /tmp/diagram.txt
+
 # Export JSON Schema
 bun run cora schema --out cora-schema.json
 
@@ -108,12 +113,13 @@ cora validate diagram.yaml | jq .
 
 ### `cora render [file]`
 
-Parse, validate, layout, and render to **SVG** or **PNG**. Output format is determined by the `-o` extension (`.svg` or `.png`). The `-o` option is required.
+Parse, validate, layout, and render to **SVG**, **PNG**, **PDF**, or simplified graph-like terminal text. Output format is determined by the `-o` extension (`.svg`, `.png`, `.pdf`, or `.txt`). Omit `-o` to print text output to stdout.
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `-o, --output <path>` | — | **Required.** Output file (`.svg` or `.png`) |
+| `-o, --output <path>` | — | Output file (`.svg`, `.png`, `.pdf`, or `.txt`); omit for stdout text |
 | `--format text\|json` | `text` | Error output format on validation/layout/parse failure |
+| `--charset unicode\|ascii` | `unicode` | Text output charset for `.txt` or stdout text |
 | `--size sm\|md\|lg\|xl\|xxl` | `md` | PNG raster scale (ignored for SVG) |
 | `--without-shadow` | off | Flat nodes without drop shadows |
 | `--monochrome` | off | Black, grey, and white only |
@@ -137,6 +143,14 @@ cora render examples/valid/microservice.yaml -o out.png
 
 # High-resolution PNG for slides or print
 cora render examples/valid/microservice.yaml -o out.png --size xxl
+
+# Simplified terminal output for Markdown, pull requests, and agent logs
+cora render diagram.yaml
+cora render diagram.yaml -o diagram.txt
+cora render diagram.yaml --charset ascii
+cora render examples/valid/box-arrows.yaml
+cora render examples/valid/box-arrows.yaml -o diagram.txt
+cora render examples/valid/box-arrows.yaml --charset ascii
 
 # Print-friendly / documentation variants
 cora render examples/valid/infra.yaml -o out.svg --monochrome

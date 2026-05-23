@@ -27,12 +27,15 @@
   },
   "files": [
     "dist",
-    ".npmrc"
+    ".npmrc",
+    "SKILL.md"
   ],
   "scripts": {
     "build": "tsdown && vite build src/preview --base ./ --outDir ../../dist/preview --emptyOutDir false && cp -r src/renderer/assets dist/renderer/",
     "cora": "node dist/cli.js",
     "dev": "tsdown --watch",
+    "prepack": "cp ../../SKILL.md SKILL.md",
+    "postpack": "rm -f SKILL.md",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
     "test:golden": "node tests/render-golden.mjs",

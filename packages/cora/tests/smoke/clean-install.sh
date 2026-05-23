@@ -68,6 +68,12 @@ test -f "$SMOKE_DIR/install/node_modules/cora/dist/preview/index.html" \
 "$SMOKE_DIR/install/node_modules/.bin/cora" preview --help | grep -q -- "--no-open" \
   || { echo "[smoke] FAIL: cora preview --help missing --no-open"; exit 1; }
 
+# Assertion 6: agent skill guide ships with the installed package.
+test -f "$SMOKE_DIR/install/node_modules/cora/SKILL.md" \
+  || { echo "[smoke] FAIL: SKILL.md missing from published package"; exit 1; }
+grep -q "## Triggers" "$SMOKE_DIR/install/node_modules/cora/SKILL.md" \
+  || { echo "[smoke] FAIL: SKILL.md missing trigger guidance"; exit 1; }
+
 # Note on .npmrc strategy (Plan 03):
 #   npm pack INTENTIONALLY strips `.npmrc` from published tarballs (security:
 #   prevents credentials leaking and prevents shipped configs from overriding
@@ -80,4 +86,4 @@ test -f "$SMOKE_DIR/install/node_modules/cora/dist/preview/index.html" \
 #   code path, gated behind `--quality=high` + consent.
 #   This script is the load-bearing proof that this remains true.
 
-echo "[smoke] PASS: cora installs cleanly, no Chromium downloaded, fonts and preview assets shipped"
+echo "[smoke] PASS: cora installs cleanly, no Chromium downloaded, fonts, preview assets, and SKILL.md shipped"
