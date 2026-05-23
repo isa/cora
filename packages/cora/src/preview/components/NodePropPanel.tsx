@@ -14,7 +14,6 @@ export function NodePropPanel({ state, nodeId, onPropChange }: NodePropPanelProp
   if (!nodeId || !node) {
     return (
       <section className="inspector-empty" aria-label="Inspector">
-        <h2>No Selection</h2>
         <p>Select a canvas item to edit its attributes.</p>
       </section>
     );

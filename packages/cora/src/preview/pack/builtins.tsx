@@ -53,11 +53,11 @@ export const builtInPack: PackManifest = {
   components: [
     component('box', 'BoxNode', 'basic', BoxNode as ComponentType<PreviewNodeProps>, {
       ...baseNodeDefaults,
-      backgroundColor: '#EDE9FE',
-      borderColor: '#8B5CF6',
-      textColor: '#581C87',
-      radius: 5,
-      size: { width: 156, height: 40 },
+      backgroundColor: '#FFFFFF',
+      borderColor: '#0A0A0A',
+      textColor: '#0A0A0A',
+      radius: 14,
+      size: { width: 220, height: 56 },
     }),
     component('label', 'LabelNode', 'basic', LabelNode as ComponentType<PreviewNodeProps>, {
       ...baseNodeDefaults,

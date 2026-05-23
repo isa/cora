@@ -17,7 +17,7 @@ describe('preview workbench', () => {
     expect(markup).toContain('Library / Components');
     expect(markup).toContain('draggable="true"');
     expect(markup).toContain('component-icon');
-    expect(markup).toContain('Group');
+    expect(markup).toContain('Subroutine');
     expect(markup).not.toContain('ShapeNode');
     expect(markup).toContain('Drag components here');
     expect(markup).not.toContain('Labels');

@@ -171,7 +171,7 @@ textarea {
 
 .sidebar-section {
   display: grid;
-  gap: 12px;
+  gap: 18px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -408,36 +408,33 @@ textarea {
 
 .component-list {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .component-tile {
   display: grid;
   grid-template-columns: 44px 1fr;
-  gap: 14px;
+  gap: 16px;
   align-items: center;
   width: 100%;
-  min-height: 64px;
-  padding: 10px;
+  min-height: 58px;
+  padding: 7px 8px;
   border: 1px solid transparent;
-  border-radius: 12px;
-  background: var(--preview-surface);
+  border-radius: 8px;
+  background: transparent;
   color: var(--preview-ink);
   text-align: left;
   cursor: grab;
-  transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
+  transition: border-color 140ms ease, background 140ms ease;
 }
 
 .component-tile:hover {
   border-color: var(--preview-border);
-  background: #FCFBFA;
-  box-shadow: 0 10px 24px rgba(20, 16, 12, 0.08);
-  transform: translateY(-1px);
+  background: #F8F7F5;
 }
 
 .component-tile:active {
   cursor: grabbing;
-  transform: translateY(0);
 }
 
 .component-copy {
@@ -448,8 +445,8 @@ textarea {
 
 .component-copy strong {
   color: var(--preview-ink);
-  font-size: 16px;
-  font-weight: 650;
+  font-size: 18px;
+  font-weight: 500;
   line-height: 1.15;
 }
 
@@ -461,20 +458,21 @@ textarea {
 .component-icon {
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
-  border: 1px solid #E2D7FF;
-  border-radius: 12px;
-  background: var(--preview-accent-soft);
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--preview-border);
+  border-radius: 7px;
+  background: var(--preview-surface);
+  box-shadow: 0 2px 8px rgba(20, 16, 12, 0.08);
 }
 
 .catalog-icon-shape {
   display: block;
   width: 18px;
   height: 14px;
-  border: 1.5px solid #2F7D7E;
+  border: 1.8px solid var(--preview-ink);
   border-radius: 4px;
-  background: #E0F2FE;
+  background: transparent;
 }
 
 .catalog-icon-diamond {
@@ -482,46 +480,49 @@ textarea {
   height: 16px;
   transform: rotate(45deg);
   border-radius: 3px;
-  background: #FED7AA;
+  border: 1.8px solid var(--preview-ink);
+  background: transparent;
 }
 
 .catalog-icon-circle {
   width: 17px;
   height: 17px;
+  border: 2px solid var(--preview-ink);
   border-radius: 999px;
-  background: #ECFEFF;
+  background: transparent;
 }
 
 .catalog-icon-window {
   width: 18px;
   height: 20px;
   border-radius: 4px;
-  background: linear-gradient(#DFF3FB 0 25%, #FFFFFF 25% 100%);
+  border: 1.8px solid var(--preview-ink);
+  background: linear-gradient(var(--preview-border) 0 25%, transparent 25% 100%);
 }
 
 .catalog-icon-label {
   display: grid;
   place-items: center;
-  color: #2F7D7E;
+  color: var(--preview-ink);
   font-size: 12px;
   font-weight: 800;
-  background: #FFFFFF;
+  background: transparent;
 }
 
 .catalog-icon-issue {
   display: grid;
   place-items: center;
-  color: #BE123C;
+  color: var(--preview-ink);
   font-size: 13px;
   font-weight: 800;
-  border-color: #FDA4AF;
-  background: #FFE4E6;
+  border-color: var(--preview-ink);
+  background: transparent;
 }
 
 .catalog-icon-group {
   width: 21px;
   height: 16px;
-  border-color: #CBD5E1;
+  border-color: var(--preview-ink);
   border-style: dashed;
   background: transparent;
 }

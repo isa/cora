@@ -27,6 +27,7 @@ export function App() {
     state.selected?.kind === 'group'
       ? state.groups.find((group) => group.id === state.selected?.id)
       : undefined;
+  const hasSelection = Boolean(selectedNode || selectedConnection || selectedGroup);
 
   return (
     <main className="preview-shell">
@@ -38,16 +39,20 @@ export function App() {
         <WorkbenchCanvas state={state} onStateChange={setState} />
       </div>
       <aside className="inspector-panel" aria-label="Inspector">
-        <header className="sidebar-header inspector-header">
-          <div>
-            <p>Inspector / Attributes</p>
-            <h1>Attributes</h1>
-          </div>
-        </header>
-        <div className="inspector-tabs" aria-label="Inspector sections">
-          <span className="inspector-tab active">Inspector</span>
-          <span className="inspector-tab">Style</span>
-        </div>
+        {!hasSelection ? (
+          <>
+            <header className="sidebar-header inspector-header">
+              <div>
+                <p>Inspector / Attributes</p>
+                <h1>No Selection</h1>
+              </div>
+            </header>
+            <div className="inspector-tabs" aria-label="Inspector sections">
+              <span className="inspector-tab active">Inspector</span>
+              <span className="inspector-tab">Style</span>
+            </div>
+          </>
+        ) : null}
         {selectedConnection ? (
           <ConnectionPanel
             connection={selectedConnection}

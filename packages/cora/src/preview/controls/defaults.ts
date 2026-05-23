@@ -39,18 +39,18 @@ export type ConnectionProps = {
 export const baseNodeDefaults: PreviewNodeProps = {
   title: 'Component',
   subtitle: '',
-  backgroundColor: '#E0F2FE',
-  radius: 8,
+  backgroundColor: '#FFFFFF',
+  radius: 14,
   borderStyle: 'solid',
-  borderColor: '#2F7D7E',
-  borderWidth: 0.5,
-  textColor: '#111827',
-  subtitleColor: '#64748B',
-  titleFontSize: 13,
-  subtitleFontSize: 11,
+  borderColor: '#0A0A0A',
+  borderWidth: 1,
+  textColor: '#0A0A0A',
+  subtitleColor: '#6F6A72',
+  titleFontSize: 18,
+  subtitleFontSize: 12,
   shadow: 'none',
-  size: { width: 156, height: 40 },
-  iconColor: '#2F7D7E',
+  size: { width: 220, height: 56 },
+  iconColor: '#6D28D9',
 };
 
 export const pageNodeDefaults: PreviewNodeProps = {
@@ -66,8 +66,8 @@ export const issueNodeDefaults: PreviewNodeProps = {
   ...baseNodeDefaults,
   title: 'IssueNode.icon',
   icon: 'warning',
-  backgroundColor: '#FFE4E6',
-  borderColor: '#F43F5E',
+  backgroundColor: '#FFFFFF',
+  borderColor: '#B42318',
 };
 
 export const connectionDefaults: ConnectionProps = {

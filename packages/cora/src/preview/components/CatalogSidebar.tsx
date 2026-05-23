@@ -1,7 +1,6 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { type ReactNode } from 'react';
 
 import type { WorkbenchState } from '../state.js';
-import { Input } from './ui/index.js';
 
 export interface CatalogItem {
   id: string;
@@ -38,10 +37,7 @@ export function filterComponents(state: WorkbenchState, query: string) {
 }
 
 export function CatalogSidebar({ state }: CatalogSidebarProps) {
-  const [query, setQuery] = useState('');
-  const components = useMemo(() => {
-    return filterComponents(state, query);
-  }, [query, state.pack.components, state.pack.families]);
+  const components = catalogItems(state);
 
   return (
     <aside className="catalog-panel" aria-label="Catalog">
@@ -55,19 +51,6 @@ export function CatalogSidebar({ state }: CatalogSidebarProps) {
         <span className="catalog-segment active">Lib</span>
         <span className="catalog-segment">Nodes</span>
       </div>
-      <section className="sidebar-section">
-        <h2>Find</h2>
-        <label className="field sidebar-search">
-          <span>Search</span>
-          <Input
-            type="search"
-            placeholder="Filter components"
-            aria-label="Search components"
-            value={query}
-            onChange={(event) => setQuery(event.currentTarget.value)}
-          />
-        </label>
-      </section>
       <section className="sidebar-section">
         <h2>Diagram Elements</h2>
         <div className="component-list" role="list" aria-label="Components">
@@ -96,7 +79,15 @@ export function CatalogSidebar({ state }: CatalogSidebarProps) {
 }
 
 function visibleComponentLabel(label: string): string {
-  return label.endsWith('Node') ? label.slice(0, -4) : label;
+  const labels: Record<string, string> = {
+    BoxNode: 'Process Box',
+    LabelNode: 'Text Label',
+    IconNode: 'Start/End Terminal',
+    LabelIconNode: 'Data Input',
+    DecisionNode: 'Decision Diamond',
+    Group: 'Subroutine',
+  };
+  return labels[label] ?? (label.endsWith('Node') ? label.slice(0, -4) : label);
 }
 
 function componentIcon(id: string): ReactNode {
