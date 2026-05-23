@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Phase 3.5 UI-SPEC approved
-last_updated: "2026-05-23T16:33:38.621Z"
+status: planning
+stopped_at: Phase 3.5 execution complete
+last_updated: "2026-05-23T16:39:43.540Z"
 last_activity: 2026-05-23
 progress:
   total_phases: 14
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 29
-  completed_plans: 28
-  percent: 50
+  completed_plans: 29
+  percent: 57
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-21)
 
 **Core value:** An AI agent can write a YAML diagram, run `cora validate` and `cora render`, and produce a professional-looking architectural diagram without touching a visual editor — while humans can still polish the result when needed.
-**Current focus:** Phase 3.5 — Preview Visual Beauty
+**Current focus:** Phase 3.6 — Default Component Look Lockdown
 
 ## Current Position
 
-Phase: 3.5 of 14 (Preview Visual Beauty)
-Plan: 3 of 4 planned
-Status: Ready to execute
-Last activity: 2026-05-23
+Phase: 3.6 of 14 (Default Component Look Lockdown)
+Plan: 0 of 0 planned
+Status: Pending discussion/planning
+Last activity: 2026-05-23 -- Phase 3.5 execution complete
 
-Progress: [█████░░░░░] 50% (7/14 phases complete)
+Progress: [█████░░░░░] 57% (8/14 phases complete)
 
 ## Performance Metrics
 
@@ -51,7 +51,7 @@ Progress: [█████░░░░░] 50% (7/14 phases complete)
 | 3.2 Renderer Component Library | 4 | 4 | — |
 | 3.3 Component Preview Canvas | 4 | 4 | — |
 | 3.4 ASCII Export + SKILL.md | 4 | 4 | — |
-| 3.5 Preview Visual Beauty | 0 | 4 | — |
+| 3.5 Preview Visual Beauty | 4 | 4 | — |
 | 3.6 Default Component Look Lockdown | 0 | 0 | — |
 | 3.7 Component/Icon Package Surface Lockdown | 0 | 0 | — |
 | 3.8 Grid Capability Expansion | 0 | 0 | — |
@@ -59,7 +59,7 @@ Progress: [█████░░░░░] 50% (7/14 phases complete)
 **Recent Trend:**
 
 - Last 5 plans: 3.5-04, 3.5-03, 3.5-02, 3.5-01, 3.4-04
-- Trend: Phase 3.5 visual beauty is planned in four dependency waves; execution can now polish the preview workbench before default look, package surface, and grid capability work before Interactive Canvas.
+- Trend: Phase 3.5 visual beauty is complete; Phase 3.6 can now lock renderer/component defaults using the preview direction as input without inheriting preview-only UI decisions.
 
 ## Accumulated Context
 

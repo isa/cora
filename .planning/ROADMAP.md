@@ -18,7 +18,7 @@
 | 3.2 | Renderer Component Library (INSERTED) ✓ | Full reusable renderer component catalog and style vocabulary | RCL-* (new) |
 | 3.3 | Component Preview Canvas (INSERTED) ✓ | `cora preview` browser SPA for browsing + tuning components | PREV-* |
 | 3.4 | ASCII Export + SKILL.md (INSERTED) ✓ | Text-native diagram export and agent skill handoff docs | ASCII-*, AGT-04 |
-| 3.5 | Preview Visual Beauty (INSERTED) | Visual beauty, polish, and product feel of the preview workbench | BEAUTY-* |
+| 3.5 | Preview Visual Beauty (INSERTED) ✓ | Visual beauty, polish, and product feel of the preview workbench | BEAUTY-* |
 | 3.6 | Default Component Look Lockdown (INSERTED) | Canonical component styling, colors, fonts, and sensible defaults | LOOK-* |
 | 3.7 | Component/Icon Package Surface Lockdown (INSERTED) | Shipped component/icon set and package contents contract | PACK-* |
 | 3.8 | Grid Capability Expansion (INSERTED) | More capable diagram grid behavior before the interactive canvas | GRID-* |
@@ -273,7 +273,7 @@ Cross-cutting constraints:
 
 ---
 
-### Phase 3.5: Preview Visual Beauty (INSERTED)
+### Phase 3.5: Preview Visual Beauty (INSERTED) ✓ 2026-05-23
 **Goal:** Talk through and lock a stronger visual direction for the `cora preview` workbench so the app feels visually beautiful, intentional, and worth using before later phases harden defaults and build the interactive canvas on top of it.
 **Mode:** mvp
 **Requirements:** BEAUTY-*
@@ -306,7 +306,7 @@ Plans:
 - [x] 03.5-03-PLAN.md — Premium dotted canvas, split tools, and motion
 
 **Wave 3 *(blocked on Waves 1-2 completion)***
-- [ ] 03.5-04-PLAN.md — Visual contract tests, browser verification, and final QA
+- [x] 03.5-04-PLAN.md — Visual contract tests, browser verification, and final QA
 
 Cross-cutting constraints:
 - Keep the first screen a focused preview workbench, not a landing page.
