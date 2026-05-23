@@ -22,6 +22,8 @@ export interface GroupComponentProps {
 
 export type BorderStyle = 'none' | 'solid' | 'dashed' | 'dotted';
 
+export type NodeShadow = 'none' | 'cast' | 'radial';
+
 export type SizePreset = 'sm' | 'md' | 'lg' | 'xl' | 'xxl';
 
 export interface ComponentDimensions {
@@ -37,8 +39,14 @@ export interface BoxStyleProps {
   borderStyle?: BorderStyle;
   borderColor?: string;
   borderWidth?: number;
+  title?: string;
+  subtitle?: string;
   text?: string;
   textColor?: string;
+  subtitleColor?: string;
+  titleFontSize?: number;
+  subtitleFontSize?: number;
+  shadow?: NodeShadow;
   size?: ComponentSize;
 }
 

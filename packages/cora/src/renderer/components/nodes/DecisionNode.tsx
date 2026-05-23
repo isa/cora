@@ -1,5 +1,5 @@
 import type { BoxStyleProps } from '../types.js';
-import { CatalogText, resolvedCatalogFrame } from './shared.js';
+import { CatalogPolygonShadow, CatalogText, resolvedCatalogFrame } from './shared.js';
 
 export interface DecisionNodeProps extends BoxStyleProps {
   x?: number;
@@ -19,6 +19,7 @@ export function DecisionNode(props: DecisionNodeProps) {
 
   return (
     <g>
+      <CatalogPolygonShadow points={points} fill={frame.backgroundColor} shadow={frame.shadow} />
       <polygon
         points={points}
         fill={frame.backgroundColor}
@@ -33,7 +34,11 @@ export function DecisionNode(props: DecisionNodeProps) {
         width={frame.width * 0.64}
         height={frame.height}
         text={frame.text}
+        subtitle={frame.subtitle}
         color={frame.textColor}
+        subtitleColor={frame.subtitleColor}
+        fontSize={frame.titleFontSize}
+        subtitleFontSize={frame.subtitleFontSize}
       />
     </g>
   );

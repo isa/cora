@@ -31,12 +31,15 @@ export function PageNode(props: PageNodeProps) {
       <rect x={left} y={rowY + 12} width={width * 0.62} height="5" rx="2.5" fill={skeletonColorLight} />
       <CatalogText
         x={frame.x}
-        y={frame.y + frame.height - 26}
+        y={frame.y + frame.height - 40}
         width={frame.width}
-        height={22}
+        height={36}
         text={frame.text}
+        subtitle={frame.subtitle}
         color={frame.textColor}
-        fontSize={12}
+        subtitleColor={frame.subtitleColor}
+        fontSize={frame.titleFontSize ?? 12}
+        subtitleFontSize={frame.subtitleFontSize}
       />
     </CatalogFrame>
   );

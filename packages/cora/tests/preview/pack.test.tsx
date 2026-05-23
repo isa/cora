@@ -12,7 +12,6 @@ describe('built-in preview pack', () => {
         'BoxNode',
         'LabelNode',
         'IconNode',
-        'LabelIconNode',
         'WebsiteNode',
         'PageNode',
         'AppNode',
@@ -23,5 +22,14 @@ describe('built-in preview pack', () => {
     );
     expect(ids).not.toContain('Group');
     expect(ids).not.toContain('Line');
+  });
+
+  it('uses compact text defaults for label nodes', () => {
+    const labelNode = builtInPack.components.find((component) => component.id === 'label');
+
+    expect(labelNode?.defaultProps).toMatchObject({
+      titleFontSize: 9,
+      subtitleFontSize: 8,
+    });
   });
 });

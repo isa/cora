@@ -3,17 +3,21 @@ import { describe, expect, it } from 'vitest';
 
 import {
   borderDasharray,
+  BoxNode,
   DecisionNode,
   IconNode,
   IssueNode,
+  LabelNode,
   LabelIconNode,
   Line,
   LineMarkerDefs,
+  linePathData,
   PageNode,
   resolveComponentSize,
   ShapeNode,
   type SvgIconProps,
 } from '../../src/renderer/components/index.js';
+import { baselineYForVisualCenter } from '../../src/core/measureText.js';
 import { edgeBridgeMap } from '../../src/core/edgeGeometry.js';
 import { EdgeLabel } from '../../src/renderer/components/edges/EdgeLabel.js';
 import {
@@ -69,10 +73,21 @@ describe('renderer component primitives', () => {
     expect(markup).toContain('marker-end="url(#cora-marker-arrow)"');
   });
 
+  it('rounds orthogonal line elbows', () => {
+    const pathData = linePathData([
+      { x: 0, y: 0 },
+      { x: 40, y: 0 },
+      { x: 40, y: 40 },
+    ]);
+
+    expect(pathData).toContain('Q 40 0 40 8');
+  });
+
   it('renders centralized line marker definitions', () => {
     const markup = renderToStaticMarkup(<LineMarkerDefs color="#123456" />);
 
     expect(markup).toContain('id="cora-marker-arrow"');
+    expect(markup).toContain('refX="0"');
     expect(markup).toContain('id="cora-marker-circle"');
     expect(markup).toContain('id="cora-marker-filled-circle"');
   });
@@ -101,6 +116,83 @@ describe('renderer catalog nodes', () => {
 
     expect(markup).toContain('data-icon="test"');
     expect(markup).toContain('Deploy');
+  });
+
+  it('renders LabelIconNode status type as icon-only', () => {
+    const markup = renderToStaticMarkup(
+      <LabelIconNode icon={TestIcon} iconType="question-mark" text="Hidden" />,
+    );
+
+    expect(markup).toContain('<circle');
+    expect(markup).not.toContain('<rect');
+    expect(markup).not.toContain('data-icon="test"');
+    expect(markup).not.toContain('Hidden');
+  });
+
+  it('renders LabelIconNode status type with a filled badge background', () => {
+    const markup = renderToStaticMarkup(
+      <LabelIconNode icon={TestIcon} iconType="ok" backgroundColor="#ffffff" />,
+    );
+
+    expect(markup).toContain('fill="#ffffff"');
+  });
+
+  it('renders catalog title and subtitle with independent font sizes', () => {
+    const markup = renderToStaticMarkup(
+      <BoxNode
+        title="Primary"
+        subtitle="Secondary"
+        titleFontSize={16}
+        subtitleFontSize={10}
+      />,
+    );
+
+    expect(markup).toContain('Primary');
+    expect(markup).toContain('Secondary');
+    expect(markup).toContain('font-size="16"');
+    expect(markup).toContain('font-size="10"');
+  });
+
+  it('centers single-line catalog text on the node visual center', () => {
+    const markup = renderToStaticMarkup(
+      <BoxNode title="Centered" size={{ width: 156, height: 40 }} titleFontSize={13} />,
+    );
+    const y = Number(markup.match(/<text[^>]* y="([^"]+)"/)?.[1]);
+
+    expect(y).toBeCloseTo(baselineYForVisualCenter(20, 13, 'node'), 5);
+  });
+
+  it('renders cast and radial shadows for box-style nodes', () => {
+    const castMarkup = renderToStaticMarkup(
+      <BoxNode text="Shadow" backgroundColor="#EDE9FE" shadow="cast" />,
+    );
+    const radialMarkup = renderToStaticMarkup(
+      <DecisionNode text="Shadow" backgroundColor="#FED7AA" shadow="radial" />,
+    );
+
+    expect(castMarkup).toContain('data-shadow="cast"');
+    expect(radialMarkup).toContain('data-shadow="radial"');
+  });
+
+  it('does not render shadows for label or label-icon nodes', () => {
+    const labelMarkup = renderToStaticMarkup(
+      <LabelNode title="Label" shadow="cast" />,
+    );
+    const labelIconMarkup = renderToStaticMarkup(
+      <LabelIconNode icon={TestIcon} iconType="ok" shadow="radial" />,
+    );
+
+    expect(labelMarkup).not.toContain('data-shadow=');
+    expect(labelIconMarkup).not.toContain('data-shadow=');
+  });
+
+  it('renders LabelNode with compact default font sizes', () => {
+    const markup = renderToStaticMarkup(
+      <LabelNode title="Primary" subtitle="Secondary" />,
+    );
+
+    expect(markup).toContain('font-size="9"');
+    expect(markup).toContain('font-size="8"');
   });
 
   it('renders PageNode skeleton colors for landing pages', () => {

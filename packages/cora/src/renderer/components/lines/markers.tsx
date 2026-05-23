@@ -4,57 +4,72 @@ export const MARKER_ARROW_ID = 'cora-marker-arrow';
 export const MARKER_CIRCLE_ID = 'cora-marker-circle';
 export const MARKER_FILLED_CIRCLE_ID = 'cora-marker-filled-circle';
 
-export function markerUrl(marker: MarkerType | undefined): string | undefined {
+function withSuffix(id: string, suffix: string | undefined): string {
+  return suffix ? `${id}-${suffix}` : id;
+}
+
+export function markerUrl(marker: MarkerType | undefined, idSuffix?: string): string | undefined {
   if (marker === 'arrow') {
-    return `url(#${MARKER_ARROW_ID})`;
+    return `url(#${withSuffix(MARKER_ARROW_ID, idSuffix)})`;
   }
 
   if (marker === 'circle') {
-    return `url(#${MARKER_CIRCLE_ID})`;
+    return `url(#${withSuffix(MARKER_CIRCLE_ID, idSuffix)})`;
   }
 
   if (marker === 'filledCircle') {
-    return `url(#${MARKER_FILLED_CIRCLE_ID})`;
+    return `url(#${withSuffix(MARKER_FILLED_CIRCLE_ID, idSuffix)})`;
   }
 
   return undefined;
 }
 
-export function LineMarkerDefs({ color = 'currentColor' }: { color?: string }) {
+export function LineMarkerDefs({
+  color = 'currentColor',
+  markerSize = 8,
+  idSuffix,
+}: {
+  color?: string;
+  markerSize?: number;
+  idSuffix?: string;
+}) {
+  const size = Math.max(4, markerSize);
+  const center = size / 2;
+  const circleRadius = Math.max(2, size * 0.36);
   return (
     <>
       <marker
-        id={MARKER_ARROW_ID}
-        markerWidth="8"
-        markerHeight="8"
-        refX="7"
-        refY="4"
+        id={withSuffix(MARKER_ARROW_ID, idSuffix)}
+        markerWidth={size}
+        markerHeight={size}
+        refX={0}
+        refY={center}
         orient="auto"
-        markerUnits="strokeWidth"
+        markerUnits="userSpaceOnUse"
       >
-        <path d="M 0 0 L 8 4 L 0 8 z" fill={color} />
+        <path d={`M 0 0 L ${size} ${center} L 0 ${size} z`} fill={color} />
       </marker>
       <marker
-        id={MARKER_CIRCLE_ID}
-        markerWidth="8"
-        markerHeight="8"
-        refX="4"
-        refY="4"
+        id={withSuffix(MARKER_CIRCLE_ID, idSuffix)}
+        markerWidth={size}
+        markerHeight={size}
+        refX={center}
+        refY={center}
         orient="auto"
-        markerUnits="strokeWidth"
+        markerUnits="userSpaceOnUse"
       >
-        <circle cx="4" cy="4" r="3" fill="none" stroke={color} strokeWidth="1.5" />
+        <circle cx={center} cy={center} r={circleRadius} fill="none" stroke={color} strokeWidth="1.5" />
       </marker>
       <marker
-        id={MARKER_FILLED_CIRCLE_ID}
-        markerWidth="8"
-        markerHeight="8"
-        refX="4"
-        refY="4"
+        id={withSuffix(MARKER_FILLED_CIRCLE_ID, idSuffix)}
+        markerWidth={size}
+        markerHeight={size}
+        refX={center}
+        refY={center}
         orient="auto"
-        markerUnits="strokeWidth"
+        markerUnits="userSpaceOnUse"
       >
-        <circle cx="4" cy="4" r="3" fill={color} />
+        <circle cx={center} cy={center} r={circleRadius} fill={color} />
       </marker>
     </>
   );

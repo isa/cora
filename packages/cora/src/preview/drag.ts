@@ -1,48 +1,32 @@
-import type { PreviewNodeRole } from './pack/types.js';
 import type { WorkbenchState } from './state.js';
+import { setGroupPosition, setNodePosition } from './state.js';
 
 export function moveNode(
   state: WorkbenchState,
-  role: PreviewNodeRole,
+  nodeId: string,
   delta: { x: number; y: number },
 ): WorkbenchState {
-  const node = state[role];
-  return {
-    ...state,
-    [role]: {
-      ...node,
-      position: {
-        x: node.position.x + delta.x,
-        y: node.position.y + delta.y,
-      },
-    },
-  };
+  const node = state.nodes.find((item) => item.id === nodeId);
+  if (!node) {
+    return state;
+  }
+  return setNodePosition(state, nodeId, {
+    x: node.position.x + delta.x,
+    y: node.position.y + delta.y,
+  });
 }
 
-export function movePrimaryNode(
+export function moveGroup(
   state: WorkbenchState,
+  groupId: string,
   delta: { x: number; y: number },
 ): WorkbenchState {
-  return moveNode(state, 'primary', delta);
-}
-
-export function moveSecondaryNode(
-  state: WorkbenchState,
-  delta: { x: number; y: number },
-): WorkbenchState {
-  return moveNode(state, 'secondary', delta);
-}
-
-export function setNodePosition(
-  state: WorkbenchState,
-  role: PreviewNodeRole,
-  position: { x: number; y: number },
-): WorkbenchState {
-  return {
-    ...state,
-    [role]: {
-      ...state[role],
-      position,
-    },
-  };
+  const group = state.groups.find((item) => item.id === groupId);
+  if (!group) {
+    return state;
+  }
+  return setGroupPosition(state, groupId, {
+    x: group.position.x + delta.x,
+    y: group.position.y + delta.y,
+  });
 }

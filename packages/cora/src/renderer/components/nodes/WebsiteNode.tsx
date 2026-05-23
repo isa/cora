@@ -22,7 +22,11 @@ export function WebsiteNode(props: WebsiteNodeProps) {
         width={frame.width}
         height={frame.height - chromeHeight}
         text={frame.text}
+        subtitle={frame.subtitle}
         color={frame.textColor}
+        subtitleColor={frame.subtitleColor}
+        fontSize={frame.titleFontSize}
+        subtitleFontSize={frame.subtitleFontSize}
       />
     </CatalogFrame>
   );

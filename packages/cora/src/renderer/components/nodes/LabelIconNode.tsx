@@ -7,22 +7,91 @@ export interface LabelIconNodeProps extends BoxStyleProps {
   y?: number;
   icon: SvgIconComponent;
   iconColor?: string;
+  iconType?: 'ok' | 'nok' | 'question-mark';
+}
+
+function StatusIcon({
+  type,
+  x,
+  y,
+  size,
+  color,
+}: {
+  type: NonNullable<LabelIconNodeProps['iconType']>;
+  x: number;
+  y: number;
+  size: number;
+  color: string;
+}) {
+  if (type === 'ok') {
+    return (
+      <g transform={`translate(${x} ${y})`}>
+        <circle cx={size / 2} cy={size / 2} r={size * 0.36} fill="none" stroke={color} strokeWidth="1.8" />
+        <path d={`M ${size * 0.3} ${size * 0.52} L ${size * 0.45} ${size * 0.66} L ${size * 0.72} ${size * 0.36}`} fill="none" stroke={color} strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+      </g>
+    );
+  }
+
+  if (type === 'nok') {
+    return (
+      <g transform={`translate(${x} ${y})`}>
+        <circle cx={size / 2} cy={size / 2} r={size * 0.36} fill="none" stroke={color} strokeWidth="1.8" />
+        <path d={`M ${size * 0.35} ${size * 0.35} L ${size * 0.65} ${size * 0.65}`} stroke={color} strokeLinecap="round" strokeWidth="2" />
+        <path d={`M ${size * 0.65} ${size * 0.35} L ${size * 0.35} ${size * 0.65}`} stroke={color} strokeLinecap="round" strokeWidth="2" />
+      </g>
+    );
+  }
+
+  return (
+    <g transform={`translate(${x} ${y})`}>
+      <circle cx={size / 2} cy={size / 2} r={size * 0.36} fill="none" stroke={color} strokeWidth="1.8" />
+      <path d={`M ${size * 0.38} ${size * 0.4} C ${size * 0.42} ${size * 0.28} ${size * 0.62} ${size * 0.3} ${size * 0.62} ${size * 0.45} C ${size * 0.62} ${size * 0.55} ${size * 0.5} ${size * 0.56} ${size * 0.5} ${size * 0.66}`} fill="none" stroke={color} strokeLinecap="round" strokeWidth="2" />
+      <circle cx={size / 2} cy={size * 0.76} r={size * 0.035} fill={color} />
+    </g>
+  );
 }
 
 export function LabelIconNode(props: LabelIconNodeProps) {
   const frame = resolvedCatalogFrame(props);
-  const iconSize = Math.min(22, frame.height * 0.45);
+  const iconSize = props.iconType ? Math.min(frame.width, frame.height) * 0.62 : Math.min(22, frame.height * 0.45);
+  const iconColor = props.iconColor ?? frame.textColor;
+  const filledBackground = props.backgroundColor && props.backgroundColor !== 'transparent'
+    ? props.backgroundColor
+    : undefined;
+
+  if (props.iconType) {
+    return (
+      <g>
+        {filledBackground ? (
+          <circle
+            cx={frame.x + frame.width / 2}
+            cy={frame.y + frame.height / 2}
+            r={Math.min(frame.width, frame.height) / 2}
+            fill={filledBackground}
+          />
+        ) : null}
+        <StatusIcon
+          type={props.iconType}
+          x={frame.x + (frame.width - iconSize) / 2}
+          y={frame.y + (frame.height - iconSize) / 2}
+          size={iconSize}
+          color={iconColor}
+        />
+      </g>
+    );
+  }
+
   const iconX = frame.x + 12;
   const labelX = frame.x + iconSize + 18;
 
   return (
-    <CatalogFrame {...props}>
+    <CatalogFrame {...props} shadow={undefined}>
       <CatalogIconSlot
         icon={props.icon}
         x={iconX}
         y={frame.y + (frame.height - iconSize) / 2}
         size={iconSize}
-        color={props.iconColor ?? frame.textColor}
+        color={iconColor}
       />
       <CatalogText
         x={labelX}
@@ -30,7 +99,11 @@ export function LabelIconNode(props: LabelIconNodeProps) {
         width={frame.width - iconSize - 24}
         height={frame.height}
         text={frame.text}
+        subtitle={frame.subtitle}
         color={frame.textColor}
+        subtitleColor={frame.subtitleColor}
+        fontSize={frame.titleFontSize}
+        subtitleFontSize={frame.subtitleFontSize}
       />
     </CatalogFrame>
   );

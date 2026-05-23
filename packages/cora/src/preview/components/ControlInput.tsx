@@ -1,4 +1,5 @@
 import type { ControlDefinition } from '../controls/schema.js';
+import { Input, Select, Textarea } from './ui/index.js';
 
 interface ControlInputProps {
   control: ControlDefinition;
@@ -9,24 +10,24 @@ interface ControlInputProps {
 export function ControlInput({ control, value, onChange }: ControlInputProps) {
   if (control.kind === 'enum') {
     return (
-      <label className="field compact">
+      <label className="field compact field-enum">
         <span>{control.label}</span>
-        <select value={String(value ?? control.options[0])} onChange={(event) => onChange(event.currentTarget.value)}>
+        <Select value={String(value ?? control.options[0])} onChange={(event) => onChange(event.currentTarget.value)}>
           {control.options.map((option) => (
             <option key={option} value={option}>
               {option}
             </option>
           ))}
-        </select>
+        </Select>
       </label>
     );
   }
 
   if (control.kind === 'number') {
     return (
-      <label className="field compact">
+      <label className="field compact field-number">
         <span>{control.label}</span>
-        <input
+        <Input
           type="number"
           min={control.min}
           max={control.max}
@@ -40,9 +41,9 @@ export function ControlInput({ control, value, onChange }: ControlInputProps) {
 
   if (control.kind === 'color') {
     return (
-      <label className="field compact color-field">
+      <label className="field compact color-field field-color">
         <span>{control.label}</span>
-        <input
+        <Input
           type="color"
           value={String(value ?? '#000000')}
           onChange={(event) => onChange(event.currentTarget.value)}
@@ -53,7 +54,7 @@ export function ControlInput({ control, value, onChange }: ControlInputProps) {
 
   if (control.kind === 'boolean') {
     return (
-      <label className="check-field">
+      <label className="check-field field-boolean">
         <input
           type="checkbox"
           checked={Boolean(value)}
@@ -66,24 +67,24 @@ export function ControlInput({ control, value, onChange }: ControlInputProps) {
 
   if (control.kind === 'size') {
     return (
-      <label className="field compact">
+      <label className="field compact field-size">
         <span>{control.label}</span>
-        <select value={typeof value === 'string' ? value : 'lg'} onChange={(event) => onChange(event.currentTarget.value)}>
+          <Select value={typeof value === 'string' ? value : 'lg'} onChange={(event) => onChange(event.currentTarget.value)}>
           {control.presets.map((preset) => (
             <option key={preset} value={preset}>
               {preset}
             </option>
           ))}
-        </select>
+          </Select>
       </label>
     );
   }
 
   return (
-    <label className="field compact">
+    <label className="field compact field-text">
       <span>{control.label}</span>
-      <input
-        type="text"
+      <Textarea
+        rows={4}
         value={String(value ?? '')}
         onChange={(event) => onChange(event.currentTarget.value)}
       />

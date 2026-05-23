@@ -5,7 +5,7 @@ import type {
   SizePreset,
 } from './types.js';
 
-const DEFAULT_BORDER_WIDTH = 1;
+const DEFAULT_BORDER_WIDTH = 0.5;
 
 export const SIZE_PRESETS: Record<SizePreset, ComponentDimensions> = {
   sm: { width: 96, height: 40 },

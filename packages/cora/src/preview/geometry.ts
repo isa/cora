@@ -1,10 +1,12 @@
 import { resolveComponentSize } from '../renderer/components/styles.js';
-import type { PreviewNodeRole } from './pack/types.js';
-import type { WorkbenchState } from './state.js';
+import type { ConnectionProps } from './controls/defaults.js';
+import type { SizePreset } from '../renderer/components/types.js';
+import type { CanvasConnection, CanvasNode, WorkbenchState } from './state.js';
 
 export type Side = 'top' | 'right' | 'bottom' | 'left';
 
 export interface PreviewBox {
+  id: string;
   x: number;
   y: number;
   width: number;
@@ -12,7 +14,7 @@ export interface PreviewBox {
 }
 
 export interface AttachmentSlot {
-  role: PreviewNodeRole;
+  nodeId: string;
   side: Side;
   index: number;
   label: string;
@@ -20,11 +22,75 @@ export interface AttachmentSlot {
   y: number;
 }
 
-export function computeNodeBox(state: WorkbenchState, role: PreviewNodeRole): PreviewBox {
-  const node = state[role];
-  const size = resolveComponentSize(node.props.size, { width: 176, height: 72 });
+const ICON_SIZE_PRESETS: Record<SizePreset, number> = {
+  sm: 28,
+  md: 40,
+  lg: 56,
+  xl: 72,
+  xxl: 88,
+};
+
+export function previewNodeSize(node: CanvasNode): { width: number; height: number } {
+  const base = resolveComponentSize(node.props.size, { width: 176, height: 72 });
+  const title = node.props.title ?? node.props.text ?? '';
+  const subtitle = node.props.subtitle ?? '';
+  const lines = title.split(/\r?\n/);
+  const subtitleLines = subtitle ? subtitle.split(/\r?\n/) : [];
+  const longestLine = Math.max(...lines.map((line) => line.length), 1);
+  const longestSubtitle = Math.max(...subtitleLines.map((line) => line.length), 0);
+  const titleFontSize = node.props.titleFontSize ?? 13;
+  const subtitleFontSize = node.props.subtitleFontSize ?? Math.max(8, titleFontSize - 2);
+  const textWidth = Math.ceil(Math.max(longestLine * titleFontSize * 0.56, longestSubtitle * subtitleFontSize * 0.56) + 16);
+  const textHeight = Math.ceil(16 + Math.max(1, lines.length) * titleFontSize * 1.25 + subtitleLines.length * subtitleFontSize * 1.25);
+  if (node.componentId === 'label') {
+    return {
+      width: Math.max(48, textWidth),
+      height: Math.max(28, textHeight),
+    };
+  }
+  if (node.componentId === 'icon' || node.componentId === 'labelIcon') {
+    return previewIconSize(node);
+  }
+
   return {
-    ...node.position,
+    width: Math.max(base.width, textWidth),
+    height: Math.max(base.height, textHeight),
+  };
+}
+
+function previewIconSize(node: CanvasNode): { width: number; height: number } {
+  if (typeof node.props.size === 'string') {
+    const size = ICON_SIZE_PRESETS[node.props.size] ?? ICON_SIZE_PRESETS.md;
+    return { width: size, height: size };
+  }
+  if (node.props.size && typeof node.props.size === 'object') {
+    const size = Math.max(24, Math.min(node.props.size.width, node.props.size.height));
+    return { width: size, height: size };
+  }
+  return { width: ICON_SIZE_PRESETS.md, height: ICON_SIZE_PRESETS.md };
+}
+
+export function computeNodeBox(state: WorkbenchState, nodeId: string): PreviewBox | undefined {
+  const node = state.nodes.find((item) => item.id === nodeId);
+  if (!node) {
+    return undefined;
+  }
+  const size = previewNodeSize(node);
+  const attachedCenter = node.attachedConnectionId
+    ? node.componentId === 'labelIcon'
+      ? computeConnectionSourceLabelIconCenter(state, node.attachedConnectionId, size)
+      : computeConnectionCenter(state, node.attachedConnectionId)
+    : undefined;
+  const position = attachedCenter
+    ? {
+        x: attachedCenter.x - size.width / 2,
+        y: attachedCenter.y - size.height / 2,
+      }
+    : node.position;
+
+  return {
+    id: node.id,
+    ...position,
     ...size,
   };
 }
@@ -61,12 +127,13 @@ export function sidePoint(box: PreviewBox, side: Side, offsetRatio = 0.5): { x: 
   return { x: box.x + box.width, y: box.y + box.height * offsetRatio };
 }
 
-export function computeConnectionPoints(state: WorkbenchState): Array<{ x: number; y: number }> {
-  const primary = computeNodeBox(state, 'primary');
-  const secondary = computeNodeBox(state, 'secondary');
-  const { sourceSide, targetSide } = chooseConnectionSides(primary, secondary);
-  const start = sidePoint(primary, sourceSide);
-  const end = sidePoint(secondary, targetSide);
+export function computeConnectionPointsForBoxes(
+  source: PreviewBox,
+  target: PreviewBox,
+): Array<{ x: number; y: number }> {
+  const { sourceSide, targetSide } = chooseConnectionSides(source, target);
+  const start = sidePoint(source, sourceSide);
+  const end = sidePoint(target, targetSide);
   const midX = (start.x + end.x) / 2;
   const midY = (start.y + end.y) / 2;
 
@@ -77,9 +144,197 @@ export function computeConnectionPoints(state: WorkbenchState): Array<{ x: numbe
   return [start, { x: start.x, y: midY }, { x: end.x, y: midY }, end];
 }
 
+export function computeConnectionPoints(
+  state: WorkbenchState,
+  connection: CanvasConnection,
+): Array<{ x: number; y: number }> {
+  const source = computeNodeBox(state, connection.fromNodeId);
+  const target = computeNodeBox(state, connection.toNodeId);
+  if (!source || !target) {
+    return [];
+  }
+  const { sourceSide, targetSide } = chooseConnectionSides(source, target);
+  const ratios = computeConnectionAnchorRatios(state, connection.id);
+  const start = sidePoint(source, sourceSide, ratios.sourceRatio);
+  const end = sidePoint(target, targetSide, ratios.targetRatio);
+  const midX = (start.x + end.x) / 2;
+  const midY = (start.y + end.y) / 2;
+
+  if (sourceSide === 'left' || sourceSide === 'right') {
+    return [start, { x: midX, y: start.y }, { x: midX, y: end.y }, end];
+  }
+
+  return [start, { x: start.x, y: midY }, { x: end.x, y: midY }, end];
+}
+
+export function applyConnectionMarkerInsets(
+  points: Array<{ x: number; y: number }>,
+  props: Pick<ConnectionProps, 'startMarker' | 'endMarker' | 'arrowSize'>,
+): Array<{ x: number; y: number }> {
+  if (points.length < 2) {
+    return points;
+  }
+  const next = points.map((point) => ({ ...point }));
+  if (props.endMarker === 'arrow') {
+    next[next.length - 1] = offsetPointToward(
+      next[next.length - 1]!,
+      next[next.length - 2]!,
+      props.arrowSize,
+    );
+  }
+  if (props.startMarker === 'arrow') {
+    next[0] = offsetPointToward(next[0]!, next[1]!, props.arrowSize);
+  }
+  return next;
+}
+
+function offsetPointToward(
+  from: { x: number; y: number },
+  to: { x: number; y: number },
+  distance: number,
+): { x: number; y: number } {
+  const length = Math.hypot(to.x - from.x, to.y - from.y);
+  if (length === 0 || distance <= 0) {
+    return from;
+  }
+  const ratio = Math.min(distance / length, 0.5);
+  return {
+    x: from.x + (to.x - from.x) * ratio,
+    y: from.y + (to.y - from.y) * ratio,
+  };
+}
+
+export function computeConnectionAnchorRatios(
+  state: WorkbenchState,
+  connectionId: string,
+): { sourceRatio: number; targetRatio: number } {
+  const endpointGroups = new Map<string, Array<{ connectionId: string; role: 'source' | 'target' }>>();
+
+  for (const connection of state.connections) {
+    const source = computeNodeBox(state, connection.fromNodeId);
+    const target = computeNodeBox(state, connection.toNodeId);
+    if (!source || !target) {
+      continue;
+    }
+    const { sourceSide, targetSide } = chooseConnectionSides(source, target);
+    const endpoints = [
+      { nodeId: connection.fromNodeId, side: sourceSide, role: 'source' as const },
+      { nodeId: connection.toNodeId, side: targetSide, role: 'target' as const },
+    ];
+
+    for (const endpoint of endpoints) {
+      const key = `${endpoint.nodeId}:${endpoint.side}`;
+      const group = endpointGroups.get(key) ?? [];
+      group.push({ connectionId: connection.id, role: endpoint.role });
+      endpointGroups.set(key, group);
+    }
+  }
+
+  let sourceRatio = 0.5;
+  let targetRatio = 0.5;
+  for (const group of endpointGroups.values()) {
+    group.sort((a, b) => a.connectionId.localeCompare(b.connectionId) || a.role.localeCompare(b.role));
+    group.forEach((endpoint, index) => {
+      if (endpoint.connectionId !== connectionId) {
+        return;
+      }
+      const ratio = (index + 1) / (group.length + 1);
+      if (endpoint.role === 'source') {
+        sourceRatio = ratio;
+      } else {
+        targetRatio = ratio;
+      }
+    });
+  }
+
+  return { sourceRatio, targetRatio };
+}
+
+export function connectionCenter(points: Array<{ x: number; y: number }>): { x: number; y: number } | undefined {
+  if (points.length === 0) {
+    return undefined;
+  }
+  if (points.length === 1) {
+    return points[0];
+  }
+
+  const lengths = points.slice(1).map((point, index) => {
+    const previous = points[index]!;
+    return Math.hypot(point.x - previous.x, point.y - previous.y);
+  });
+  const totalLength = lengths.reduce((sum, length) => sum + length, 0);
+  const midpoint = totalLength / 2;
+  let cursor = 0;
+
+  for (let index = 0; index < lengths.length; index++) {
+    const length = lengths[index]!;
+    if (cursor + length >= midpoint) {
+      const start = points[index]!;
+      const end = points[index + 1]!;
+      const ratio = length === 0 ? 0 : (midpoint - cursor) / length;
+      return {
+        x: start.x + (end.x - start.x) * ratio,
+        y: start.y + (end.y - start.y) * ratio,
+      };
+    }
+    cursor += length;
+  }
+
+  return points.at(-1);
+}
+
+export function computeConnectionCenter(
+  state: WorkbenchState,
+  connectionId: string,
+): { x: number; y: number } | undefined {
+  const connection = state.connections.find((item) => item.id === connectionId);
+  return connection ? connectionCenter(computeConnectionPoints(state, connection)) : undefined;
+}
+
+export function computeConnectionSourceLabelIconCenter(
+  state: WorkbenchState,
+  connectionId: string,
+  size: { width: number; height: number } = { width: ICON_SIZE_PRESETS.md, height: ICON_SIZE_PRESETS.md },
+): { x: number; y: number } | undefined {
+  const connection = state.connections.find((item) => item.id === connectionId);
+  if (!connection) {
+    return undefined;
+  }
+  const points = computeConnectionPoints(state, connection);
+  return pointAlongPath(points, Math.max(24, Math.min(size.width, size.height) * 0.85));
+}
+
+function pointAlongPath(
+  points: Array<{ x: number; y: number }>,
+  distance: number,
+): { x: number; y: number } | undefined {
+  if (points.length === 0) {
+    return undefined;
+  }
+  if (points.length === 1 || distance <= 0) {
+    return points[0];
+  }
+
+  let remaining = distance;
+  for (let index = 1; index < points.length; index++) {
+    const start = points[index - 1]!;
+    const end = points[index]!;
+    const length = Math.hypot(end.x - start.x, end.y - start.y);
+    if (remaining <= length) {
+      const ratio = length === 0 ? 0 : remaining / length;
+      return {
+        x: start.x + (end.x - start.x) * ratio,
+        y: start.y + (end.y - start.y) * ratio,
+      };
+    }
+    remaining -= length;
+  }
+
+  return points.at(-1);
+}
+
 export function computeAttachmentSlots(
   box: PreviewBox,
-  role: PreviewNodeRole,
   side: Side,
   count: number,
 ): AttachmentSlot[] {
@@ -87,7 +342,7 @@ export function computeAttachmentSlots(
     const ratio = (index + 1) / (count + 1);
     const point = sidePoint(box, side, ratio);
     return {
-      role,
+      nodeId: box.id,
       side,
       index: index + 1,
       label: `${side}-${index + 1}`,
@@ -97,11 +352,28 @@ export function computeAttachmentSlots(
 }
 
 export function computeSceneAttachmentSlots(state: WorkbenchState): AttachmentSlot[] {
-  const primary = computeNodeBox(state, 'primary');
-  const secondary = computeNodeBox(state, 'secondary');
-  const { sourceSide, targetSide } = chooseConnectionSides(primary, secondary);
-  return [
-    ...computeAttachmentSlots(primary, 'primary', sourceSide, 3),
-    ...computeAttachmentSlots(secondary, 'secondary', targetSide, 3),
-  ];
+  const groups = new Map<string, { box: PreviewBox; side: Side; count: number }>();
+  for (const connection of state.connections) {
+    const source = computeNodeBox(state, connection.fromNodeId);
+    const target = computeNodeBox(state, connection.toNodeId);
+    if (!source || !target) {
+      continue;
+    }
+    const { sourceSide, targetSide } = chooseConnectionSides(source, target);
+    for (const endpoint of [
+      { box: source, side: sourceSide },
+      { box: target, side: targetSide },
+    ]) {
+      const key = `${endpoint.box.id}:${endpoint.side}`;
+      const existing = groups.get(key);
+      groups.set(key, {
+        box: endpoint.box,
+        side: endpoint.side,
+        count: (existing?.count ?? 0) + 1,
+      });
+    }
+  }
+  return [...groups.values()].flatMap((group) =>
+    computeAttachmentSlots(group.box, group.side, group.count),
+  );
 }

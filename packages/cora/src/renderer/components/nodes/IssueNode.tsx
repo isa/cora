@@ -43,7 +43,11 @@ export function IssueNode(props: IssueNodeProps) {
         width={Math.max(1, frame.x + frame.width - labelX - 6)}
         height={frame.height}
         text={frame.text}
+        subtitle={frame.subtitle}
         color={frame.textColor}
+        subtitleColor={frame.subtitleColor}
+        fontSize={frame.titleFontSize}
+        subtitleFontSize={frame.subtitleFontSize}
         paddingX={2}
       />
     </CatalogFrame>

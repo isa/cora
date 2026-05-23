@@ -22,7 +22,11 @@ export function AppNode(props: AppNodeProps) {
         width={frame.width}
         height={frame.height - headerHeight}
         text={frame.text}
+        subtitle={frame.subtitle}
         color={frame.textColor}
+        subtitleColor={frame.subtitleColor}
+        fontSize={frame.titleFontSize}
+        subtitleFontSize={frame.subtitleFontSize}
       />
     </CatalogFrame>
   );

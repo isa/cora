@@ -1,15 +1,12 @@
-import { useState } from 'react';
-
 import type { AttachmentSlot, PreviewBox } from '../geometry.js';
 
 interface AttachmentOverlayProps {
   slots: AttachmentSlot[];
   boxes: PreviewBox[];
+  showLabels: boolean;
 }
 
-export function AttachmentOverlay({ slots, boxes }: AttachmentOverlayProps) {
-  const [showLabels, setShowLabels] = useState(true);
-
+export function AttachmentOverlay({ slots, boxes, showLabels }: AttachmentOverlayProps) {
   return (
     <g className="attachment-overlay" aria-label="Attachment overlay">
       {boxes.map((box, index) => (
@@ -21,8 +18,8 @@ export function AttachmentOverlay({ slots, boxes }: AttachmentOverlayProps) {
         </g>
       ))}
       {slots.map((slot) => (
-        <g key={`${slot.role}-${slot.label}`}>
-          <circle cx={slot.x} cy={slot.y} r="4" className="slot-dot" />
+        <g key={`${slot.nodeId}-${slot.label}`}>
+          <circle cx={slot.x} cy={slot.y} r="2.75" className="slot-dot" />
           {showLabels ? (
             <text x={slot.x + 8} y={slot.y - 8} className="slot-label">
               {slot.label}
@@ -30,11 +27,6 @@ export function AttachmentOverlay({ slots, boxes }: AttachmentOverlayProps) {
           ) : null}
         </g>
       ))}
-      <foreignObject x="20" y="20" width="140" height="38">
-        <button className="overlay-toggle" type="button" onClick={() => setShowLabels((value) => !value)}>
-          Toggle labels
-        </button>
-      </foreignObject>
       <text x="-9999" y="-9999">top-1</text>
     </g>
   );

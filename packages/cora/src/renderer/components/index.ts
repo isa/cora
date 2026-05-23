@@ -19,7 +19,7 @@ export {
   resolveComponentSize,
   SIZE_PRESETS,
 } from './styles.js';
-export { Line } from './lines/Line.js';
+export { Line, linePathData } from './lines/Line.js';
 export type { LineProps } from './lines/Line.js';
 export { LineMarkerDefs, markerUrl } from './lines/markers.js';
 export type { MarkerType } from './lines/markers.js';

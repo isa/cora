@@ -5,7 +5,6 @@ import { ErrorIcon } from '../../renderer/components/icons.js';
 import { AppNode } from '../../renderer/components/nodes/AppNode.js';
 import { BoxNode } from '../../renderer/components/nodes/BoxNode.js';
 import { DecisionNode } from '../../renderer/components/nodes/DecisionNode.js';
-import { IconNode } from '../../renderer/components/nodes/IconNode.js';
 import { IssueNode } from '../../renderer/components/nodes/IssueNode.js';
 import { LabelIconNode } from '../../renderer/components/nodes/LabelIconNode.js';
 import { LabelNode } from '../../renderer/components/nodes/LabelNode.js';
@@ -17,15 +16,14 @@ import {
   baseNodeControls,
   baseNodeDefaults,
   iconNodeControls,
+  labelNodeControls,
+  labelIconNodeControls,
   issueNodeControls,
   issueNodeDefaults,
   pageNodeControls,
   pageNodeDefaults,
   type PreviewNodeProps,
 } from '../controls/defaults.js';
-import { lineVariants, scenarioIds } from '../scenarios.js';
-
-const nodeScenarios = scenarioIds;
 
 const component = (
   id: string,
@@ -39,9 +37,8 @@ const component = (
   label,
   family,
   component: componentImpl,
-  defaultProps: { ...defaultProps, text: defaultProps.text ?? label },
+  defaultProps: { ...defaultProps, title: defaultProps.title ?? defaultProps.text ?? label },
   controls,
-  scenarios: nodeScenarios,
 });
 
 export const builtInPack: PackManifest = {
@@ -54,52 +51,66 @@ export const builtInPack: PackManifest = {
     { id: 'status', label: 'Status' },
   ],
   components: [
-    component('box', 'BoxNode', 'basic', BoxNode as ComponentType<PreviewNodeProps>),
+    component('box', 'BoxNode', 'basic', BoxNode as ComponentType<PreviewNodeProps>, {
+      ...baseNodeDefaults,
+      backgroundColor: '#EDE9FE',
+      borderColor: '#8B5CF6',
+      textColor: '#581C87',
+      radius: 5,
+      size: { width: 156, height: 40 },
+    }),
     component('label', 'LabelNode', 'basic', LabelNode as ComponentType<PreviewNodeProps>, {
       ...baseNodeDefaults,
+      backgroundColor: '#FFFFFF',
+      borderStyle: 'none',
+      titleFontSize: 9,
+      subtitleFontSize: 8,
+      title: 'LabelNode',
+    }, labelNodeControls),
+    component('icon', 'IconNode', 'basic', LabelIconNode as unknown as ComponentType<PreviewNodeProps>, {
+      ...baseNodeDefaults,
+      title: '',
+      subtitle: undefined,
       backgroundColor: 'transparent',
       borderStyle: 'none',
-      text: 'LabelNode',
-    }),
-    component('icon', 'IconNode', 'basic', IconNode as unknown as ComponentType<PreviewNodeProps>, {
-      ...baseNodeDefaults,
-      text: 'IconNode',
-      icon: undefined,
+      size: 'md',
+      iconType: 'ok',
       iconColor: '#2F7D7E',
     }, iconNodeControls),
     component('labelIcon', 'LabelIconNode', 'basic', LabelIconNode as unknown as ComponentType<PreviewNodeProps>, {
       ...baseNodeDefaults,
-      text: 'LabelIconNode',
+      title: '',
+      subtitle: undefined,
+      backgroundColor: '#FFFFFF',
+      borderStyle: 'none',
+      size: 'md',
+      iconType: 'ok',
       iconColor: '#2F7D7E',
-    }, iconNodeControls),
+    }, labelIconNodeControls),
     component('website', 'WebsiteNode', 'product', WebsiteNode as ComponentType<PreviewNodeProps>, {
       ...baseNodeDefaults,
-      text: 'WebsiteNode',
+      title: 'WebsiteNode',
       backgroundColor: '#FFF7CC',
+      size: { width: 120, height: 164 },
     }),
     component('page', 'PageNode', 'product', PageNode as ComponentType<PreviewNodeProps>, pageNodeDefaults, pageNodeControls),
     component('app', 'AppNode', 'product', AppNode as ComponentType<PreviewNodeProps>, {
       ...baseNodeDefaults,
-      text: 'AppNode',
+      title: 'AppNode',
       backgroundColor: '#DCFCE7',
+      size: { width: 120, height: 164 },
     }),
     component('decision', 'DecisionNode', 'logic', DecisionNode as ComponentType<PreviewNodeProps>, {
       ...baseNodeDefaults,
-      text: 'DecisionNode',
+      title: 'DecisionNode',
       backgroundColor: '#FED7AA',
     }),
     component('issue', 'IssueNode', 'status', IssueNode as ComponentType<PreviewNodeProps>, issueNodeDefaults, issueNodeControls),
     component('shape', 'ShapeNode', 'basic', ShapeNode as ComponentType<PreviewNodeProps>, {
       ...baseNodeDefaults,
-      text: 'ShapeNode',
+      title: 'ShapeNode',
       backgroundColor: '#CCFBF1',
     }),
-  ],
-  scenarios: [
-    { id: 'isolated', label: 'Isolated primary' },
-    { id: 'connected', label: 'Connected nodes', lineVariants },
-    { id: 'grouped', label: 'Grouped primary', group: { label: 'Group context' } },
-    { id: 'grouped-connected', label: 'Grouped and connected', lineVariants, group: { label: 'Group context' } },
   ],
 };
 

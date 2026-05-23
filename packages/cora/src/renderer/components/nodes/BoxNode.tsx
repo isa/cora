@@ -1,5 +1,5 @@
 import type { SvgIconComponent } from '../icons.js';
-import type { NodeComponentProps } from '../types.js';
+import type { NodeComponentProps, NodeShadow } from '../types.js';
 import {
   CatalogFrame,
   CatalogIconSlot,
@@ -18,8 +18,14 @@ export interface CatalogBoxNodeProps {
   borderStyle?: 'none' | 'solid' | 'dashed' | 'dotted';
   borderColor?: string;
   borderWidth?: number;
+  title?: string;
+  subtitle?: string;
   text?: string;
   textColor?: string;
+  subtitleColor?: string;
+  titleFontSize?: number;
+  subtitleFontSize?: number;
+  shadow?: NodeShadow;
   size?: import('../types.js').ComponentSize;
   icon?: SvgIconComponent;
   iconColor?: string;
@@ -89,7 +95,11 @@ export function BoxNode(props: BoxNodeProps) {
         width={labelWidth}
         height={frame.height}
         text={frame.text}
+        subtitle={frame.subtitle}
         color={frame.textColor}
+        subtitleColor={frame.subtitleColor}
+        fontSize={frame.titleFontSize}
+        subtitleFontSize={frame.subtitleFontSize}
       />
     </CatalogFrame>
   );
