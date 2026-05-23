@@ -177,7 +177,7 @@ Plans:
 ---
 
 ### Phase 3.3: Component Preview Canvas (INSERTED) ✓ 2026-05-22
-**Goal:** `bun run cora preview` boots a local dev server + opens a browser SPA where the user can pick a component pack from a sidebar, drill into individual components, render them on an isolated canvas with various combinations, tune attributes (color, border-width, text, font weight, padding, etc.) live, and visualise edge/line attachment points.
+**Goal:** As a Cora user exploring renderer components, I want to open a preview workbench where I can drag components onto a canvas, tune their attributes, and inspect connection behavior, so that I can validate component appearance and interactions before using them in diagrams.
 **Mode:** mvp
 **Requirements:** PREV-01–06
 **UI hint:** yes — first phase with a real interactive UI (Phase 4 will reuse infrastructure)
