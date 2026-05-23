@@ -1,3 +1,5 @@
 export { renderToPNG, resolvePngScale, PNG_SIZE_SCALE } from './renderToPNG.js';
 export type { RenderToPNGOptions, PngSize } from './renderToPNG.js';
 export { renderToSVG, Diagram, defaultTheme, resolveNodeStyle } from './renderToSVG.js';
+export { renderToText } from './renderToText.js';
+export type { RenderToTextOptions, TextCharset } from './renderToText.js';
