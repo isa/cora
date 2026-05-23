@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: verifying
-stopped_at: Completed 3.3-04-PLAN.md
-last_updated: "2026-05-22T20:55:50.813Z"
-last_activity: 2026-05-22 -- Phase 3.3 execution started
+status: Not planned yet
+stopped_at: Phase 3.4 context gathered
+last_updated: "2026-05-23T11:18:35.551Z"
+last_activity: 2026-05-23 -- Phase 3.4 inserted before Interactive Canvas
 progress:
-  total_phases: 9
+  total_phases: 12
   completed_phases: 6
   total_plans: 21
   completed_plans: 21
-  percent: 67
+  percent: 50
 ---
 
 # Project State
@@ -21,22 +21,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-21)
 
 **Core value:** An AI agent can write a YAML diagram, run `cora validate` and `cora render`, and produce a professional-looking architectural diagram without touching a visual editor — while humans can still polish the result when needed.
-**Current focus:** Phase 3.3 — Component Preview Canvas verification
+**Current focus:** Phase 3.4 — ASCII Export + skills.md planning
 
 ## Current Position
 
-Phase: 3.3 of 9 (Component Preview Canvas)
-Plan: 4 of 4 complete
-Status: Ready to verify
-Last activity: 2026-05-22 -- Phase 3.3 execution complete
+Phase: 3.4 of 12 (ASCII Export + skills.md)
+Plan: 0 of 0 planned
+Status: Not planned yet
+Last activity: 2026-05-23 -- Phase 3.4 inserted before Interactive Canvas
 
-Progress: [███████░░░] 67% (6/9 phases complete)
+Progress: [█████░░░░░] 50% (6/12 phases complete)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 13
+- Total plans completed: 21
 - Average duration: —
 - Total execution time: —
 
@@ -49,11 +49,15 @@ Progress: [███████░░░] 67% (6/9 phases complete)
 | 3 PDF Export | 4 | 4 | — |
 | 3.1 Renderer Component Refactor | 1 | 1 | — |
 | 3.2 Renderer Component Library | 4 | 4 | — |
+| 3.3 Component Preview Canvas | 4 | 4 | — |
+| 3.4 ASCII Export + skills.md | 0 | 0 | — |
+| 3.5 Default Component Look Lockdown | 0 | 0 | — |
+| 3.6 Component/Icon Package Surface Lockdown | 0 | 0 | — |
 
 **Recent Trend:**
 
-- Last 5 plans: 3.2-04, 3.2-03, 3.2-02, 3.2-01, 3.1-01
-- Trend: Renderer component catalog is complete; Phase 3.3 can build the preview canvas against the typed catalog.
+- Last 5 plans: 3.3-04, 3.3-03, 3.3-02, 3.3-01, 3.2-04
+- Trend: Component preview canvas is complete; Phase 3.4 can add a text-native export lane and agent skills handoff before Interactive Canvas.
 
 ## Accumulated Context
 
@@ -80,6 +84,9 @@ Recent decisions affecting current work:
 - 2026-05-22 — Phase 3.1 inserted after Phase 3 (URGENT): Renderer Component Refactor — extract React node/edge/group components into a reusable library before Phase 4 (Interactive Canvas) wires a live canvas around them.
 - 2026-05-22 — Phase 3.2 inserted after Phase 3.1 (URGENT): Renderer Component Library — full reusable renderer component catalog and normalized style vocabulary before preview/canvas/extensions grow around a too-small abstraction.
 - 2026-05-22 — Phase 3.3 renumbered from former Phase 3.2: Component Preview Canvas — `cora preview` browser SPA with pack/component picker, live attribute controls (color, border-width, text, etc.), and line-attachment overlay. Browser SPA delivery (not static HTML, not Storybook). Depends on Phase 3.2's typed component catalog; seeds dev-server infrastructure Phase 4 reuses.
+- 2026-05-23 — Phase 3.4 inserted after Phase 3.3 (URGENT): ASCII Export + skills.md — text-native diagram export and agent skill handoff before Phase 4.
+- 2026-05-23 — Phase 3.5 inserted after Phase 3.4 (URGENT): Default Component Look Lockdown — canonical component styling, colors, fonts, and sensible defaults before Interactive Canvas.
+- 2026-05-23 — Phase 3.6 inserted after Phase 3.5 (URGENT): Component/Icon Package Surface Lockdown — decide the supported component/icon/package surface and keep preview development-only before Phase 4.
 
 ## Deferred Items
 
@@ -90,6 +97,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-22T20:55:50.813Z
-Stopped at: Completed 3.3-04-PLAN.md
-Resume file: None
+Last session: 2026-05-23T11:18:35.534Z
+Stopped at: Phase 3.4 context gathered
+Resume file: .planning/phases/3.4-ascii-diagram-export-and-skills-md-file/3.4-CONTEXT.md
