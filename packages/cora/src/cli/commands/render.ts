@@ -21,6 +21,7 @@ import { renderToPDF } from '../../renderer/renderToPDF.js';
 import { type PageName, PAGE_SIZES } from '../../renderer/pdf/pageSize.js';
 import { renderToPNG, resolvePngScale, type PngSize } from '../../renderer/renderToPNG.js';
 import { renderToSVG } from '../../renderer/renderToSVG.js';
+import { renderToText, type TextCharset } from '../../renderer/renderToText.js';
 import {
   formatValidationResult,
   isJsonOutput,
@@ -35,8 +36,14 @@ import {
   promptUser,
 } from '../playwrightInstall.js';
 
-function outputFormat(path: string): 'svg' | 'png' | 'pdf' {
+function outputFormat(path: string | undefined): 'svg' | 'png' | 'pdf' | 'txt' {
+  if (!path) {
+    return 'txt';
+  }
   const ext = extname(path).toLowerCase();
+  if (ext === '.txt') {
+    return 'txt';
+  }
   if (ext === '.png') {
     return 'png';
   }
@@ -47,22 +54,34 @@ function outputFormat(path: string): 'svg' | 'png' | 'pdf' {
     return 'svg';
   }
   throw new Error(
-    `Unsupported output extension "${ext}". Use .svg, .png, or .pdf (e.g. diagram.pdf).`,
+    `Unsupported output extension "${ext}". Use .svg, .png, .pdf, or .txt (e.g. diagram.txt).`,
   );
+}
+
+function parseCharset(value: string): TextCharset {
+  if (value === 'unicode' || value === 'ascii') {
+    return value;
+  }
+  throw new Error(`Invalid --charset value "${value}". Use one of: unicode, ascii.`);
 }
 
 export function registerRenderCommand(program: Command): void {
   program
     .command('render')
     .description(
-      'Render a diagram YAML/JSON file to SVG, PNG, or PDF (requires -o)',
+      'Render a diagram YAML/JSON file to SVG, PNG, PDF, or text (omit -o for stdout text)',
     )
     .argument('[file]', 'Path to diagram YAML or JSON file')
-    .requiredOption(
+    .option(
       '-o, --output <path>',
-      'Output path; format from extension (.svg, .png, or .pdf)',
+      'Output path; format from extension (.svg, .png, .pdf, or .txt). Omit for stdout text.',
     )
     .option('--format [fmt]', 'Error output format: text or json', 'text')
+    .option(
+      '--charset <charset>',
+      'Text output charset: unicode or ascii',
+      'unicode',
+    )
     .option(
       '--size <size>',
       'PNG output scale: sm, md, lg, xl, xxl (default md)',
@@ -82,8 +101,9 @@ export function registerRenderCommand(program: Command): void {
       async (
         file: string | undefined,
         options: {
-          output: string;
+          output?: string;
           format?: string;
+          charset?: string;
           size?: string;
           withoutShadow?: boolean;
           monochrome?: boolean;
@@ -95,15 +115,17 @@ export function registerRenderCommand(program: Command): void {
           program.error('Missing required argument: file');
         }
 
-        if (!options.output) {
-          program.error(
-            'Missing required option: -o <path>. Example: cora render diagram.yaml -o out.svg',
-          );
-        }
-
-        let format: 'svg' | 'png' | 'pdf';
+        let format: 'svg' | 'png' | 'pdf' | 'txt';
         try {
           format = outputFormat(options.output);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          program.error(message);
+        }
+
+        let charset: TextCharset;
+        try {
+          charset = parseCharset(options.charset ?? 'unicode');
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error);
           program.error(message);
@@ -142,9 +164,21 @@ export function registerRenderCommand(program: Command): void {
             measuredNodes: measured,
             theme,
           });
+
+          if (format === 'txt') {
+            const text = renderToText(layouted, { charset });
+            if (options.output) {
+              mkdirSync(dirname(options.output), { recursive: true });
+              writeFileSync(options.output, text, 'utf8');
+            } else {
+              process.stdout.write(text);
+            }
+            return;
+          }
+
           const svg = renderToSVG(layouted);
 
-          mkdirSync(dirname(options.output), { recursive: true });
+          mkdirSync(dirname(options.output!), { recursive: true });
           if (format === 'png') {
             try {
               resolvePngScale(options.size);
@@ -154,7 +188,7 @@ export function registerRenderCommand(program: Command): void {
               program.error(message);
             }
             writeFileSync(
-              options.output,
+              options.output!,
               renderToPNG(svg, { size: options.size as PngSize }),
             );
           } else if (format === 'pdf') {
@@ -222,13 +256,13 @@ export function registerRenderCommand(program: Command): void {
                 const pdfBytes = await renderToPDFHighQuality(svg, {
                   page: options.page as PageName | undefined,
                 });
-                writeFileSync(options.output, pdfBytes);
+                writeFileSync(options.output!, pdfBytes);
               } else {
                 const pdfBytes = await renderToPDF(layouted, svg, {
                   page: options.page as PageName | undefined,
                   ciMode,
                 });
-                writeFileSync(options.output, Buffer.from(pdfBytes));
+                writeFileSync(options.output!, Buffer.from(pdfBytes));
               }
             } catch (error) {
               // Lazy-load the HighQualityRenderError class so the
@@ -278,7 +312,7 @@ export function registerRenderCommand(program: Command): void {
               return;
             }
           } else {
-            writeFileSync(options.output, svg, 'utf8');
+            writeFileSync(options.output!, svg, 'utf8');
           }
         } catch (error) {
           if (error instanceof LayoutError) {
