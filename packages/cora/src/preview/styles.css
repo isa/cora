@@ -132,11 +132,12 @@ textarea {
 }
 
 .catalog-panel {
-  min-height: calc(100vh - 32px);
+  height: calc(100vh - 32px);
+  overflow: auto;
 }
 
 .inspector-panel {
-  min-height: calc(100vh - 32px);
+  height: calc(100vh - 32px);
   overflow: auto;
 }
 
@@ -213,7 +214,7 @@ textarea {
   display: grid;
   grid-template-rows: 1fr;
   min-width: 0;
-  min-height: calc(100vh - 32px);
+  height: calc(100vh - 32px);
   border-radius: 24px;
   overflow: hidden;
   background:

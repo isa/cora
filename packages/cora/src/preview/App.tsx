@@ -40,10 +40,14 @@ export function App() {
       <aside className="inspector-panel" aria-label="Inspector">
         <header className="sidebar-header inspector-header">
           <div>
-            <p>Inspector</p>
+            <p>Inspector / Attributes</p>
             <h1>Attributes</h1>
           </div>
         </header>
+        <div className="inspector-tabs" aria-label="Inspector sections">
+          <span className="inspector-tab active">Inspector</span>
+          <span className="inspector-tab">Style</span>
+        </div>
         {selectedConnection ? (
           <ConnectionPanel
             connection={selectedConnection}
