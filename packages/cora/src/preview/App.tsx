@@ -33,8 +33,7 @@ export function App() {
       <CatalogSidebar state={state} />
       <div className="workbench-column">
         <div className="empty-copy">
-          <strong>Drag components onto the canvas</strong>
-          <span>Select a canvas node to edit attributes. Add two nodes to inspect the connection.</span>
+          <span>Drag components here</span>
         </div>
         <WorkbenchCanvas state={state} onStateChange={setState} />
       </div>

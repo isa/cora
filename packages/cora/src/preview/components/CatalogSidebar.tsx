@@ -47,8 +47,8 @@ export function CatalogSidebar({ state }: CatalogSidebarProps) {
     <aside className="catalog-panel" aria-label="Catalog">
       <header className="sidebar-header">
         <div>
-          <p>Library</p>
-          <h1>Components</h1>
+          <h1>Cora</h1>
+          <p>Library / Components</p>
         </div>
       </header>
       <section className="sidebar-section">

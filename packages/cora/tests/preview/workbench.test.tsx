@@ -7,14 +7,14 @@ import { ControlInput } from '../../src/preview/components/ControlInput.js';
 import { createDefaultWorkbenchState } from '../../src/preview/state.js';
 
 describe('preview workbench', () => {
-  it('renders catalog, canvas, inspector, drag tiles, and hidden overlay labels toggle', () => {
+  it('renders catalog, canvas, inspector, and visual shell markers', () => {
     const markup = renderToStaticMarkup(<App />);
 
     expect(markup).toContain('aria-label="Catalog"');
     expect(markup).toContain('aria-label="Canvas"');
     expect(markup).toContain('aria-label="Inspector"');
-    expect(markup).toContain('Components');
-    expect(markup).toContain('Drag To Canvas');
+    expect(markup).toContain('Cora');
+    expect(markup).toContain('Library / Components');
     expect(markup).toContain('draggable="true"');
     expect(markup).toContain('component-icon');
     expect(markup).toContain('Group');
