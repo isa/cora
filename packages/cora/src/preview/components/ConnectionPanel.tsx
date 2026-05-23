@@ -15,7 +15,18 @@ export function ConnectionPanel({ connection, onConnectionChange }: ConnectionPa
 
   return (
     <section className="inspector-section connection-panel" aria-label="Connection controls">
-      <h2>Connection</h2>
+      <div className="inspector-identity">
+        <span className="inspector-icon-tile" aria-hidden="true">↔</span>
+        <div className="inspector-title-block">
+          <p>Inspector / Attributes</p>
+          <h2>Connection</h2>
+          <span className="inspector-pill">Active</span>
+        </div>
+      </div>
+      <div className="inspector-tabs" aria-label="Inspector sections">
+        <span className="inspector-tab active">Inspector</span>
+        <span className="inspector-tab">Style</span>
+      </div>
       <span className="sr-only">lineStyle strokeColor strokeWidth startMarker endMarker</span>
       <section className="control-group">
         <h3>Line</h3>

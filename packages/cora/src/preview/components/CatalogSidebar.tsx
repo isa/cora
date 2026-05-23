@@ -51,6 +51,10 @@ export function CatalogSidebar({ state }: CatalogSidebarProps) {
           <p>Library / Components</p>
         </div>
       </header>
+      <div className="catalog-segments" aria-label="Catalog views">
+        <span className="catalog-segment active">Lib</span>
+        <span className="catalog-segment">Nodes</span>
+      </div>
       <section className="sidebar-section">
         <h2>Find</h2>
         <label className="field sidebar-search">
@@ -65,7 +69,7 @@ export function CatalogSidebar({ state }: CatalogSidebarProps) {
         </label>
       </section>
       <section className="sidebar-section">
-        <h2>Drag To Canvas</h2>
+        <h2>Diagram Elements</h2>
         <div className="component-list" role="list" aria-label="Components">
           {components.map((component) => (
             <button
@@ -80,7 +84,7 @@ export function CatalogSidebar({ state }: CatalogSidebarProps) {
             >
               <span className="component-icon" aria-hidden="true">{componentIcon(component.id)}</span>
               <span className="component-copy">
-                <strong>{component.label}</strong>
+                <strong>{visibleComponentLabel(component.label)}</strong>
                 <small>{component.family}</small>
               </span>
             </button>
@@ -89,6 +93,10 @@ export function CatalogSidebar({ state }: CatalogSidebarProps) {
       </section>
     </aside>
   );
+}
+
+function visibleComponentLabel(label: string): string {
+  return label.endsWith('Node') ? label.slice(0, -4) : label;
 }
 
 function componentIcon(id: string): ReactNode {

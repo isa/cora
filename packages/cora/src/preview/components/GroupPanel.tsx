@@ -13,9 +13,19 @@ export function GroupPanel({ group, onGroupChange }: GroupPanelProps) {
 
   return (
     <section className="inspector-section" aria-label="Inspector">
+      <div className="inspector-identity">
+        <span className="inspector-icon-tile" aria-hidden="true">□</span>
+        <div className="inspector-title-block">
+          <p>Inspector / Attributes</p>
+          <h2>Group</h2>
+          <span className="inspector-pill">Active</span>
+        </div>
+      </div>
+      <div className="inspector-tabs" aria-label="Inspector sections">
+        <span className="inspector-tab active">Inspector</span>
+        <span className="inspector-tab">Style</span>
+      </div>
       <div className="prop-column">
-        <h2>Group</h2>
-        <p className="role-label">{group.id}</p>
         <section className="control-group">
           <h3>Content</h3>
           <label className="field compact">

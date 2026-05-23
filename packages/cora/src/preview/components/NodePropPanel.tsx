@@ -24,9 +24,19 @@ export function NodePropPanel({ state, nodeId, onPropChange }: NodePropPanelProp
   const groups = groupControls(definition.controls as Array<ControlDefinition<PreviewNodeProps>>);
   return (
     <section className="inspector-section" aria-label="Inspector">
+      <div className="inspector-identity">
+        <span className="inspector-icon-tile" aria-hidden="true">{definition.label.charAt(0)}</span>
+        <div className="inspector-title-block">
+          <p>Inspector / Attributes</p>
+          <h2>{visibleComponentLabel(definition.label)}</h2>
+          <span className="inspector-pill">Active</span>
+        </div>
+      </div>
+      <div className="inspector-tabs" aria-label="Inspector sections">
+        <span className="inspector-tab active">Inspector</span>
+        <span className="inspector-tab">Style</span>
+      </div>
       <div className="prop-column">
-        <h2>{definition.label}</h2>
-        <p className="role-label">{node.id}</p>
         {groups.map((group) => (
           <section key={group.label} className="control-group">
             <h3>{group.label}</h3>
@@ -43,6 +53,10 @@ export function NodePropPanel({ state, nodeId, onPropChange }: NodePropPanelProp
       </div>
     </section>
   );
+}
+
+function visibleComponentLabel(label: string): string {
+  return label.endsWith('Node') ? label.slice(0, -4) : label;
 }
 
 function groupControls(controls: Array<ControlDefinition<PreviewNodeProps>>) {

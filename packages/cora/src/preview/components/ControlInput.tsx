@@ -45,6 +45,7 @@ export function ControlInput({ control, value, onChange }: ControlInputProps) {
         <span>{control.label}</span>
         <Input
           type="color"
+          className="color-swatch-input"
           value={String(value ?? '#000000')}
           onChange={(event) => onChange(event.currentTarget.value)}
         />
@@ -60,6 +61,7 @@ export function ControlInput({ control, value, onChange }: ControlInputProps) {
           checked={Boolean(value)}
           onChange={(event) => onChange(event.currentTarget.checked)}
         />
+        <span className="toggle-track" aria-hidden="true" />
         <span>{control.label}</span>
       </label>
     );
