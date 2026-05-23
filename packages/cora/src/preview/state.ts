@@ -231,6 +231,66 @@ export function setGroupSize(
   return updateGroup(state, groupId, { size });
 }
 
+export function duplicateSelected(state: WorkbenchState): WorkbenchState {
+  if (!state.selected) {
+    return state;
+  }
+  if (state.selected.kind === 'node') {
+    const node = state.nodes.find((item) => item.id === state.selected?.id);
+    if (!node) {
+      return state;
+    }
+    const id = nextItemId(state, 'node');
+    const attachesToConnection = node.componentId === 'label' || node.componentId === 'labelIcon';
+    const connection =
+      !attachesToConnection
+        ? [{
+            id: nextItemId({ ...state, nextId: state.nextId + 1 }, 'connection'),
+            fromNodeId: node.id,
+            toNodeId: id,
+            props: { ...connectionDefaults },
+          }]
+        : [];
+    return {
+      ...state,
+      nodes: [
+        ...state.nodes,
+        {
+          ...node,
+          id,
+          position: { x: node.position.x + 28, y: node.position.y + 28 },
+          attachedConnectionId: attachesToConnection ? node.attachedConnectionId : undefined,
+        },
+      ],
+      connections: [...state.connections, ...connection],
+      selected: { kind: 'node', id },
+      nextId: state.nextId + 1 + connection.length,
+    };
+  }
+  if (state.selected.kind === 'group') {
+    const group = state.groups.find((item) => item.id === state.selected?.id);
+    if (!group) {
+      return state;
+    }
+    const id = nextItemId(state, 'group');
+    return {
+      ...state,
+      groups: [
+        ...state.groups,
+        {
+          ...group,
+          id,
+          label: `${group.label} Copy`,
+          position: { x: group.position.x + 28, y: group.position.y + 28 },
+        },
+      ],
+      selected: { kind: 'group', id },
+      nextId: state.nextId + 1,
+    };
+  }
+  return state;
+}
+
 export function deleteSelected(state: WorkbenchState): WorkbenchState {
   if (!state.selected) {
     return state;

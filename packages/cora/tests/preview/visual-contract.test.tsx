@@ -18,11 +18,13 @@ describe('preview visual contract', () => {
     expect(markup).toContain('Inspector / Attributes');
     expect(markup).toContain('Inspector');
     expect(markup).toContain('Style');
-    expect(markup).toContain('canvas-tool-group');
+    expect(markup).toContain('canvas-toolbar-inner');
     expect(markup).toContain('aria-label="Zoom out"');
     expect(markup).toContain('aria-label="Zoom in"');
+    expect(markup).not.toContain('Create Node');
+    expect(markup).toContain('Duplicate');
     expect(markup).toContain('Delete');
-    expect(markup).toContain('Clear');
+    expect(markup).toContain('Clear Canvas');
   });
 
   it('keeps technical labels out of visible primary chrome', () => {
@@ -36,10 +38,10 @@ describe('preview visual contract', () => {
   it('keeps the preview palette and surface tokens local and stable', () => {
     const css = readFileSync(join(packageRoot, 'src/preview/styles.css'), 'utf8');
 
-    expect(css).toContain('--preview-accent: #6D28D9');
-    expect(css).toContain('--preview-bg: #FBFAF8');
-    expect(css).toContain('--preview-surface: #FFFFFF');
-    expect(css).toContain('--preview-ink: #0A0A0A');
+    expect(css).toContain('--preview-accent: #6d28d9');
+    expect(css).toContain('--preview-bg: #f9f9f9');
+    expect(css).toContain('--preview-surface: #ffffff');
+    expect(css).toContain('--preview-ink: #1a1c1c');
     expect(css).toContain('radial-gradient');
     expect(css).toContain('prefers-reduced-motion');
   });

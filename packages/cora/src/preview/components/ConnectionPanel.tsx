@@ -8,59 +8,63 @@ interface ConnectionPanelProps {
   onConnectionChange(key: keyof ConnectionProps, value: ConnectionProps[keyof ConnectionProps]): void;
 }
 
+const ROUTING_KEYS = ['connectionMode'] as const;
+const STYLE_KEYS = ['lineStyle', 'strokeColor', 'strokeWidth', 'arrowSize'] as const;
+const MARKER_KEYS = ['startMarker', 'endMarker'] as const;
+
 export function ConnectionPanel({ connection, onConnectionChange }: ConnectionPanelProps) {
   if (!connection) {
     return null;
   }
 
+  const groups = [
+    { label: 'Routing', keys: ROUTING_KEYS as readonly string[] },
+    { label: 'Style', keys: STYLE_KEYS as readonly string[] },
+    { label: 'Markers', keys: MARKER_KEYS as readonly string[] },
+  ].map((group) => ({
+    label: group.label,
+    controls: connectionControls.filter((control) => group.keys.includes(control.key)),
+  }));
+
   return (
     <section className="inspector-section connection-panel" aria-label="Connection controls">
-      <div className="inspector-identity">
-        <span className="inspector-icon-tile" aria-hidden="true">↔</span>
-        <div className="inspector-title-block">
-          <p>Inspector / Attributes</p>
-          <h2>Connection</h2>
-          <span className="inspector-pill">Active</span>
-        </div>
-      </div>
-      <div className="inspector-tabs" aria-label="Inspector sections">
-        <span className="inspector-tab active">Inspector</span>
-        <span className="inspector-tab">Style</span>
-      </div>
       <span className="sr-only">lineStyle strokeColor strokeWidth startMarker endMarker</span>
-      <section className="control-group">
-        <h3>Line</h3>
-        {connectionControls.slice(0, 4).map((control) => (
-          <ControlInput
-            key={control.key}
-            control={control}
-            value={connection.props[control.key]}
-            onChange={(value) => onConnectionChange(control.key, value as ConnectionProps[keyof ConnectionProps])}
-          />
-        ))}
-      </section>
-      <section className="control-group">
-        <h3>Markers</h3>
-        {connectionControls.slice(4, 6).map((control) => (
-          <ControlInput
-            key={control.key}
-            control={control}
-            value={connection.props[control.key]}
-            onChange={(value) => onConnectionChange(control.key, value as ConnectionProps[keyof ConnectionProps])}
-          />
-        ))}
-      </section>
-      <section className="control-group">
-        <h3>Routing</h3>
-        {connectionControls.slice(6).map((control) => (
-          <ControlInput
-            key={control.key}
-            control={control}
-            value={connection.props[control.key]}
-            onChange={(value) => onConnectionChange(control.key, value as ConnectionProps[keyof ConnectionProps])}
-          />
-        ))}
-      </section>
+      <div className="prop-column">
+        {groups.map((group) => {
+          let iconName = 'alt_route';
+          if (group.label === 'Style') iconName = 'brush';
+          if (group.label === 'Markers') iconName = 'near_me';
+
+          return (
+            <details key={group.label} open className="control-group-details">
+              <summary className="control-group-summary">
+                <div className="summary-title-row">
+                  <span className="material-symbols-outlined group-icon" aria-hidden="true">
+                    {iconName}
+                  </span>
+                  <h3>{group.label}</h3>
+                </div>
+                <span className="material-symbols-outlined chevron-icon" aria-hidden="true">
+                  expand_more
+                </span>
+              </summary>
+              <div className="control-group-content">
+                {group.controls.map((control) => (
+                  <ControlInput
+                    key={control.key}
+                    control={control}
+                    value={connection.props[control.key]}
+                    onChange={(value) =>
+                      onConnectionChange(control.key, value as ConnectionProps[keyof ConnectionProps])
+                    }
+                    showColorSwatches={group.label === 'Style' && control.kind === 'color'}
+                  />
+                ))}
+              </div>
+            </details>
+          );
+        })}
+      </div>
     </section>
   );
 }

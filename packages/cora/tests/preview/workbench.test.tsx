@@ -21,12 +21,16 @@ describe('preview workbench', () => {
     expect(markup).not.toContain('ShapeNode');
     expect(markup).toContain('Drag components here');
     expect(markup).not.toContain('Labels');
+    expect(markup).not.toContain('Create Node');
+    expect(markup).toContain('Duplicate');
     expect(markup).toContain('Delete');
-    expect(markup).toContain('Clear');
+    expect(markup).toContain('Clear Canvas');
     expect(markup).toContain('aria-label="Zoom out"');
     expect(markup).toContain('aria-label="Zoom in"');
-    expect(markup).toContain('>+<');
-    expect(markup).toContain('>-<');
+    expect(markup).toContain('aria-label="Collapse Library"');
+    expect(markup).toContain('aria-label="Collapse Inspector"');
+    expect(markup).toContain('aria-label="Open Library"');
+    expect(markup).toContain('aria-label="Open Inspector"');
   });
 
   it('renders text controls as multiline textareas', () => {

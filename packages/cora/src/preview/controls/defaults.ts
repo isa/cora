@@ -40,17 +40,17 @@ export const baseNodeDefaults: PreviewNodeProps = {
   title: 'Component',
   subtitle: '',
   backgroundColor: '#FFFFFF',
-  radius: 14,
+  radius: 10,
   borderStyle: 'solid',
   borderColor: '#0A0A0A',
   borderWidth: 1,
   textColor: '#0A0A0A',
   subtitleColor: '#6F6A72',
-  titleFontSize: 18,
-  subtitleFontSize: 12,
+  titleFontSize: 11,
+  subtitleFontSize: 10,
   shadow: 'none',
-  size: { width: 220, height: 56 },
-  iconColor: '#6D28D9',
+  size: { width: 140, height: 40 },
+  iconColor: '#7B3FE4',
 };
 
 export const pageNodeDefaults: PreviewNodeProps = {
@@ -103,7 +103,7 @@ export const baseNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
     key: 'size',
     label: 'Size',
     presets: [...sizePresets],
-    explicit: { width: 156, height: 40 },
+    explicit: { width: 140, height: 40 },
   },
 ];
 

@@ -31,7 +31,7 @@ const ICON_SIZE_PRESETS: Record<SizePreset, number> = {
 };
 
 export function previewNodeSize(node: CanvasNode): { width: number; height: number } {
-  const base = resolveComponentSize(node.props.size, { width: 176, height: 72 });
+  const base = resolveComponentSize(node.props.size, { width: 140, height: 56 });
   const title = node.props.title ?? node.props.text ?? '';
   const subtitle = node.props.subtitle ?? '';
   const lines = title.split(/\r?\n/);

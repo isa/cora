@@ -13,9 +13,7 @@ import {
 } from '../geometry.js';
 import {
   addCatalogItemToCanvas,
-  clearCanvas,
   clearSelection,
-  deleteSelected,
   selectCanvasItem,
   setGroupPosition,
   setGroupSize,
@@ -24,11 +22,11 @@ import {
   type WorkbenchState,
 } from '../state.js';
 import { AttachmentOverlay } from './AttachmentOverlay.js';
-import { Button } from './ui/index.js';
 
 interface WorkbenchCanvasProps {
   state: WorkbenchState;
   onStateChange(state: WorkbenchState): void;
+  onClear?(): void;
 }
 
 type DragTarget =
@@ -37,8 +35,7 @@ type DragTarget =
   | { kind: 'group-resize'; id: string }
   | { kind: 'pan' };
 
-const CANVAS_WIDTH = 760;
-const CANVAS_HEIGHT = 520;
+const DEFAULT_VIEWPORT = { width: 960, height: 640 };
 
 function renderNode(state: WorkbenchState, nodeId: string) {
   const node = state.nodes.find((item) => item.id === nodeId);
@@ -80,24 +77,51 @@ function renderNode(state: WorkbenchState, nodeId: string) {
         />
       ) : null}
       <Component {...props} />
+      <rect
+        x={box.x - selectionPadding(node.componentId)}
+        y={box.y - selectionPadding(node.componentId)}
+        width={box.width + selectionPadding(node.componentId) * 2}
+        height={box.height + selectionPadding(node.componentId) * 2}
+        rx={node.componentId === 'icon' || node.componentId === 'labelIcon' ? 6 : 10}
+        className="node-hover-outline"
+      />
     </g>
   );
 }
 
-export function WorkbenchCanvas({ state, onStateChange }: WorkbenchCanvasProps) {
+export function WorkbenchCanvas({ state, onStateChange, onClear }: WorkbenchCanvasProps) {
+  const canvasRegionRef = useRef<HTMLElement | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const panStartRef = useRef<{ clientX: number; clientY: number; pan: { x: number; y: number } } | undefined>(undefined);
   const [dragTarget, setDragTarget] = useState<DragTarget | undefined>();
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [viewport, setViewport] = useState(DEFAULT_VIEWPORT);
   const [isSpaceDown, setIsSpaceDown] = useState(false);
-  const viewBox = zoomViewBox(zoom, pan);
+  const viewBox = zoomViewBox(zoom, pan, viewport);
   const slots = computeSceneAttachmentSlots(state);
   const boxes = state.nodes
     .filter((node) => node.componentId !== 'label' && node.componentId !== 'labelIcon')
     .map((node) => computeNodeBox(state, node.id))
     .filter(Boolean) as NonNullable<ReturnType<typeof computeNodeBox>>[];
+
+  useEffect(() => {
+    const region = canvasRegionRef.current;
+    if (!region) {
+      return;
+    }
+    const syncViewport = () => {
+      const rect = region.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        setViewport({ width: rect.width, height: rect.height });
+      }
+    };
+    syncViewport();
+    const observer = new ResizeObserver(syncViewport);
+    observer.observe(region);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const isEditable = (target: EventTarget | null) => {
@@ -238,67 +262,38 @@ export function WorkbenchCanvas({ state, onStateChange }: WorkbenchCanvasProps) 
   };
 
   return (
-    <section className="canvas-region" aria-label="Canvas">
-      <div className="canvas-toolbar">
-        <div className="canvas-tool-group canvas-tool-actions">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => onStateChange(deleteSelected(state))}
-            disabled={!state.selected}
-          >
-            Delete
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => onStateChange(clearCanvas(state))}
-            disabled={state.nodes.length === 0 && state.connections.length === 0 && state.groups.length === 0}
-          >
-            Clear
-          </Button>
-        </div>
-        <div className="canvas-tool-group canvas-tool-zoom" aria-label="Zoom controls">
-          <Button type="button" variant="outline" size="sm" aria-label="Zoom out" onClick={() => changeZoom(-0.15)}>
-            -
-          </Button>
-          <Button type="button" variant="outline" size="sm" aria-label="Zoom in" onClick={() => changeZoom(0.15)}>
-            +
-          </Button>
-        </div>
-      </div>
-      <svg
-        ref={svgRef}
-        className={[
-          'preview-canvas',
-          isSpaceDown ? 'space-panning' : '',
-          dragTarget ? 'canvas-dragging' : '',
-        ].filter(Boolean).join(' ')}
-        viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`}
-        role="img"
-        onDragOver={(event) => event.preventDefault()}
-        onDrop={onDrop}
-        onPointerDown={(event) => {
-          if (event.target === event.currentTarget) {
-            if (isSpaceDown) {
-              beginPan(event);
-            } else {
-              onStateChange(clearSelection(state));
+    <>
+      <section className="canvas-region" aria-label="Canvas" ref={canvasRegionRef}>
+        <svg
+          ref={svgRef}
+          className={[
+            'preview-canvas',
+            isSpaceDown ? 'space-panning' : '',
+            dragTarget ? 'canvas-dragging' : '',
+          ].filter(Boolean).join(' ')}
+          viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`}
+          role="img"
+          onDragOver={(event) => event.preventDefault()}
+          onDrop={onDrop}
+          onPointerDown={(event) => {
+            if (event.target === event.currentTarget) {
+              if (isSpaceDown) {
+                beginPan(event);
+              } else {
+                onStateChange(clearSelection(state));
+              }
             }
-          }
-        }}
-        onPointerMove={onPointerMove}
-        onPointerUp={() => {
-          setDragTarget(undefined);
-          panStartRef.current = undefined;
-        }}
-        onPointerLeave={() => {
-          setDragTarget(undefined);
-          panStartRef.current = undefined;
-        }}
-      >
+          }}
+          onPointerMove={onPointerMove}
+          onPointerUp={() => {
+            setDragTarget(undefined);
+            panStartRef.current = undefined;
+          }}
+          onPointerLeave={() => {
+            setDragTarget(undefined);
+            panStartRef.current = undefined;
+          }}
+        >
         <defs>
           {state.connections.map((connection) => (
             <LineMarkerDefs
@@ -393,12 +388,43 @@ export function WorkbenchCanvas({ state, onStateChange }: WorkbenchCanvasProps) 
           );
         })}
         {state.nodes.length === 0 && state.groups.length === 0 ? (
-          <text x="380" y="260" textAnchor="middle" className="drop-hint">
+          <text x={viewport.width / 2} y={viewport.height / 2} textAnchor="middle" className="drop-hint">
             Drag components here
           </text>
         ) : null}
-      </svg>
-    </section>
+        </svg>
+      </section>
+      <div className="canvas-toolbar">
+        <div className="canvas-toolbar-inner">
+          <button
+            type="button"
+            className="preview-btn preview-btn-icon preview-btn-zoom"
+            aria-label="Zoom in"
+            onClick={() => changeZoom(0.15)}
+          >
+            <span className="material-symbols-outlined preview-btn-icon-glyph" aria-hidden="true">zoom_in</span>
+          </button>
+          <button
+            type="button"
+            className="preview-btn preview-btn-icon preview-btn-zoom"
+            aria-label="Zoom out"
+            onClick={() => changeZoom(-0.15)}
+          >
+            <span className="material-symbols-outlined preview-btn-icon-glyph" aria-hidden="true">zoom_out</span>
+          </button>
+          <span className="canvas-toolbar-divider" aria-hidden="true" />
+          <button
+            type="button"
+            className="preview-btn"
+            disabled={state.nodes.length === 0 && state.connections.length === 0 && state.groups.length === 0}
+            onClick={() => onClear?.()}
+          >
+            <span className="material-symbols-outlined preview-btn-leading-icon" aria-hidden="true">delete_sweep</span>
+            Clear Canvas
+          </button>
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -406,12 +432,16 @@ function selectionPadding(componentId: string): number {
   return componentId === 'icon' || componentId === 'labelIcon' ? 4 : 8;
 }
 
-function zoomViewBox(zoom: number, pan: { x: number; y: number }) {
-  const width = CANVAS_WIDTH / zoom;
-  const height = CANVAS_HEIGHT / zoom;
+function zoomViewBox(
+  zoom: number,
+  pan: { x: number; y: number },
+  viewport: { width: number; height: number },
+) {
+  const width = viewport.width / zoom;
+  const height = viewport.height / zoom;
   return {
-    x: (CANVAS_WIDTH - width) / 2 + pan.x,
-    y: (CANVAS_HEIGHT - height) / 2 + pan.y,
+    x: (viewport.width - width) / 2 + pan.x,
+    y: (viewport.height - height) / 2 + pan.y,
     width,
     height,
   };

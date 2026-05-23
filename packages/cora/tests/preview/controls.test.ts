@@ -64,7 +64,7 @@ describe('preview controls', () => {
     });
     expect(baseNodeControls.find((control) => control.kind === 'size')).toMatchObject({
       presets: ['sm', 'md', 'lg', 'xl', 'xxl'],
-      explicit: { width: 156, height: 40 },
+      explicit: { width: 140, height: 40 },
     });
     expect(labelNodeControls.some((control) => control.key === 'size')).toBe(false);
     expect(labelNodeControls.some((control) => control.key === 'shadow')).toBe(false);

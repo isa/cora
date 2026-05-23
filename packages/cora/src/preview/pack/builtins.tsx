@@ -57,7 +57,7 @@ export const builtInPack: PackManifest = {
       borderColor: '#0A0A0A',
       textColor: '#0A0A0A',
       radius: 14,
-      size: { width: 220, height: 56 },
+      size: { width: 168, height: 44 },
     }),
     component('label', 'LabelNode', 'basic', LabelNode as ComponentType<PreviewNodeProps>, {
       ...baseNodeDefaults,
