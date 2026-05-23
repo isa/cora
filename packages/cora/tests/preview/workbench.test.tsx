@@ -20,10 +20,11 @@ describe('preview workbench', () => {
     expect(markup).toContain('Group');
     expect(markup).not.toContain('ShapeNode');
     expect(markup).toContain('Drag components here');
-    expect(markup).toContain('aria-pressed="false"');
-    expect(markup).toContain('Labels');
+    expect(markup).not.toContain('Labels');
     expect(markup).toContain('Delete');
     expect(markup).toContain('Clear');
+    expect(markup).toContain('aria-label="Zoom out"');
+    expect(markup).toContain('aria-label="Zoom in"');
     expect(markup).toContain('>+<');
     expect(markup).toContain('>-<');
   });

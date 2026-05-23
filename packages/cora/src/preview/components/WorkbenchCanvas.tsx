@@ -24,7 +24,7 @@ import {
   type WorkbenchState,
 } from '../state.js';
 import { AttachmentOverlay } from './AttachmentOverlay.js';
-import { Button, Toggle } from './ui/index.js';
+import { Button } from './ui/index.js';
 
 interface WorkbenchCanvasProps {
   state: WorkbenchState;
@@ -89,7 +89,6 @@ export function WorkbenchCanvas({ state, onStateChange }: WorkbenchCanvasProps) 
   const panStartRef = useRef<{ clientX: number; clientY: number; pan: { x: number; y: number } } | undefined>(undefined);
   const [dragTarget, setDragTarget] = useState<DragTarget | undefined>();
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [showOverlayLabels, setShowOverlayLabels] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [isSpaceDown, setIsSpaceDown] = useState(false);
@@ -241,38 +240,34 @@ export function WorkbenchCanvas({ state, onStateChange }: WorkbenchCanvasProps) 
   return (
     <section className="canvas-region" aria-label="Canvas">
       <div className="canvas-toolbar">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => onStateChange(deleteSelected(state))}
-          disabled={!state.selected}
-        >
-          Delete
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => onStateChange(clearCanvas(state))}
-          disabled={state.nodes.length === 0 && state.connections.length === 0 && state.groups.length === 0}
-        >
-          Clear
-        </Button>
-        <Button type="button" variant="outline" size="sm" onClick={() => changeZoom(-0.15)}>
-          -
-        </Button>
-        <Button type="button" variant="outline" size="sm" onClick={() => changeZoom(0.15)}>
-          +
-        </Button>
-        <Toggle
-          type="button"
-          pressed={showOverlayLabels}
-          onClick={() => setShowOverlayLabels((value) => !value)}
-          title="Toggle attachment slot labels"
-        >
-          Labels
-        </Toggle>
+        <div className="canvas-tool-group canvas-tool-actions">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => onStateChange(deleteSelected(state))}
+            disabled={!state.selected}
+          >
+            Delete
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => onStateChange(clearCanvas(state))}
+            disabled={state.nodes.length === 0 && state.connections.length === 0 && state.groups.length === 0}
+          >
+            Clear
+          </Button>
+        </div>
+        <div className="canvas-tool-group canvas-tool-zoom" aria-label="Zoom controls">
+          <Button type="button" variant="outline" size="sm" aria-label="Zoom out" onClick={() => changeZoom(-0.15)}>
+            -
+          </Button>
+          <Button type="button" variant="outline" size="sm" aria-label="Zoom in" onClick={() => changeZoom(0.15)}>
+            +
+          </Button>
+        </div>
       </div>
       <svg
         ref={svgRef}
@@ -342,7 +337,7 @@ export function WorkbenchCanvas({ state, onStateChange }: WorkbenchCanvasProps) 
             />
           </g>
         ))}
-        <AttachmentOverlay slots={slots} boxes={boxes} showLabels={showOverlayLabels} />
+        <AttachmentOverlay slots={slots} boxes={boxes} showLabels={false} />
         {state.connections.map((connection) => {
           const points = computeConnectionPoints(state, connection);
           const visiblePoints = applyConnectionMarkerInsets(points, connection.props);

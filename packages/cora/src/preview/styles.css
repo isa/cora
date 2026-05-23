@@ -246,15 +246,49 @@ textarea {
   display: grid;
   min-height: 0;
   padding: 18px;
+  background:
+    radial-gradient(circle at 1px 1px, rgba(10, 10, 10, 0.14) 1px, transparent 0) 0 0 / 24px 24px,
+    var(--preview-bg);
 }
 
 .canvas-toolbar {
   position: absolute;
   z-index: 2;
-  top: 26px;
-  right: 26px;
+  right: 50%;
+  bottom: 26px;
   display: flex;
+  gap: 12px;
+  align-items: center;
+  transform: translateX(50%);
+}
+
+.canvas-tool-group {
+  display: inline-flex;
   gap: 6px;
+  align-items: center;
+  padding: 6px;
+  border: 1px solid var(--preview-border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 16px 34px rgba(20, 16, 12, 0.12);
+  transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease;
+}
+
+.canvas-tool-group:hover,
+.canvas-tool-group:focus-within {
+  background: var(--preview-surface);
+  box-shadow: 0 18px 42px rgba(20, 16, 12, 0.16);
+  transform: translateY(-1px);
+}
+
+.canvas-tool-group .ui-button {
+  min-width: 36px;
+  border-color: transparent;
+  border-radius: 999px;
+}
+
+.canvas-tool-actions .ui-button:first-child {
+  color: var(--preview-danger);
 }
 
 .preview-canvas {
@@ -606,6 +640,7 @@ textarea {
 
 .preview-node {
   cursor: grab;
+  transition: opacity 160ms ease, transform 160ms ease;
 }
 
 .preview-node:active,
@@ -651,6 +686,7 @@ textarea {
   stroke: #CBD5E1;
   stroke-width: 1;
   stroke-dasharray: 4 4;
+  transition: stroke 140ms ease, opacity 140ms ease;
 }
 
 .connection-label-mask {
@@ -675,9 +711,10 @@ textarea {
 }
 
 .drop-hint {
-  fill: #94A3B8;
+  fill: var(--preview-muted);
   font-size: 16px;
   font-weight: 650;
+  opacity: 0.55;
 }
 
 .inspector-empty h2,
