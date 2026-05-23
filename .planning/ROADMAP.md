@@ -303,7 +303,7 @@ Plans:
 
 **Wave 2 *(blocked on Wave 1 completion)***
 - [x] 03.5-02-PLAN.md — Branded catalog and reference-style inspector polish
-- [ ] 03.5-03-PLAN.md — Premium dotted canvas, split tools, and motion
+- [x] 03.5-03-PLAN.md — Premium dotted canvas, split tools, and motion
 
 **Wave 3 *(blocked on Waves 1-2 completion)***
 - [ ] 03.5-04-PLAN.md — Visual contract tests, browser verification, and final QA
