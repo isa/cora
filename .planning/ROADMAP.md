@@ -299,7 +299,7 @@ Cross-cutting constraints:
 
 Plans:
 **Wave 1**
-- [ ] 03.5-01-PLAN.md — Preview visual shell tokens and reference composition foundation
+- [x] 03.5-01-PLAN.md — Preview visual shell tokens and reference composition foundation
 
 **Wave 2 *(blocked on Wave 1 completion)***
 - [ ] 03.5-02-PLAN.md — Branded catalog and reference-style inspector polish
