@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: executing
-stopped_at: Phase 3.4 complete
-last_updated: "2026-05-23T12:55:00.000Z"
-last_activity: 2026-05-23 -- Phase 3.4 complete
+status: planning
+stopped_at: Phase 3.5 context gathered
+last_updated: "2026-05-23T16:08:09.594Z"
+last_activity: 2026-05-23 -- Phase 3.5 inserted
 progress:
-  total_phases: 12
+  total_phases: 14
   completed_phases: 7
   total_plans: 25
   completed_plans: 25
-  percent: 58
+  percent: 50
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-21)
 
 **Core value:** An AI agent can write a YAML diagram, run `cora validate` and `cora render`, and produce a professional-looking architectural diagram without touching a visual editor — while humans can still polish the result when needed.
-**Current focus:** Phase 3.5 — Default Component Look Lockdown
+**Current focus:** Phase 3.5 — Preview Visual Beauty
 
 ## Current Position
 
-Phase: 3.5 of 12 (Default Component Look Lockdown)
+Phase: 3.5 of 14 (Preview Visual Beauty)
 Plan: 0 of 0 planned
 Status: Pending discussion/planning
-Last activity: 2026-05-23 -- Phase 3.4 complete
+Last activity: 2026-05-23 -- Phase 3.5 inserted
 
-Progress: [██████░░░░] 58% (7/12 phases complete)
+Progress: [█████░░░░░] 50% (7/14 phases complete)
 
 ## Performance Metrics
 
@@ -51,13 +51,15 @@ Progress: [██████░░░░] 58% (7/12 phases complete)
 | 3.2 Renderer Component Library | 4 | 4 | — |
 | 3.3 Component Preview Canvas | 4 | 4 | — |
 | 3.4 ASCII Export + SKILL.md | 4 | 4 | — |
-| 3.5 Default Component Look Lockdown | 0 | 0 | — |
-| 3.6 Component/Icon Package Surface Lockdown | 0 | 0 | — |
+| 3.5 Preview Visual Beauty | 0 | 0 | — |
+| 3.6 Default Component Look Lockdown | 0 | 0 | — |
+| 3.7 Component/Icon Package Surface Lockdown | 0 | 0 | — |
+| 3.8 Grid Capability Expansion | 0 | 0 | — |
 
 **Recent Trend:**
 
 - Last 5 plans: 3.4-04, 3.4-03, 3.4-02, 3.4-01, 3.3-04
-- Trend: ASCII export and agent skill handoff are complete; Phase 3.5 can lock the default visual system before Interactive Canvas.
+- Trend: ASCII export and agent skill handoff are complete; Phase 3.5 can focus on preview visual beauty, followed by default look, package surface, and grid capability work before Interactive Canvas.
 
 ## Accumulated Context
 
@@ -86,8 +88,10 @@ Recent decisions affecting current work:
 - 2026-05-22 — Phase 3.2 inserted after Phase 3.1 (URGENT): Renderer Component Library — full reusable renderer component catalog and normalized style vocabulary before preview/canvas/extensions grow around a too-small abstraction.
 - 2026-05-22 — Phase 3.3 renumbered from former Phase 3.2: Component Preview Canvas — `cora preview` browser SPA with pack/component picker, live attribute controls (color, border-width, text, etc.), and line-attachment overlay. Browser SPA delivery (not static HTML, not Storybook). Depends on Phase 3.2's typed component catalog; seeds dev-server infrastructure Phase 4 reuses.
 - 2026-05-23 — Phase 3.4 inserted after Phase 3.3 (URGENT): ASCII Export + SKILL.md — text-native diagram export and agent skill handoff before Phase 4.
-- 2026-05-23 — Phase 3.5 inserted after Phase 3.4 (URGENT): Default Component Look Lockdown — canonical component styling, colors, fonts, and sensible defaults before Interactive Canvas.
-- 2026-05-23 — Phase 3.6 inserted after Phase 3.5 (URGENT): Component/Icon Package Surface Lockdown — decide the supported component/icon/package surface and keep preview development-only before Phase 4.
+- 2026-05-23 — Phase 3.5 inserted after Phase 3.4 (URGENT): Preview Visual Beauty — talk through and improve the visual beauty, polish, and product feel of the preview workbench.
+- 2026-05-23 — Phase 3.6 inserted after Phase 3.5 (URGENT): Default Component Look Lockdown — canonical component styling, colors, fonts, and sensible defaults before Interactive Canvas.
+- 2026-05-23 — Phase 3.7 inserted after Phase 3.6 (URGENT): Component/Icon Package Surface Lockdown — decide the supported component/icon/package surface and keep preview development-only before Phase 4.
+- 2026-05-23 — Phase 3.8 inserted after Phase 3.7 (URGENT): Grid Capability Expansion — strengthen diagram grid behavior before Phase 4 direct manipulation depends on it.
 
 ## Deferred Items
 
@@ -98,6 +102,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-05-23T12:55:00.000Z
-Stopped at: Phase 3.4 complete
-Resume file: .planning/ROADMAP.md
+Last session: 2026-05-23T16:08:09.573Z
+Stopped at: Phase 3.5 context gathered
+Resume file: .planning/phases/3.5-preview-visual-beauty/03.5-CONTEXT.md
