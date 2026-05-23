@@ -73,6 +73,14 @@
 - [x] **EXP-04**: First `--quality=high` use prompts to download Chromium to `$HOME/.config/cora/browsers/`
 - [x] **EXP-05**: resvg PDF path works on normal `npm install` without extra browser deps
 
+### Text Export
+
+- [x] **ASCII-01**: `cora render diagram.yaml -o diagram.txt` selects a text export path from the output extension, and `cora render diagram.yaml` without `-o` prints text output to stdout
+- [x] **ASCII-02**: Text output preserves nodes, groups, labels, and directional relationships in a readable fixed-width layout suitable for terminals, Markdown, pull requests, and agent logs
+- [x] **ASCII-03**: Text export is deterministic in CI and does not require browser, SVG, PDF, or image dependencies
+- [x] **ASCII-04**: Validation and render failures keep the existing structured JSON error behavior when `--format json` is requested
+- [x] **ASCII-05**: Documentation explains text export limitations versus SVG/PDF, including layout simplification and unsupported visual styling
+
 ### Interactive Canvas
 
 - [ ] **SRV-01**: Canvas supports drag/pin of nodes and groups
@@ -99,6 +107,7 @@
 - [ ] **AGT-01**: `AGENTS.md` documents the agent workflow, error codes, and JSON output shapes
 - [ ] **AGT-02**: Canonical example diagrams exist for each v1 diagram kind
 - [ ] **AGT-03**: Error codes include at minimum: `UNKNOWN_SERVICE`, `MISSING_EDGE_TARGET`, `MISSING_EXTENSION`, `SCHEMA_VIOLATION`
+- [x] **AGT-04**: `SKILL.md` documents practical agent workflows, triggers, examples, and reusable prompts for Cora diagram authoring and review
 
 ## v2 Requirements
 
@@ -181,6 +190,11 @@ Deferred to post-v1. Tracked but not in current roadmap.
 | EXP-03 | Phase 3 | Done (03-03) |
 | EXP-04 | Phase 3 | Done (03-03) |
 | EXP-05 | Phase 3 | Done (03-04) |
+| ASCII-01 | Phase 3.4 | Done (3.4-04) |
+| ASCII-02 | Phase 3.4 | Done (3.4-04) |
+| ASCII-03 | Phase 3.4 | Done (3.4-04) |
+| ASCII-04 | Phase 3.4 | Done (3.4-04) |
+| ASCII-05 | Phase 3.4 | Done (3.4-04) |
 | CLI-06 | Phase 4 | Pending |
 | SRV-01 | Phase 4 | Pending |
 | SRV-02 | Phase 4 | Pending |
@@ -199,12 +213,13 @@ Deferred to post-v1. Tracked but not in current roadmap.
 | EXT-08 | Phase 5 | Pending |
 | CLI-07 | Phase 6 | Pending |
 | AGT-02 | Phase 6 | Pending |
+| AGT-04 | Phase 3.4 | Done (3.4-04) |
 
 **Coverage:**
-- v1 requirements: 60 total
-- Mapped to phases: 60
+- v1 requirements: 66 total
+- Mapped to phases: 66
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-05-21*
-*Last updated: 2026-05-22 during Phase 3.3 execution*
+*Last updated: 2026-05-23 during Phase 3.4 execution*
