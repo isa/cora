@@ -347,10 +347,24 @@ Cross-cutting constraints:
 - Do not regress PDF text overlay alignment or font embedding
 - Keep defaults agent-friendly: omitted YAML fields should render well without extra styling advice
 
-**Plans:** 0 plans
+**Plans:** 4 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 3.6 to break down)
+**Wave 1**
+- [ ] 03.6-01-PLAN.md — Shared Tailwind look contract, catalogDefaultProps factory, and defaultTheme rebuild
+
+**Wave 2 *(blocked on Wave 1 completion)***
+- [ ] 03.6-02-PLAN.md — Renderer YAML path: measurement, catalog props, LayoutBoxNode radius/no-shadow
+- [ ] 03.6-03-PLAN.md — Preview sync: defaults.ts, builtins.tsx, look-sync regression test
+
+**Wave 3 *(blocked on Waves 1–2 completion)***
+- [ ] 03.6-04-PLAN.md — Golden baseline refresh (D-13), ASCII/PDF gates, AGENTS.md Default Look docs
+
+Cross-cutting constraints:
+- Single source: `renderer/themes/componentDefaults.ts` feeds theme, renderer, and preview (D-12).
+- No runtime Tailwind/CSS; static hex map only (D-02).
+- Preview workbench chrome (`preview/styles.css`) stays Phase 3.5 local — diagram defaults only.
+- Golden refresh is intentional approved baseline update, not accidental drift (D-13).
 
 ---
 
