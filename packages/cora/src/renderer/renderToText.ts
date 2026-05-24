@@ -171,6 +171,7 @@ function drawBox(
   label: string,
   glyphs: GlyphSet,
   fillInterior = false,
+  cx?: number,
 ): void {
   const maxY = grid.length - 1;
   const maxX = grid[0]?.length ? grid[0].length - 1 : 0;
@@ -207,8 +208,10 @@ function drawBox(
 
   if (label) {
     const labelY = clamp(y0 + Math.floor((y1 - y0) / 2), y0 + 1, y1 - 1);
+    const defaultLabelX = x0 + Math.max(1, Math.floor((x1 - x0 + 1 - textWidth(label)) / 2));
+    const idealLabelX = cx !== undefined ? cx - Math.floor(textWidth(label) / 2) : defaultLabelX;
     const labelX = clamp(
-      x0 + Math.max(1, Math.floor((x1 - x0 + 1 - textWidth(label)) / 2)),
+      Number.isNaN(idealLabelX) ? defaultLabelX : idealLabelX,
       x0 + 1,
       Math.max(x0 + 1, x1 - textWidth(label)),
     );
@@ -747,6 +750,7 @@ interface GridNode {
   y: number;
   width: number;
   height: number;
+  cx?: number;
 }
 
 interface GridGroup {
@@ -906,7 +910,7 @@ export function renderToText(
 
   // Find the smallest ELK cell dimensions to use as our scale factor.
   // We want to preserve relative positions, so we use a consistent scale.
-  const SCALE_X = layouted.width > layouted.height * 2 ? 8 : 16; // pixels per grid column
+  const SCALE_X = 10; // pixels per grid column
   const SCALE_Y = 18; // pixels per grid row
 
   // Scale a pixel coordinate to grid space
@@ -934,6 +938,7 @@ export function renderToText(
       height: useMeasuredNodeHeight
         ? Math.max(Math.round(node.measuredHeight / SCALE_Y), 3)
         : 3,
+      cx: toGridX(node.x + node.width / 2),
     });
   }
 
@@ -1510,7 +1515,16 @@ export function renderToText(
 
   // Step C: Draw nodes (borders + fill + labels), masking edge interiors.
   for (const node of gridNodes.values()) {
-    drawBox(grid, { x: node.x, y: node.y }, node.width, node.height, node.label, glyphs, true);
+    drawBox(
+      grid,
+      { x: node.x, y: node.y },
+      node.width,
+      node.height,
+      node.label,
+      glyphs,
+      true,
+      node.cx,
+    );
   }
 
   // Step D: Draw edge labels above lines but below ports/markers.
