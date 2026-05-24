@@ -10,6 +10,8 @@ import {
   strokeWidth,
 } from './shared.js';
 
+import { LOOK } from '../../themes/lookTokens.js';
+
 export interface CatalogBoxNodeProps {
   x?: number;
   y?: number;
@@ -47,6 +49,8 @@ function LayoutBoxNode({ node, theme }: NodeComponentProps) {
       y={node.y + offsetY}
       width={node.measuredWidth}
       height={node.measuredHeight}
+      rx={LOOK.radius.md}
+      ry={LOOK.radius.md}
       fill={paint}
       stroke={stroke}
       strokeWidth={stroke ? sw : undefined}

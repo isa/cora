@@ -28,8 +28,8 @@ describe('built-in preview pack', () => {
     const labelNode = builtInPack.components.find((component) => component.id === 'label');
 
     expect(labelNode?.defaultProps).toMatchObject({
-      titleFontSize: 9,
-      subtitleFontSize: 8,
+      titleFontSize: 11,
+      subtitleFontSize: 10,
     });
   });
 });

@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
 
 import { baselineYForVisualCenter } from '../../../core/measureText.js';
+import { LOOK } from '../../themes/lookTokens.js';
+import { NODE_TITLE_SIZE, NODE_SUBTITLE_SIZE } from '../../themes/fontTokens.js';
 import type { ResolvedStyle, ThemeTokens } from '../../../layout-ir.js';
 import { escapeXml, FONT_FAMILY } from '../../utils.js';
 import type { SvgIconComponent } from '../icons.js';
@@ -72,15 +74,15 @@ export function resolvedCatalogFrame(props: CatalogNodeFrameProps) {
     y: props.y ?? 0,
     width: size.width,
     height: size.height,
-    radius: props.radius ?? 4,
-    backgroundColor: props.backgroundColor ?? '#ffffff',
-    borderColor: noBorder ? undefined : props.borderColor ?? '#94a3b8',
+    radius: props.radius ?? LOOK.radius.md,
+    backgroundColor: props.backgroundColor ?? LOOK.surface.fill,
+    borderColor: noBorder ? undefined : props.borderColor ?? LOOK.border.default,
     borderWidth: noBorder ? undefined : borderWidth,
     borderDasharray: noBorder ? undefined : borderDasharray(props.borderStyle, borderWidth),
     text: props.title ?? props.text,
     subtitle: props.subtitle,
-    textColor: props.textColor ?? '#0f172a',
-    subtitleColor: props.subtitleColor ?? '#64748b',
+    textColor: props.textColor ?? LOOK.text.primary,
+    subtitleColor: props.subtitleColor ?? LOOK.text.muted,
     titleFontSize: props.titleFontSize,
     subtitleFontSize: props.subtitleFontSize,
     shadow: props.shadow ?? 'none',
@@ -264,9 +266,9 @@ export function CatalogText({
   height,
   text,
   subtitle,
-  color = '#0f172a',
-  subtitleColor = '#64748b',
-  fontSize = 13,
+  color = LOOK.text.primary,
+  subtitleColor = LOOK.text.muted,
+  fontSize = NODE_TITLE_SIZE,
   subtitleFontSize,
   paddingX = 4,
   minFontSize = 9,
@@ -296,7 +298,7 @@ export function CatalogText({
     : fontSize;
   const stillTooWide = longestLine.length * fittedFontSize * 0.56 > maxTextWidth;
   const lineHeight = fittedFontSize * 1.25;
-  const resolvedSubtitleFontSize = subtitleFontSize ?? Math.max(8, fittedFontSize - 2);
+  const resolvedSubtitleFontSize = subtitleFontSize ?? Math.max(8, fittedFontSize - (NODE_TITLE_SIZE - NODE_SUBTITLE_SIZE));
   const subtitleLineHeight = resolvedSubtitleFontSize * 1.25;
   const totalHeight = (lines.length * lineHeight) + (subtitleLines.length > 0 ? 3 + subtitleLines.length * subtitleLineHeight : 0);
   const firstLineCenter = y + height / 2 - totalHeight / 2 + lineHeight / 2;

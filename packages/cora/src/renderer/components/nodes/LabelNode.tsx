@@ -1,6 +1,8 @@
 import type { BoxStyleProps } from '../types.js';
 import { CatalogFrame, CatalogText, resolvedCatalogFrame } from './shared.js';
 
+import { STANDALONE_LABEL_SIZE, NODE_SUBTITLE_SIZE } from '../../themes/fontTokens.js';
+
 export interface LabelNodeProps extends BoxStyleProps {
   x?: number;
   y?: number;
@@ -11,8 +13,8 @@ export function LabelNode(props: LabelNodeProps) {
     backgroundColor: 'transparent',
     borderStyle: 'none',
     size: 'md',
-    titleFontSize: 9,
-    subtitleFontSize: 8,
+    titleFontSize: STANDALONE_LABEL_SIZE,
+    subtitleFontSize: NODE_SUBTITLE_SIZE,
     ...props,
   });
 

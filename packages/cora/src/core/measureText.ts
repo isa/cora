@@ -6,24 +6,24 @@ import { fileURLToPath } from 'node:url';
 import type { Font } from 'fontkit';
 
 import {
-  EDGE_FONT_SIZE,
-  NODE_FONT_SIZE,
+  EDGE_LABEL_SIZE,
+  NODE_TITLE_SIZE,
 } from '../renderer/themes/fontTokens.js';
 
 import type { DiagramNode, MeasuredNode } from './types.js';
 
-const FONT_SIZE_BY_ROLE = { node: NODE_FONT_SIZE, edge: EDGE_FONT_SIZE } as const;
-const NODE_PADDING_X = 11;
-const NODE_PADDING_Y = 6;
-const DECISION_EXTRA_PADDING_Y = 8;
-const ICON_LABEL_EXTRA_WIDTH = 34;
+const FONT_SIZE_BY_ROLE = { node: NODE_TITLE_SIZE, edge: EDGE_LABEL_SIZE } as const;
+const NODE_PADDING_X = 14;
+const NODE_PADDING_Y = 8;
+const DECISION_EXTRA_PADDING_Y = 10;
+const ICON_LABEL_EXTRA_WIDTH = 40;
 const COMPONENT_MIN_SIZE = {
-  app: { width: 112, height: 56 },
-  icon: { width: 40, height: 40 },
-  issue: { width: 112, height: 46 },
-  labelIcon: { width: 112, height: 46 },
-  page: { width: 128, height: 84 },
-  website: { width: 128, height: 56 },
+  app: { width: 128, height: 68 },
+  icon: { width: 48, height: 48 },
+  issue: { width: 128, height: 56 },
+  labelIcon: { width: 128, height: 56 },
+  page: { width: 144, height: 100 },
+  website: { width: 144, height: 68 },
 } as const;
 
 function resolveFontPath(filename: string): string {

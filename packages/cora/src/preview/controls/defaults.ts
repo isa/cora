@@ -1,4 +1,6 @@
 import type { ControlDefinition } from './schema.js';
+import { catalogDefaultProps } from '../../renderer/themes/componentDefaults.js';
+import { LOOK } from '../../renderer/themes/lookTokens.js';
 
 export const sizePresets = ['sm', 'md', 'lg', 'xl', 'xxl'] as const;
 
@@ -39,41 +41,25 @@ export type ConnectionProps = {
 export const baseNodeDefaults: PreviewNodeProps = {
   title: 'Component',
   subtitle: '',
-  backgroundColor: '#FFFFFF',
-  radius: 10,
-  borderStyle: 'solid',
-  borderColor: '#0A0A0A',
-  borderWidth: 1,
-  textColor: '#0A0A0A',
-  subtitleColor: '#6F6A72',
-  titleFontSize: 11,
-  subtitleFontSize: 10,
-  shadow: 'none',
-  size: { width: 140, height: 40 },
-  iconColor: '#7B3FE4',
+  ...catalogDefaultProps('box'),
 };
 
 export const pageNodeDefaults: PreviewNodeProps = {
-  ...baseNodeDefaults,
+  ...catalogDefaultProps('page'),
   title: 'PageNode.type',
   type: 'landing',
-  size: { width: 120, height: 164 },
-  skeletonColorDark: '#64748B',
-  skeletonColorLight: '#E2E8F0',
 };
 
 export const issueNodeDefaults: PreviewNodeProps = {
-  ...baseNodeDefaults,
+  ...catalogDefaultProps('issue'),
   title: 'IssueNode.icon',
   icon: 'warning',
-  backgroundColor: '#FFFFFF',
-  borderColor: '#B42318',
 };
 
 export const connectionDefaults: ConnectionProps = {
   lineStyle: 'solid',
-  strokeColor: '#334155',
-  strokeWidth: 2,
+  strokeColor: LOOK.edge.stroke,
+  strokeWidth: LOOK.edge.width,
   arrowSize: 8,
   startMarker: 'none',
   endMarker: 'arrow',

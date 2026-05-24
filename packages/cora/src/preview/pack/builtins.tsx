@@ -24,6 +24,7 @@ import {
   pageNodeDefaults,
   type PreviewNodeProps,
 } from '../controls/defaults.js';
+import { catalogDefaultProps } from '../../renderer/themes/componentDefaults.js';
 
 const component = (
   id: string,
@@ -52,64 +53,40 @@ export const builtInPack: PackManifest = {
   ],
   components: [
     component('box', 'BoxNode', 'basic', BoxNode as ComponentType<PreviewNodeProps>, {
-      ...baseNodeDefaults,
-      backgroundColor: '#FFFFFF',
-      borderColor: '#0A0A0A',
-      textColor: '#0A0A0A',
-      radius: 14,
-      size: { width: 168, height: 44 },
+      ...catalogDefaultProps('box'),
+      title: 'BoxNode',
     }),
     component('label', 'LabelNode', 'basic', LabelNode as ComponentType<PreviewNodeProps>, {
-      ...baseNodeDefaults,
-      backgroundColor: '#FFFFFF',
-      borderStyle: 'none',
-      titleFontSize: 9,
-      subtitleFontSize: 8,
+      ...catalogDefaultProps('label'),
       title: 'LabelNode',
     }, labelNodeControls),
     component('icon', 'IconNode', 'basic', LabelIconNode as unknown as ComponentType<PreviewNodeProps>, {
-      ...baseNodeDefaults,
-      title: '',
-      subtitle: undefined,
-      backgroundColor: 'transparent',
-      borderStyle: 'none',
-      size: 'md',
+      ...catalogDefaultProps('icon'),
+      title: 'IconNode',
       iconType: 'ok',
-      iconColor: '#2F7D7E',
     }, iconNodeControls),
     component('labelIcon', 'LabelIconNode', 'basic', LabelIconNode as unknown as ComponentType<PreviewNodeProps>, {
-      ...baseNodeDefaults,
-      title: '',
-      subtitle: undefined,
-      backgroundColor: '#FFFFFF',
-      borderStyle: 'none',
-      size: 'md',
+      ...catalogDefaultProps('labelIcon'),
+      title: 'LabelIconNode',
       iconType: 'ok',
-      iconColor: '#2F7D7E',
     }, labelIconNodeControls),
     component('website', 'WebsiteNode', 'product', WebsiteNode as ComponentType<PreviewNodeProps>, {
-      ...baseNodeDefaults,
+      ...catalogDefaultProps('website'),
       title: 'WebsiteNode',
-      backgroundColor: '#FFF7CC',
-      size: { width: 120, height: 164 },
     }),
     component('page', 'PageNode', 'product', PageNode as ComponentType<PreviewNodeProps>, pageNodeDefaults, pageNodeControls),
     component('app', 'AppNode', 'product', AppNode as ComponentType<PreviewNodeProps>, {
-      ...baseNodeDefaults,
+      ...catalogDefaultProps('app'),
       title: 'AppNode',
-      backgroundColor: '#DCFCE7',
-      size: { width: 120, height: 164 },
     }),
     component('decision', 'DecisionNode', 'logic', DecisionNode as ComponentType<PreviewNodeProps>, {
-      ...baseNodeDefaults,
+      ...catalogDefaultProps('decision'),
       title: 'DecisionNode',
-      backgroundColor: '#FED7AA',
     }),
     component('issue', 'IssueNode', 'status', IssueNode as ComponentType<PreviewNodeProps>, issueNodeDefaults, issueNodeControls),
     component('shape', 'ShapeNode', 'basic', ShapeNode as ComponentType<PreviewNodeProps>, {
-      ...baseNodeDefaults,
+      ...catalogDefaultProps('shape'),
       title: 'ShapeNode',
-      backgroundColor: '#CCFBF1',
     }),
   ],
 };

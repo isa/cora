@@ -1,4 +1,4 @@
-import type { LayoutedDiagram, LayoutedNode, ThemeShapeStyle } from '../layout-ir.js';
+import type { DiagramComponent, LayoutedDiagram, LayoutedNode, ThemeShapeStyle } from '../layout-ir.js';
 import {
   AppNode,
   EdgeLabel,
@@ -22,6 +22,7 @@ import {
   edgeLinePathData,
 } from './components/edges/edgePath.js';
 import { computeViewBox } from './viewBox.js';
+import { catalogDefaultProps } from './themes/componentDefaults.js';
 
 export interface DiagramProps {
   diagram: LayoutedDiagram;
@@ -29,7 +30,11 @@ export interface DiagramProps {
 
 function renderNode(node: LayoutedNode, diagram: LayoutedDiagram) {
   const component = node.component ?? 'box';
-  const catalogProps = nodeCatalogProps(node, diagram.theme.shapes[component] ?? diagram.theme.shapes.box!);
+  const catalogProps = nodeCatalogProps(
+    node,
+    diagram.theme.shapes[component] ?? diagram.theme.shapes.box!,
+    component as DiagramComponent
+  );
 
   switch (component) {
     case 'label':
@@ -76,17 +81,26 @@ function borderStyleFor(style: ThemeShapeStyle): 'none' | 'solid' | 'dashed' | '
   return 'solid';
 }
 
-function nodeCatalogProps(node: LayoutedNode, style: ThemeShapeStyle) {
+function nodeCatalogProps(
+  node: LayoutedNode,
+  style: ThemeShapeStyle,
+  component: DiagramComponent
+) {
+  const defaults = catalogDefaultProps(component);
   return {
     x: node.x,
     y: node.y,
     size: { width: node.measuredWidth, height: node.measuredHeight },
     backgroundColor: style.fill,
     borderColor: style.stroke,
-    borderWidth: style.strokeWidth,
+    borderWidth: style.strokeWidth ?? defaults.borderWidth,
     borderStyle: borderStyleFor(style),
     text: node.label,
-    textColor: style.labelFill ?? '#1A1A1A',
+    textColor: style.labelFill ?? defaults.textColor,
+    radius: defaults.radius,
+    titleFontSize: defaults.titleFontSize,
+    subtitleFontSize: defaults.subtitleFontSize,
+    shadow: 'none' as const,
   } as const;
 }
 

@@ -1,89 +1,88 @@
 import type { ThemeTokens } from '../../layout-ir.js';
-import { EDGE_FONT_SIZE, NODE_FONT_SIZE } from './fontTokens.js';
-
-const STROKE_WIDTH = 0.75;
-const LABEL = '#1A1A1A';
-const EDGE = '#37474F';
+import { LOOK } from './lookTokens.js';
+import {
+  NODE_TITLE_SIZE,
+  EDGE_LABEL_SIZE,
+} from './fontTokens.js';
 
 export const defaultTheme: ThemeTokens = {
-  background: '#F4F9FB',
+  background: LOOK.surface.diagram, // slate-50
   shapes: {
     box: {
-      fill: '#C9B3FF',
-      stroke: '#9470DB',
-      shadow: '#7050B8',
-      strokeWidth: STROKE_WIDTH,
+      fill: LOOK.surface.fill, // white
+      stroke: LOOK.border.default, // slate-300
+      strokeWidth: 1,
     },
     label: {
       fill: 'none',
       stroke: 'none',
-      labelFill: LABEL,
+      labelFill: LOOK.text.standaloneLabel, // slate-800
       strokeWidth: 0,
     },
     icon: {
       fill: 'none',
-      stroke: EDGE,
-      labelFill: EDGE,
-      strokeWidth: STROKE_WIDTH,
+      stroke: 'none',
+      labelFill: LOOK.text.primary,
+      strokeWidth: 0,
     },
     labelIcon: {
-      fill: '#80CFFF',
-      stroke: '#3DAAF0',
-      shadow: '#2888CC',
-      strokeWidth: STROKE_WIDTH,
+      fill: LOOK.components.labelIcon.fill,
+      stroke: LOOK.components.labelIcon.stroke,
+      strokeWidth: 1,
     },
     website: {
-      fill: '#FFF0B3',
-      stroke: '#D4BE70',
-      shadow: '#B0A040',
-      strokeWidth: STROKE_WIDTH,
+      fill: LOOK.components.website.fill,
+      stroke: LOOK.components.website.stroke,
+      strokeWidth: 1,
     },
     page: {
-      fill: '#E3F2FD',
-      stroke: '#64A5D8',
-      shadow: '#3E7EAA',
-      strokeWidth: STROKE_WIDTH,
+      fill: LOOK.components.page.fill,
+      stroke: LOOK.components.page.stroke,
+      strokeWidth: 1,
     },
     app: {
-      fill: '#FFF0B3',
-      stroke: '#D4BE70',
-      shadow: '#B0A040',
-      strokeWidth: STROKE_WIDTH,
+      fill: LOOK.components.app.fill,
+      stroke: LOOK.components.app.stroke,
+      strokeWidth: 1,
     },
     decision: {
-      fill: '#FFB366',
-      stroke: '#E89040',
-      shadow: '#C87020',
-      strokeWidth: STROKE_WIDTH,
+      fill: LOOK.components.decision.fill,
+      stroke: LOOK.components.decision.stroke,
+      strokeWidth: 1,
     },
     issue: {
-      fill: '#FFE4E6',
-      stroke: '#F43F5E',
-      shadow: '#BE123C',
-      strokeWidth: STROKE_WIDTH,
+      fill: LOOK.components.issue.fill,
+      stroke: LOOK.components.issue.stroke,
+      strokeWidth: 1,
     },
     shape: {
-      fill: '#80E0E0',
-      stroke: '#40B8B8',
-      shadow: '#289898',
-      strokeWidth: STROKE_WIDTH,
+      fill: LOOK.components.shape.fill,
+      stroke: LOOK.components.shape.stroke,
+      strokeWidth: 1,
     },
     group: {
       fill: 'none',
-      stroke: '#94A3B8',
-      strokeWidth: STROKE_WIDTH,
-      strokeDasharray: '4 4',
+      stroke: LOOK.group.stroke,
+      strokeWidth: LOOK.group.strokeWidth,
+      strokeDasharray: LOOK.group.strokeDasharray,
     },
   },
-  edge: { stroke: EDGE, strokeWidth: STROKE_WIDTH },
-  nodeLabel: { fontSize: NODE_FONT_SIZE, fontWeight: 600, fill: LABEL },
-  edgeLabel: {
-    fontSize: EDGE_FONT_SIZE,
-    fontWeight: 400,
-    fill: LABEL,
+  edge: {
+    stroke: LOOK.edge.stroke,
+    strokeWidth: LOOK.edge.width, // 2
   },
-  shadowOffset: { x: 0.5, y: 0.5 },
-  shadowBlur: 1,
+  nodeLabel: {
+    fontSize: NODE_TITLE_SIZE, // 12
+    fontWeight: 600,
+    fill: LOOK.text.primary,
+  },
+  edgeLabel: {
+    fontSize: EDGE_LABEL_SIZE, // 10
+    fontWeight: 400,
+    fill: LOOK.text.edgeLabel,
+  },
+  shadowOffset: { x: 0, y: 0 },
+  shadowBlur: 0,
 };
 
 export function resolveNodeStyle(

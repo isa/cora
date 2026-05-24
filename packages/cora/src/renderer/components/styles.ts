@@ -8,11 +8,11 @@ import type {
 const DEFAULT_BORDER_WIDTH = 0.5;
 
 export const SIZE_PRESETS: Record<SizePreset, ComponentDimensions> = {
-  sm: { width: 96, height: 40 },
-  md: { width: 128, height: 56 },
-  lg: { width: 176, height: 72 },
-  xl: { width: 224, height: 96 },
-  xxl: { width: 288, height: 128 },
+  sm: { width: 104, height: 44 },
+  md: { width: 136, height: 60 },
+  lg: { width: 184, height: 76 },
+  xl: { width: 232, height: 100 },
+  xxl: { width: 296, height: 132 },
 };
 
 export function resolveComponentSize(

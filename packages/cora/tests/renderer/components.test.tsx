@@ -38,8 +38,8 @@ describe('renderer component primitives', () => {
   it('resolves size presets and explicit dimensions', () => {
     const fallback = { width: 10, height: 20 };
 
-    expect(resolveComponentSize('sm', fallback)).toEqual({ width: 96, height: 40 });
-    expect(resolveComponentSize('xxl', fallback)).toEqual({ width: 288, height: 128 });
+    expect(resolveComponentSize('sm', fallback)).toEqual({ width: 104, height: 44 });
+    expect(resolveComponentSize('xxl', fallback)).toEqual({ width: 296, height: 132 });
     expect(resolveComponentSize({ width: 123, height: 45 }, fallback)).toEqual({
       width: 123,
       height: 45,
@@ -191,8 +191,8 @@ describe('renderer catalog nodes', () => {
       <LabelNode title="Primary" subtitle="Secondary" />,
     );
 
-    expect(markup).toContain('font-size="9"');
-    expect(markup).toContain('font-size="8"');
+    expect(markup).toContain('font-size="11"');
+    expect(markup).toContain('font-size="10"');
   });
 
   it('renders PageNode skeleton colors for landing pages', () => {

@@ -132,7 +132,7 @@ function ContentGroupBody({ controls, node, nodeId, onPropChange }: ContentGroup
       continue;
     }
 
-    const control = controlByKey.get(key);
+    const control = controlByKey.get(key as keyof PreviewNodeProps);
     if (!control) {
       continue;
     }
