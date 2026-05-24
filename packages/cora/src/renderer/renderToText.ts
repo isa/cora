@@ -144,6 +144,25 @@ function writeText(grid: string[][], x: number, y: number, text: string): void {
   });
 }
 
+function clearTextBackground(
+  grid: string[][],
+  x: number,
+  y: number,
+  width: number,
+  padding = 0,
+): void {
+  const row = grid[y];
+  if (!row) {
+    return;
+  }
+
+  const x0 = Math.max(0, x - padding);
+  const x1 = Math.min(row.length - 1, x + width - 1 + padding);
+  for (let col = x0; col <= x1; col++) {
+    row[col] = ' ';
+  }
+}
+
 function drawBox(
   grid: string[][],
   topLeft: GridPoint,
@@ -187,7 +206,9 @@ function drawBox(
   }
 
   if (label) {
-    const labelY = clamp(y0 + 1, y0, y1);
+    const labelY = height > BOX_HEIGHT
+      ? clamp(y0 + Math.floor((y1 - y0) / 2), y0 + 1, y1 - 1)
+      : clamp(y0 + 1, y0, y1);
     const labelX = clamp(
       x0 + Math.max(1, Math.floor((x1 - x0 + 1 - textWidth(label)) / 2)),
       x0 + 1,
@@ -493,7 +514,7 @@ function resolveNodeCrossings(
           if (node.id === srcNodeId || node.id === tgtNodeId) {
             continue;
           }
-          const insideX = shiftedX >= node.x && shiftedX < node.x + node.width;
+          const insideX = shiftedX >= node.x - 1 && shiftedX <= node.x + node.width;
           const overlapY = minY < node.y + node.height && maxY > node.y;
           if (insideX && overlapY) {
             const origNode = layouted.nodes.find(n => n.id === node.id)!;
@@ -574,7 +595,7 @@ function resolveNodeCrossings(
           if (node.id === srcNodeId || node.id === tgtNodeId) {
             continue;
           }
-          const insideY = shiftedY >= node.y && shiftedY < node.y + node.height;
+          const insideY = shiftedY >= node.y - 1 && shiftedY <= node.y + node.height;
           const overlapX = minX < node.x + node.width && maxX > node.x;
           if (insideY && overlapX) {
             const origNode = layouted.nodes.find(n => n.id === node.id)!;
@@ -841,11 +862,21 @@ export function renderToText(
     minX = Math.min(minX, group.x);
     minY = Math.min(minY, group.y);
   }
+  for (const edge of layouted.edges) {
+    for (const point of edge.points) {
+      minX = Math.min(minX, point.x);
+      minY = Math.min(minY, point.y);
+    }
+    if (edge.labelPlacement) {
+      minX = Math.min(minX, edge.labelPlacement.x);
+      minY = Math.min(minY, edge.labelPlacement.y);
+    }
+  }
   if (!Number.isFinite(minX)) { minX = 0; minY = 0; }
 
   // Find the smallest ELK cell dimensions to use as our scale factor.
   // We want to preserve relative positions, so we use a consistent scale.
-  const SCALE_X = 16; // pixels per grid column
+  const SCALE_X = layouted.width > layouted.height * 2 ? 8 : 16; // pixels per grid column
   const SCALE_Y = 18; // pixels per grid row
 
   // Scale a pixel coordinate to grid space
@@ -854,6 +885,7 @@ export function renderToText(
 
   // 1. Create grid nodes at their scaled positions
   const gridNodes: Map<string, GridNode> = new Map();
+  const useMeasuredNodeHeight = layouted.width > layouted.height * 2;
   for (const node of layouted.nodes) {
     const boxWidth = Math.max(
       textWidth(node.label) + 4,
@@ -865,7 +897,9 @@ export function renderToText(
       x: toGridX(node.x),
       y: toGridY(node.y),
       width: boxWidth,
-      height: BOX_HEIGHT,
+      height: useMeasuredNodeHeight
+        ? Math.max(Math.round(node.measuredHeight / SCALE_Y), BOX_HEIGHT)
+        : BOX_HEIGHT,
     });
   }
 
@@ -1215,13 +1249,59 @@ export function renderToText(
         }
       }
 
+      if (layouted.kind === 'database' && edge.labelPlacement?.orientation === 'vertical') {
+        const preferredIsH = edge.labelPlacement.orientation === 'horizontal';
+        const preferredLine = preferredIsH
+          ? toGridY(edge.labelPlacement.y)
+          : toGridX(edge.labelPlacement.x);
+        const preferredSpanMid = preferredIsH
+          ? toGridX(edge.labelPlacement.x + edge.labelPlacement.width / 2)
+          : toGridY(edge.labelPlacement.y);
+
+        let bestScore = Infinity;
+        for (let i = 0; i < points.length - 1; i++) {
+          const p1 = points[i]!;
+          const p2 = points[i + 1]!;
+          const isH = p1.y === p2.y;
+          const isV = p1.x === p2.x;
+          if ((preferredIsH && !isH) || (!preferredIsH && !isV)) {
+            continue;
+          }
+
+          const line = preferredIsH ? p1.y : p1.x;
+          const minSpan = preferredIsH ? Math.min(p1.x, p2.x) : Math.min(p1.y, p2.y);
+          const maxSpan = preferredIsH ? Math.max(p1.x, p2.x) : Math.max(p1.y, p2.y);
+          const spanDistance =
+            preferredSpanMid < minSpan
+              ? minSpan - preferredSpanMid
+              : preferredSpanMid > maxSpan
+                ? preferredSpanMid - maxSpan
+                : 0;
+          const score = Math.abs(line - preferredLine) * 10 + spanDistance;
+          if (score < bestScore) {
+            bestScore = score;
+            bestIdx = i;
+            bestIsH = preferredIsH;
+          }
+        }
+      }
+
       const p1 = points[bestIdx]!;
       const p2 = points[bestIdx + 1]!;
       labelIsHorizontal = bestIsH;
 
       if (bestIsH) {
         const midX = Math.round((p1.x + p2.x) / 2);
-        labelPoint = { x: midX - Math.floor(L / 2), y: p1.y };
+        const minSX = Math.min(p1.x, p2.x);
+        const maxSX = Math.max(p1.x, p2.x);
+        const minLabelX = minSX + 1;
+        const maxLabelX = maxSX - L - 1;
+        labelPoint = {
+          x: minLabelX <= maxLabelX
+            ? clamp(midX - Math.floor(L / 2), minLabelX, maxLabelX)
+            : maxSX - L - 1,
+          y: p1.y,
+        };
       } else {
         const midY = Math.round((p1.y + p2.y) / 2);
         labelPoint = { x: p1.x + 1, y: midY };
@@ -1251,7 +1331,7 @@ export function renderToText(
         // Check against previously placed labels
         for (const prev of placedLabels) {
           if (ly === prev.y) {
-            if (lx1 >= prev.x && lx0 < prev.x + prev.length) {
+            if (lx1 >= prev.x - 1 && lx0 <= prev.x + prev.length) {
               return true;
             }
           }
@@ -1363,12 +1443,7 @@ export function renderToText(
     drawBox(grid, { x: group.x, y: group.y }, group.width, group.height, '', glyphs, false);
   }
 
-  // Step B: Draw nodes (borders + fill + labels)
-  for (const node of gridNodes.values()) {
-    drawBox(grid, { x: node.x, y: node.y }, node.width, node.height, node.label, glyphs, true);
-  }
-
-  // Step C: Draw edge lines
+  // Step B: Draw edge lines below nodes so compact routes cannot overwrite labels.
   for (const route of edgeRoutes) {
     if (route.points.length < 2) continue;
 
@@ -1391,6 +1466,25 @@ export function renderToText(
       if (corner) {
         setChar(grid, route.points[i]!, corner, glyphs);
       }
+    }
+  }
+
+  // Step C: Draw nodes (borders + fill + labels), masking edge interiors.
+  for (const node of gridNodes.values()) {
+    drawBox(grid, { x: node.x, y: node.y }, node.width, node.height, node.label, glyphs, true);
+  }
+
+  // Step D: Draw edge labels above lines but below ports/markers.
+  for (const route of edgeRoutes) {
+    if (route.label) {
+      clearTextBackground(
+        grid,
+        route.labelPoint.x,
+        route.labelPoint.y,
+        route.label.length,
+        route.labelIsHorizontal ? 1 : 0,
+      );
+      writeText(grid, route.labelPoint.x, route.labelPoint.y, route.label);
     }
   }
 
@@ -1475,7 +1569,7 @@ export function renderToText(
     }
   }
 
-  // Step D: Draw group labels
+  // Step E: Draw group labels
   for (const group of gridGroups.values()) {
     if (!group.label) continue;
     const gX0 = group.x;
@@ -1489,13 +1583,6 @@ export function renderToText(
       Math.max(gX0 + 1, gX1 - textWidth(group.label) - 1),
     );
     writeText(grid, labelX, labelY, group.label.slice(0, Math.max(0, gX1 - gX0 - 1)));
-  }
-
-  // Step E: Draw edge labels
-  for (const route of edgeRoutes) {
-    if (route.label) {
-      writeText(grid, route.labelPoint.x, route.labelPoint.y, route.label);
-    }
   }
 
   return `${trimGrid(grid)}\n\n${renderLegend(layouted)}\n`;

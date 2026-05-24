@@ -83,14 +83,15 @@ describe('renderToText', () => {
     expect(renderToText(layouted)).toContain(expectedLabel);
   });
 
-  it('matches snapshot for infra.yaml', async () => {
-    const layouted = await buildLayouted('infra.yaml');
-    const output = renderToText(layouted);
-    expect(output).toMatchSnapshot();
-  });
-
-  it('matches snapshot for database.yaml', async () => {
-    const layouted = await buildLayouted('database.yaml');
+  it.each([
+    'minimal.yaml',
+    'box-arrows.yaml',
+    'flowchart.yaml',
+    'database.yaml',
+    'infra.yaml',
+    'microservice.yaml',
+  ])('matches snapshot for %s', async (fixture) => {
+    const layouted = await buildLayouted(fixture);
     const output = renderToText(layouted);
     expect(output).toMatchSnapshot();
   });
