@@ -75,7 +75,7 @@ describe('preview geometry', () => {
       props: {
         ...state.nodes[0]!.props,
         subtitle: 'Another thing that fits the border',
-        subtitleFontSize: 18,
+        subtitleFontSize: 28,
       },
     });
 

@@ -233,6 +233,28 @@ Lines use explicit routed points and marker values `none`, `arrow`, `circle`,
 and `filledCircle`. Keep component APIs behind `renderer/components/index.ts`;
 do not re-export them from `packages/cora/src/index.ts`.
 
+### Default Look
+
+Cora defines a canonical locked default visual language for all built-in components to ensure a professional appearance when styling properties are omitted in YAML:
+
+- **Palette**: A Tailwind-based neutral base using the `slate` scale for borders, default text, and layout backgrounds, without dynamic runtime Tailwind dependencies. Semantic hues map per component kind:
+  - `slate-neutral`: Default box and label nodes
+  - `violet`: Icon terminals (accent) and label-icons (violet-200 fill, violet-500 stroke)
+  - `amber`: Decision diamonds
+  - `rose`: Issue nodes
+  - `sky`: Page nodes
+  - `emerald`: App nodes
+  - `yellow`: Website nodes
+  - `teal`: Shape boundaries
+- **Omission Defaults**: Box-like nodes default to white fills, a subtle `slate-300` 1px solid border, medium `8px` corner radius, and flat presentation (no default shadow filter). Edges default to 2px solid `slate-700` lines. Groups render as 1px dashed `slate-400` boundaries with no default fill.
+- **Typography**: Uses Noto Sans with the following hierarchy:
+  - Node titles: 12px SemiBold
+  - Node subtitles: 10px Regular
+  - Standalone labels: 11px SemiBold `slate-800`
+  - Edge labels: 10px Regular `slate-600`
+- **Single Source of Truth**: Handled centrally via `catalogDefaultProps()` in `packages/cora/src/renderer/themes/componentDefaults.ts`, shared exactly between both the pure SVG renderer and the preview controls.
+- **When to Override**: Default look coordinates can be overridden directly using custom style/layout properties inside the diagram YAML document. Custom extension themes are deferred to Phase 5.
+
 ## Examples
 
 | File | Purpose |
