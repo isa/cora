@@ -1,0 +1,63 @@
+
+
+     +------------+
+     | Global DNS |
+     +----|----|--+
+          |    +-+
+          |      |
+      +---+      |
+      |+--------- route----+
+      || us-east |         |
+      ||         |         |
+      ||  +------v---+     |
+      ||  | VPC East |     |
+      ||  +------|---+     |
+      ||         |         |
+      ||  +------v-------+ |
+ route||  | Compute East | |
+      ||  +------|-------+ |
+      ||         |         |
+      ||         |         |
+      ||         |         |
+      ||  +------v--+      |
+      ||  | DB East |      |
+      ||  +-----|---+      |
+      ||        +------+   |
+      |+---------------+---+
+      +-----+          |
+  +---------+---------+|
+  | us-west |         ||
+  |         |         ||
+  |  +------v---+     ||
+  |  | VPC West |     ||
+  |  +------|---+     ||
+  |         |         ||
+  |  +------v-------+ ||
+  |  | Compute West | ||
+  |  +-----|--------+ ||
+  |        |          ||
+  |     +-- replicate ++
+  |     |  |          |
+  |  +--v--v---+      |
+  |  | DB West |      |
+  |  +---------+      |
+  |                   |
+  +-------------------+
+
+Nodes:
+- dns: Global DNS
+- vpc-east: VPC East
+- compute-east: Compute East
+- db-east: DB East
+- vpc-west: VPC West
+- compute-west: Compute West
+- db-west: DB West
+
+Groups:
+- region-east: us-east
+- region-west: us-west
+
+Edges:
+- dns -> vpc-east: route
+- dns -> vpc-west: route
+- db-east -> db-west: replicate

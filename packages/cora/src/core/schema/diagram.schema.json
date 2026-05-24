@@ -65,7 +65,15 @@
       "properties": {
         "from": { "type": "string" },
         "to": { "type": "string" },
-        "label": { "type": "string" }
+        "label": { "type": "string" },
+        "startMarker": {
+          "type": "string",
+          "enum": ["none", "arrow", "circle", "filledCircle"]
+        },
+        "endMarker": {
+          "type": "string",
+          "enum": ["none", "arrow", "circle", "filledCircle"]
+        }
       }
     },
     "group": {

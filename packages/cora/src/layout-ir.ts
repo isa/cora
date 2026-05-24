@@ -89,6 +89,8 @@ export interface LayoutedEdge {
   labelY?: number;
   labelPlacement?: EdgeLabelPlacement;
   bridges?: EdgeBridge[];
+  startMarker?: 'none' | 'arrow' | 'circle' | 'filledCircle';
+  endMarker?: 'none' | 'arrow' | 'circle' | 'filledCircle';
 }
 
 export interface LayoutedGroup {

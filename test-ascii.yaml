@@ -1,0 +1,22 @@
+version: 1
+diagram:
+  kind: box-arrows
+  nodes:
+    - id: A
+      label: Server A
+    - id: B
+      label: Server B
+    - id: C
+      label: Server C
+    - id: D
+      label: Main Server
+  edges:
+    - from: A
+      to: D
+      label: forward
+    - from: B
+      to: D
+      label: forward
+    - from: C
+      to: D
+      label: forward

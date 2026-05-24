@@ -139,6 +139,12 @@ export function measureNodes(nodes: DiagramNode[]): MeasuredNode[] {
       measuredHeight = Math.max(measuredHeight, minSize.height);
     }
 
+    const isSmallGraph = nodes.length < 7;
+    if (isSmallGraph && (component === 'box' || component === 'label')) {
+      measuredWidth = Math.max(measuredWidth, 120);
+      measuredHeight = Math.max(measuredHeight, 56);
+    }
+
     return {
       ...node,
       measuredWidth,

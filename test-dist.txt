@@ -1,0 +1,19 @@
+
+
++------+  +------+
+|  B   |  |  A   |
++--|---+  +---|--+
+forward       |
+      |       |
+ +----v-<-+--- forward
+ | Server |
+ +--------+
+
+Nodes:
+- A: A
+- B: B
+- C: Server
+
+Edges:
+- A -> C: forward
+- B -> C: forward

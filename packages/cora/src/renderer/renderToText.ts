@@ -206,9 +206,7 @@ function drawBox(
   }
 
   if (label) {
-    const labelY = height > BOX_HEIGHT
-      ? clamp(y0 + Math.floor((y1 - y0) / 2), y0 + 1, y1 - 1)
-      : clamp(y0 + 1, y0, y1);
+    const labelY = clamp(y0 + Math.floor((y1 - y0) / 2), y0 + 1, y1 - 1);
     const labelX = clamp(
       x0 + Math.max(1, Math.floor((x1 - x0 + 1 - textWidth(label)) / 2)),
       x0 + 1,
@@ -677,6 +675,38 @@ function resolveNodeCrossings(
   return finalPoints;
 }
 
+function cleanSpikesAndCollinear(points: GridPoint[]): GridPoint[] {
+  if (points.length < 2) return points;
+  let cleaned: GridPoint[] = [];
+
+  for (const pt of points) {
+    if (cleaned.length > 0) {
+      const last = cleaned[cleaned.length - 1]!;
+      if (last.x === pt.x && last.y === pt.y) continue;
+    }
+
+    while (cleaned.length >= 2) {
+      const prev = cleaned[cleaned.length - 2]!;
+      const curr = cleaned[cleaned.length - 1]!;
+
+      if ((prev.x === curr.x && curr.x === pt.x) || (prev.y === curr.y && curr.y === pt.y)) {
+        cleaned.pop(); // remove curr
+      } else {
+        break;
+      }
+    }
+
+    if (cleaned.length > 0) {
+      const last = cleaned[cleaned.length - 1]!;
+      if (last.x === pt.x && last.y === pt.y) continue;
+    }
+
+    cleaned.push(pt);
+  }
+
+  return cleaned;
+}
+
 function trimGrid(grid: string[][]): string {
   return grid
     .map((row) => row.join('').replace(/\s+$/u, ''))
@@ -887,32 +917,41 @@ export function renderToText(
   const gridNodes: Map<string, GridNode> = new Map();
   const useMeasuredNodeHeight = layouted.width > layouted.height * 2;
   for (const node of layouted.nodes) {
+    const elkGridX = toGridX(node.x);
+    const elkGridWidth = Math.max(Math.round(node.measuredWidth / SCALE_X), MIN_BOX_WIDTH);
     const boxWidth = Math.max(
-      textWidth(node.label) + 4,
-      MIN_BOX_WIDTH,
+      elkGridWidth,
+      textWidth(node.label) + 4
     );
+    const shiftX = Math.floor((boxWidth - elkGridWidth) / 2);
+
     gridNodes.set(node.id, {
       id: node.id,
       label: node.label,
-      x: toGridX(node.x),
+      x: Math.max(0, elkGridX - shiftX),
       y: toGridY(node.y),
       width: boxWidth,
       height: useMeasuredNodeHeight
-        ? Math.max(Math.round(node.measuredHeight / SCALE_Y), BOX_HEIGHT)
-        : BOX_HEIGHT,
+        ? Math.max(Math.round(node.measuredHeight / SCALE_Y), 3)
+        : 3,
     });
   }
 
   // 2. Create grid groups
   const gridGroups: Map<string, GridGroup> = new Map();
   for (const group of layouted.groups ?? []) {
+    const elkGridX = toGridX(group.x);
+    const elkGridWidth = Math.max(Math.round(group.width / SCALE_X), MIN_BOX_WIDTH);
+    const boxWidth = Math.max(elkGridWidth, textWidth(group.label) + 5);
+    const shiftX = Math.floor((boxWidth - elkGridWidth) / 2);
+
     gridGroups.set(group.id, {
       id: group.id,
       label: group.label,
-      x: toGridX(group.x),
+      x: Math.max(0, elkGridX - shiftX),
       y: toGridY(group.y),
-      width: Math.max(Math.round(group.width / SCALE_X), textWidth(group.label) + 5, MIN_BOX_WIDTH),
-      height: Math.max(Math.round(group.height / SCALE_Y), 6),
+      width: boxWidth,
+      height: Math.max(Math.round(group.height / SCALE_Y), 3 + 2),
       contains: group.contains ?? [],
     });
   }
@@ -1205,7 +1244,7 @@ export function renderToText(
       }
     }
 
-    points = resolveNodeCrossings(points, gridNodes, gridGroups, edge.from, edge.to, layouted);
+    points = cleanSpikesAndCollinear(resolveNodeCrossings(points, gridNodes, gridGroups, edge.from, edge.to, layouted));
 
     if (points.length >= 1) {
       const p0 = points[0]!;

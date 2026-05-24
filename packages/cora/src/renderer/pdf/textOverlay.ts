@@ -47,15 +47,25 @@ export function buildTextOverlay(layouted: LayoutedDiagram): TextDraw[] {
     if (!node.label) continue;
     const labelColor =
       node.resolvedStyle?.labelFill ?? nodeTheme.fill;
-    draws.push({
-      cx: node.x + node.measuredWidth / 2,
-      cy: node.y + node.measuredHeight / 2,
-      anchor: 'center',
-      text: node.label,
-      weight: weightOf(nodeTheme.fontWeight),
-      size: nodeTheme.fontSize,
-      color: labelColor,
-    });
+    
+    const lines = node.label.split(/\r?\n/);
+    const fontSize = nodeTheme.fontSize;
+    const lineHeight = fontSize * 1.25;
+    const totalHeight = lines.length * lineHeight;
+    const boxCenterY = node.y + node.measuredHeight / 2;
+    const firstLineCenter = boxCenterY - totalHeight / 2 + lineHeight / 2;
+
+    for (let i = 0; i < lines.length; i++) {
+      draws.push({
+        cx: node.x + node.measuredWidth / 2,
+        cy: firstLineCenter + i * lineHeight,
+        anchor: 'center',
+        text: lines[i]!,
+        weight: weightOf(nodeTheme.fontWeight),
+        size: fontSize,
+        color: labelColor,
+      });
+    }
   }
 
   // Edges — only emit when the IR has a positioned label.

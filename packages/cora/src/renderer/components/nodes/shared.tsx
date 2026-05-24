@@ -14,20 +14,30 @@ export function strokeWidth(style: ResolvedStyle): number {
 }
 
 export function NodeLabel({ node, theme }: NodeComponentProps) {
-  const centerY = node.y + node.measuredHeight / 2;
   const style = node.resolvedStyle;
   const fill = style?.labelFill ?? theme.nodeLabel.fill;
+  const lines = (node.label ?? '').split(/\r?\n/);
+  const fontSize = theme.nodeLabel.fontSize;
+  const lineHeight = fontSize * 1.25;
+  const totalHeight = lines.length * lineHeight;
+  const firstLineCenter = node.y + node.measuredHeight / 2 - totalHeight / 2 + lineHeight / 2;
+  const firstBaseline = baselineYForVisualCenter(firstLineCenter, fontSize, 'node');
+
   return (
     <text
       x={node.x + node.measuredWidth / 2}
-      y={baselineYForVisualCenter(centerY, theme.nodeLabel.fontSize, 'node')}
+      y={firstBaseline}
       textAnchor="middle"
       fontFamily={FONT_FAMILY}
-      fontSize={theme.nodeLabel.fontSize}
+      fontSize={fontSize}
       fontWeight={theme.nodeLabel.fontWeight}
       fill={fill}
     >
-      {escapeXml(node.label)}
+      {lines.map((line, index) => (
+        <tspan key={index} x={node.x + node.measuredWidth / 2} dy={index === 0 ? 0 : lineHeight}>
+          {escapeXml(line)}
+        </tspan>
+      ))}
     </text>
   );
 }

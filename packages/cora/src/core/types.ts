@@ -53,6 +53,8 @@ export interface DiagramEdge {
   from: string;
   to: string;
   label?: string;
+  startMarker?: 'none' | 'arrow' | 'circle' | 'filledCircle';
+  endMarker?: 'none' | 'arrow' | 'circle' | 'filledCircle';
 }
 
 export interface DiagramGroup {

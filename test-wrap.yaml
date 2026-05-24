@@ -1,0 +1,11 @@
+version: 1
+diagram:
+  kind: flowchart
+  nodes:
+    - id: test
+      label: This is a long multi word label that should be wrapped
+    - id: tgt
+      label: target
+  edges:
+    - from: test
+      to: tgt
