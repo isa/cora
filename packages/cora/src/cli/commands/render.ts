@@ -22,6 +22,7 @@ import { type PageName, PAGE_SIZES } from '../../renderer/pdf/pageSize.js';
 import { renderToPNG, resolvePngScale, type PngSize } from '../../renderer/renderToPNG.js';
 import { renderToSVG } from '../../renderer/renderToSVG.js';
 import { renderToText, type TextCharset } from '../../renderer/renderToText.js';
+import { renderToTextFromSvg } from '../../renderer/renderToTextFromSvg.js';
 import {
   formatValidationResult,
   isJsonOutput,
@@ -97,6 +98,11 @@ export function registerRenderCommand(program: Command): void {
       '--quality <level>',
       'PDF quality: high (uses Playwright) — default uses bundled resvg + pdf-lib',
     )
+    .option(
+      '--ascii-engine <engine>',
+      'ASCII/Text rendering engine: layout or svg',
+      'layout',
+    )
     .action(
       async (
         file: string | undefined,
@@ -109,6 +115,7 @@ export function registerRenderCommand(program: Command): void {
           monochrome?: boolean;
           page?: string;
           quality?: string;
+          asciiEngine?: string;
         },
       ) => {
         if (!file) {
@@ -133,6 +140,16 @@ export function registerRenderCommand(program: Command): void {
 
         if (options.quality !== undefined && options.quality !== 'high') {
           program.error('Invalid --quality value. Only "high" is supported.');
+        }
+
+        if (
+          options.asciiEngine !== undefined &&
+          options.asciiEngine !== 'layout' &&
+          options.asciiEngine !== 'svg'
+        ) {
+          program.error(
+            `Invalid --ascii-engine value "${options.asciiEngine}". Use one of: layout, svg.`,
+          );
         }
 
         try {
@@ -166,7 +183,10 @@ export function registerRenderCommand(program: Command): void {
           });
 
           if (format === 'txt') {
-            const text = renderToText(layouted, { charset });
+            const text =
+              options.asciiEngine === 'svg'
+                ? renderToTextFromSvg(layouted, { charset })
+                : renderToText(layouted, { charset });
             if (options.output) {
               mkdirSync(dirname(options.output), { recursive: true });
               writeFileSync(options.output, text, 'utf8');

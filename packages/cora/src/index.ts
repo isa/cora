@@ -18,6 +18,8 @@ export type { RenderToPNGOptions, PngSize } from './renderer/renderToPNG.js';
 export { renderToSVG } from './renderer/renderToSVG.js';
 export { renderToText } from './renderer/renderToText.js';
 export type { RenderToTextOptions, TextCharset } from './renderer/renderToText.js';
+export { renderToTextFromSvg } from './renderer/renderToTextFromSvg.js';
+export type { SvgTextOptions } from './renderer/renderToTextFromSvg.js';
 export type {
   StructuredError,
   DiagramFile,

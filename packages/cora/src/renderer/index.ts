@@ -3,3 +3,5 @@ export type { RenderToPNGOptions, PngSize } from './renderToPNG.js';
 export { renderToSVG, Diagram, defaultTheme, resolveNodeStyle } from './renderToSVG.js';
 export { renderToText } from './renderToText.js';
 export type { RenderToTextOptions, TextCharset } from './renderToText.js';
+export { renderToTextFromSvg } from './renderToTextFromSvg.js';
+export type { SvgTextOptions } from './renderToTextFromSvg.js';

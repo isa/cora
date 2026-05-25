@@ -67,6 +67,41 @@ describe('cora render text output', () => {
     expect(result.stdout).not.toMatch(/[┌┐└┘─│]/u);
   });
 
+  it('uses svg engine when --ascii-engine svg is specified', () => {
+    const result = runCli(['render', validFixture, '--ascii-engine', 'svg']);
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain('API');
+    expect(result.stdout).toContain('Database');
+    expect(result.stdout).toMatch(/[┌┐└┘─│]/u);
+  });
+
+  it('uses svg engine with --charset ascii', () => {
+    const result = runCli([
+      'render',
+      validFixture,
+      '--ascii-engine',
+      'svg',
+      '--charset',
+      'ascii',
+    ]);
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).toContain('API');
+    expect(result.stdout).toContain('Database');
+    expect(result.stdout).toContain('+');
+    expect(result.stdout).toContain('-');
+    expect(result.stdout).toContain('|');
+    expect(result.stdout).not.toMatch(/[┌┐└┘─│]/u);
+  });
+
+  it('fails when invalid value is passed to --ascii-engine', () => {
+    const result = runCli(['render', validFixture, '--ascii-engine', 'invalid']);
+
+    expect(result.status).not.toBe(0);
+    expect(result.stdout + result.stderr).toContain('Invalid --ascii-engine value');
+  });
+
   it('writes .txt output files', () => {
     const output = join(outDir, 'diagram.txt');
     const result = runCli(['render', validFixture, '-o', output]);

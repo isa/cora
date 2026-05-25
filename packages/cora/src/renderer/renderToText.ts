@@ -74,8 +74,8 @@ const GLYPHS: Record<TextCharset, GlyphSet> = {
 const GRID_PADDING = 2;
 const MIN_BOX_WIDTH = 12;
 const MIN_BOX_HEIGHT = 3;
-const NODE_GAP_X = 6;  // Min columns between nodes for routing channels
-const NODE_GAP_Y = 4;  // Min rows between nodes
+const NODE_GAP_X = 12;  // Min columns between nodes for routing channels
+const NODE_GAP_Y = 6;  // Min rows between nodes
 const RUNWAY_LEN = 2;  // Min runway cells from box to first bend
 
 // ── Types ──
@@ -175,14 +175,16 @@ function sideLen(node: GridNode, side: Side): number {
 
 /** Distribute K anchors evenly across I interior cells (0-indexed positions). 
  *  Returns 0-based offsets within the interior. */
-function distributeAnchors(K: number, I: number): number[] {
-  if (K === 0) return [];
-  if (K === 1) return [Math.floor(I / 2)];
-  // Even distribution: padding on each side, equal spacing between
+function distributeAnchors(count: number, length: number): number[] {
+  if (count <= 0) return [];
+  if (count === 1) return [Math.floor(length / 2)];
+  
+  // Rule 4b: Equally distributed across the edge and centered.
+  // We divide the length into `count` segments, and place an anchor in the middle of each segment.
   const positions: number[] = [];
-  const gap = (I - 1) / (K + 1);
-  for (let i = 0; i < K; i++) {
-    positions.push(Math.round(gap * (i + 1)));
+  const offset = length / (2 * count);
+  for (let i = 0; i < count; i++) {
+    positions.push(Math.floor(offset + i * (length / count)));
   }
   return positions;
 }
@@ -366,8 +368,9 @@ class OccupancyTracker {
   }
 
   /** Check if a horizontal segment at row, from minX to maxX, is free. */
-  isRowFree(row: number, minX: number, maxX: number): boolean {
+  isRowFree(row: number, minX: number, maxX: number, excludeEk?: string): boolean {
     for (const s of this.hSegs) {
+      if (excludeEk && s.edgeKey === excludeEk) continue;
       if (s.val === row && Math.max(minX, s.min) <= Math.min(maxX, s.max)) {
         return false;
       }
@@ -376,8 +379,9 @@ class OccupancyTracker {
   }
 
   /** Check if a vertical segment at col, from minY to maxY, is free. */
-  isColFree(col: number, minY: number, maxY: number): boolean {
+  isColFree(col: number, minY: number, maxY: number, excludeEk?: string): boolean {
     for (const s of this.vSegs) {
+      if (excludeEk && s.edgeKey === excludeEk) continue;
       if (s.val === col && Math.max(minY, s.min) <= Math.min(maxY, s.max)) {
         return false;
       }
@@ -998,22 +1002,43 @@ export function renderToText(
       const p1 = fullPath[bestIdx]!, p2 = fullPath[bestIdx + 1]!;
       labelIsH = bestIsH;
 
+      // Try multiple positions around the segment, and also slide along the segment
+      const tryPositions: Pt[] = [];
       if (bestIsH) {
-        const midX = Math.round((p1.x + p2.x) / 2);
-        labelPt = {
-          x: midX - Math.floor(maxLabelW / 2),
-          y: p1.y - labelH, // above the line
-        };
+        // Base positions at midpoint
+        const midX = Math.round((p1.x + p2.x) / 2) - Math.floor(maxLabelW / 2);
+        tryPositions.push({ x: midX, y: p1.y - labelH });
+        tryPositions.push({ x: midX, y: p1.y + 1 });
+        
+        // Slide left and right along the segment
+        const minX = Math.min(p1.x, p2.x) + 2;
+        const maxX = Math.max(p1.x, p2.x) - maxLabelW - 2;
+        if (maxX >= minX) {
+           for (let dx = 1; dx <= (maxX - minX) / 2; dx += 2) {
+             tryPositions.push({ x: midX - dx, y: p1.y - labelH });
+             tryPositions.push({ x: midX + dx, y: p1.y - labelH });
+             tryPositions.push({ x: midX - dx, y: p1.y + 1 });
+             tryPositions.push({ x: midX + dx, y: p1.y + 1 });
+           }
+        }
       } else {
-        const midY = Math.round((p1.y + p2.y) / 2);
-        labelPt = {
-          x: p1.x + 2,
-          y: midY - Math.floor(labelH / 2),
-        };
+        // Base positions at midpoint
+        const midY = Math.round((p1.y + p2.y) / 2) - Math.floor(labelH / 2);
+        tryPositions.push({ x: p1.x + 2, y: midY });
+        tryPositions.push({ x: p1.x - maxLabelW - 1, y: midY });
+        
+        // Slide up and down along the segment
+        const minY = Math.min(p1.y, p2.y) + 2;
+        const maxY = Math.max(p1.y, p2.y) - labelH - 2;
+        if (maxY >= minY) {
+           for (let dy = 1; dy <= (maxY - minY) / 2; dy += 2) {
+             tryPositions.push({ x: p1.x + 2, y: midY - dy });
+             tryPositions.push({ x: p1.x + 2, y: midY + dy });
+             tryPositions.push({ x: p1.x - maxLabelW - 1, y: midY - dy });
+             tryPositions.push({ x: p1.x - maxLabelW - 1, y: midY + dy });
+           }
+        }
       }
-
-      if (labelPt.x < 0) labelPt.x = 0;
-      if (labelPt.y < 0) labelPt.y = 0;
 
       // Collision check and resolution (Rule 4d3)
       const labelCollides = (lp: Pt): boolean => {
@@ -1033,67 +1058,46 @@ export function renderToText(
         for (const prev of placedLabels) {
           if (ly1 >= prev.y && ly0 < prev.y + prev.h && lx1 >= prev.x - 1 && lx0 <= prev.x + prev.w) return true;
         }
+        
         return false;
       };
-
-      if (labelCollides(labelPt)) {
-        // Try alternative positions
-        let found = false;
-        const candidates: Pt[] = [];
-
-        if (bestIsH) {
-          // Try below the line
-          candidates.push({ x: labelPt.x, y: p1.y + 1 });
-          // Try at segment ends
-          const minSX = Math.min(p1.x, p2.x);
-          const maxSX = Math.max(p1.x, p2.x);
-          candidates.push({ x: maxSX + 2, y: p1.y - Math.floor(labelH / 2) });
-          candidates.push({ x: minSX - maxLabelW - 2, y: p1.y - Math.floor(labelH / 2) });
-          candidates.push({ x: labelPt.x, y: labelPt.y - 1 });
-          candidates.push({ x: labelPt.x, y: labelPt.y + labelH + 1 });
-        } else {
-          // Try left of line
-          candidates.push({ x: p1.x - maxLabelW - 1, y: labelPt.y });
-          candidates.push({ x: p1.x + 2, y: labelPt.y - 1 });
-          candidates.push({ x: p1.x + 2, y: labelPt.y + 1 });
-          // Scan along segment
-          const minSY = Math.min(p1.y, p2.y);
-          const maxSY = Math.max(p1.y, p2.y);
-          for (let y = minSY; y <= maxSY; y++) {
-            candidates.push({ x: p1.x + 2, y: y - Math.floor(labelH / 2) });
-            candidates.push({ x: p1.x - maxLabelW - 1, y: y - Math.floor(labelH / 2) });
-          }
+      let found = false;
+      for (const lp of tryPositions) {
+        if (!labelCollides(lp)) {
+          labelPt = lp;
+          found = true;
+          break;
         }
+      }
+      if (labelLines.join(' ') === 'retry') {
+        console.error(`Label retry: p1=${p1.x},${p1.y} p2=${p2.x},${p2.y} tryPositions=`, tryPositions, 'found=', found);
+      }
 
-        for (const c of candidates) {
-          if (c.x >= 0 && c.y >= 0 && !labelCollides(c)) {
-            labelPt = c;
-            found = true;
-            break;
-          }
-        }
-
-        if (!found) {
-          // Spiral search
-          for (let r = 1; r <= 12 && !found; r++) {
-            for (let dx = -r; dx <= r && !found; dx++) {
-              for (const dy of [-r, r]) {
-                const c = { x: labelPt.x + dx, y: labelPt.y + dy };
-                if (c.x >= 0 && c.y >= 0 && !labelCollides(c)) {
-                  labelPt = c; found = true; break;
-                }
+      if (!found) {
+        // Spiral search fallback (try expanding outwards up to radius 12)
+        for (let r = 1; r <= 12 && !found; r++) {
+          for (let dx = -r; dx <= r && !found; dx++) {
+            for (const dy of [-r, r]) {
+              const c = { x: tryPositions[0]!.x + dx, y: tryPositions[0]!.y + dy };
+              if (c.x >= 0 && c.y >= 0 && !labelCollides(c)) {
+                labelPt = c; found = true; break;
               }
             }
-            for (let dy = -r + 1; dy < r && !found; dy++) {
-              for (const dx of [-r, r]) {
-                const c = { x: labelPt.x + dx, y: labelPt.y + dy };
-                if (c.x >= 0 && c.y >= 0 && !labelCollides(c)) {
-                  labelPt = c; found = true; break;
-                }
+          }
+          for (let dy = -r + 1; dy < r && !found; dy++) {
+            for (const dx of [-r, r]) {
+              const c = { x: tryPositions[0]!.x + dx, y: tryPositions[0]!.y + dy };
+              if (c.x >= 0 && c.y >= 0 && !labelCollides(c)) {
+                labelPt = c; found = true; break;
               }
             }
           }
         }
+      }
+      
+      if (!found) {
+        // If really no space, just fallback to first position
+        labelPt = tryPositions[0]!;
       }
 
       placedLabels.push({ x: labelPt.x, y: labelPt.y, w: maxLabelW, h: labelH });
