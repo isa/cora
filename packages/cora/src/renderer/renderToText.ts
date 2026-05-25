@@ -6,6 +6,8 @@ export interface RenderToTextOptions {
   charset?: TextCharset;
 }
 
+// ── Glyph definitions ──
+
 interface GlyphSet {
   topLeft: string;
   topRight: string;
@@ -67,690 +69,29 @@ const GLYPHS: Record<TextCharset, GlyphSet> = {
   },
 };
 
-const MIN_BOX_WIDTH = 8;
-const BOX_HEIGHT = 3;
+// ── Constants ──
+
 const GRID_PADDING = 2;
-const NODE_SPACING_X = 3;
-const NODE_SPACING_Y = 2;
-
-interface GridPoint {
-  x: number;
-  y: number;
-}
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.max(min, Math.min(max, value));
-}
-
-function textWidth(text: string): number {
-  return Math.max(...text.split('\n').map((line) => [...line].length));
-}
-
-function createGrid(width: number, height: number): string[][] {
-  return Array.from({ length: height }, () => Array.from({ length: width }, () => ' '));
-}
-
-function setChar(
-  grid: string[][],
-  point: GridPoint,
-  char: string,
-  glyphs: GlyphSet,
-): void {
-  const row = grid[point.y];
-  if (!row || point.x < 0 || point.x >= row.length) {
-    return;
-  }
-
-  const existing = row[point.x] ?? ' ';
-
-  // If existing is already a cross, never overwrite it with a line or corner
-  if (existing === glyphs.cross) {
-    return;
-  }
-
-  const isExistingComplex =
-    existing === glyphs.topLeft ||
-    existing === glyphs.topRight ||
-    existing === glyphs.bottomLeft ||
-    existing === glyphs.bottomRight;
-
-  // If existing is a corner, and new char is horizontal or vertical, it already has both, so keep the corner
-  if (isExistingComplex && (char === glyphs.horizontal || char === glyphs.vertical)) {
-    return;
-  }
-
-  // Crossing detection: if horizontal and vertical meet, make it a cross
-  if (
-    (existing === glyphs.horizontal && char === glyphs.vertical) ||
-    (existing === glyphs.vertical && char === glyphs.horizontal)
-  ) {
-    row[point.x] = glyphs.cross;
-    return;
-  }
-
-  row[point.x] = char;
-}
-
-function writeText(grid: string[][], x: number, y: number, text: string): void {
-  const row = grid[y];
-  if (!row) {
-    return;
-  }
-  [...text].forEach((char, index) => {
-    const col = x + index;
-    if (col >= 0 && col < row.length) {
-      row[col] = char;
-    }
-  });
-}
-
-function clearTextBackground(
-  grid: string[][],
-  x: number,
-  y: number,
-  width: number,
-  padding = 0,
-): void {
-  const row = grid[y];
-  if (!row) {
-    return;
-  }
-
-  const x0 = Math.max(0, x - padding);
-  const x1 = Math.min(row.length - 1, x + width - 1 + padding);
-  for (let col = x0; col <= x1; col++) {
-    row[col] = ' ';
-  }
-}
-
-function drawBox(
-  grid: string[][],
-  topLeft: GridPoint,
-  width: number,
-  height: number,
-  label: string,
-  glyphs: GlyphSet,
-  fillInterior = false,
-  cx?: number,
-): void {
-  const maxY = grid.length - 1;
-  const maxX = grid[0]?.length ? grid[0].length - 1 : 0;
-  const x0 = clamp(topLeft.x, 0, maxX);
-  const y0 = clamp(topLeft.y, 0, maxY);
-  const x1 = clamp(x0 + Math.max(width, MIN_BOX_WIDTH) - 1, x0, maxX);
-  const y1 = clamp(y0 + Math.max(height, BOX_HEIGHT) - 1, y0, maxY);
-
-  if (fillInterior) {
-    for (let y = y0 + 1; y < y1; y++) {
-      for (let x = x0 + 1; x < x1; x++) {
-        const row = grid[y];
-        if (row && x >= 0 && x < row.length) {
-          row[x] = ' ';
-        }
-      }
-    }
-  }
-
-  setChar(grid, { x: x0, y: y0 }, glyphs.topLeft, glyphs);
-  setChar(grid, { x: x1, y: y0 }, glyphs.topRight, glyphs);
-  setChar(grid, { x: x0, y: y1 }, glyphs.bottomLeft, glyphs);
-  setChar(grid, { x: x1, y: y1 }, glyphs.bottomRight, glyphs);
-
-  for (let x = x0 + 1; x < x1; x++) {
-    setChar(grid, { x, y: y0 }, glyphs.horizontal, glyphs);
-    setChar(grid, { x, y: y1 }, glyphs.horizontal, glyphs);
-  }
-
-  for (let y = y0 + 1; y < y1; y++) {
-    setChar(grid, { x: x0, y }, glyphs.vertical, glyphs);
-    setChar(grid, { x: x1, y }, glyphs.vertical, glyphs);
-  }
-
-  if (label) {
-    const labelY = clamp(y0 + Math.floor((y1 - y0) / 2), y0 + 1, y1 - 1);
-    const defaultLabelX = x0 + Math.max(1, Math.floor((x1 - x0 + 1 - textWidth(label)) / 2));
-    const idealLabelX = cx !== undefined ? cx - Math.floor(textWidth(label) / 2) : defaultLabelX;
-    const labelX = clamp(
-      Number.isNaN(idealLabelX) ? defaultLabelX : idealLabelX,
-      x0 + 1,
-      Math.max(x0 + 1, x1 - textWidth(label)),
-    );
-    writeText(grid, labelX, labelY, label.slice(0, Math.max(0, x1 - x0 - 1)));
-  }
-}
-
-function drawSegment(
-  grid: string[][],
-  from: GridPoint,
-  to: GridPoint,
-  glyphs: GlyphSet,
-): void {
-  if (from.x === to.x && from.y === to.y) {
-    return;
-  }
-
-  if (from.y === to.y) {
-    const step = from.x <= to.x ? 1 : -1;
-    for (let x = from.x; x !== to.x; x += step) {
-      setChar(grid, { x, y: from.y }, glyphs.horizontal, glyphs);
-    }
-  } else if (from.x === to.x) {
-    const step = from.y <= to.y ? 1 : -1;
-    for (let y = from.y; y !== to.y; y += step) {
-      setChar(grid, { x: from.x, y }, glyphs.vertical, glyphs);
-    }
-  } else {
-    // L-shaped fallback: horizontal first, then vertical
-    const stepX = from.x <= to.x ? 1 : -1;
-    for (let x = from.x; x !== to.x; x += stepX) {
-      setChar(grid, { x, y: from.y }, glyphs.horizontal, glyphs);
-    }
-    const stepY = from.y <= to.y ? 1 : -1;
-    for (let y = from.y; y !== to.y; y += stepY) {
-      setChar(grid, { x: to.x, y }, glyphs.vertical, glyphs);
-    }
-  }
-}
-
-function getArrowGlyph(from: GridPoint, to: GridPoint, glyphs: GlyphSet): string {
-  if (from.x === to.x) {
-    return to.y >= from.y ? glyphs.downArrow : glyphs.upArrow;
-  }
-  if (from.y === to.y) {
-    return to.x >= from.x ? glyphs.rightArrow : glyphs.leftArrow;
-  }
-  return Math.abs(to.x - from.x) >= Math.abs(to.y - from.y)
-    ? to.x >= from.x
-      ? glyphs.rightArrow
-      : glyphs.leftArrow
-    : to.y >= from.y
-      ? glyphs.downArrow
-      : glyphs.upArrow;
-}
-
-function getCornerGlyph(
-  prev: GridPoint,
-  curr: GridPoint,
-  next: GridPoint,
-  glyphs: GlyphSet,
-): string | null {
-  const dx1 = curr.x - prev.x;
-  const dy1 = curr.y - prev.y;
-  const dx2 = next.x - curr.x;
-  const dy2 = next.y - curr.y;
-
-  // Corner 1: top-left ┌
-  if ((dy1 < 0 && dx2 > 0) || (dx1 < 0 && dy2 > 0)) {
-    return glyphs.topLeft;
-  }
-  // Corner 2: top-right ┐
-  if ((dy1 < 0 && dx2 < 0) || (dx1 > 0 && dy2 > 0)) {
-    return glyphs.topRight;
-  }
-  // Corner 3: bottom-left └
-  if ((dy1 > 0 && dx2 > 0) || (dx1 < 0 && dy2 < 0)) {
-    return glyphs.bottomLeft;
-  }
-  // Corner 4: bottom-right ┘
-  if ((dy1 > 0 && dx2 < 0) || (dx1 > 0 && dy2 < 0)) {
-    return glyphs.bottomRight;
-  }
-
-  return null;
-}
-
-function isColumnFree(
-  x: number,
-  minY: number,
-  maxY: number,
-  gridNodes: Map<string, GridNode>,
-  gridGroups: Map<string, GridGroup>,
-  srcId: string,
-  tgtId: string,
-): boolean {
-  if (x < 0) return false;
-
-  for (const node of gridNodes.values()) {
-    if (node.id === srcId || node.id === tgtId) {
-      continue;
-    }
-    const overlapY = minY < node.y + node.height && maxY > node.y;
-    // Stay at least 1 cell away from node borders
-    const insideX = x >= node.x - 1 && x <= node.x + node.width;
-    if (overlapY && insideX) {
-      return false;
-    }
-  }
-
-  for (const group of gridGroups.values()) {
-    const overlapY = minY < group.y + group.height && maxY > group.y;
-    const onBorderX = x === group.x || x === group.x + group.width - 1;
-    if (overlapY && onBorderX) {
-      return false;
-    }
-
-    if (group.label) {
-      const gX0 = group.x;
-      const gY0 = group.y;
-      const gX1 = group.x + group.width - 1;
-      const gY1 = group.y + group.height - 1;
-      const labelY = clamp(gY0 + 1, gY0, gY1);
-      const L = textWidth(group.label);
-      const labelX = clamp(
-        gX0 + 2,
-        gX0 + 1,
-        Math.max(gX0 + 1, gX1 - L - 1),
-      );
-
-      const labelOverlapY = minY <= labelY && maxY >= labelY;
-      const insideLabelX = x >= labelX - 1 && x <= labelX + L;
-      if (labelOverlapY && insideLabelX) {
-        return false;
-      }
-    }
-  }
-
-  return true;
-}
-
-function isRowFree(
-  y: number,
-  minX: number,
-  maxX: number,
-  gridNodes: Map<string, GridNode>,
-  gridGroups: Map<string, GridGroup>,
-  srcId: string,
-  tgtId: string,
-): boolean {
-  if (y < 0) return false;
-
-  for (const node of gridNodes.values()) {
-    if (node.id === srcId || node.id === tgtId) {
-      continue;
-    }
-    const overlapX = minX < node.x + node.width && maxX > node.x;
-    // Stay at least 1 cell away from node borders
-    const insideY = y >= node.y - 1 && y <= node.y + node.height;
-    if (overlapX && insideY) {
-      return false;
-    }
-  }
-
-  for (const group of gridGroups.values()) {
-    const overlapX = minX < group.x + group.width && maxX > group.x;
-    const onBorderY = y === group.y || y === group.y + group.height - 1;
-    if (overlapX && onBorderY) {
-      return false;
-    }
-
-    if (group.label) {
-      const gX0 = group.x;
-      const gY0 = group.y;
-      const gX1 = group.x + group.width - 1;
-      const gY1 = group.y + group.height - 1;
-      const labelY = clamp(gY0 + 1, gY0, gY1);
-      const L = textWidth(group.label);
-      const labelX = clamp(
-        gX0 + 2,
-        gX0 + 1,
-        Math.max(gX0 + 1, gX1 - L - 1),
-      );
-
-      if (y === labelY) {
-        const labelOverlapX = minX <= labelX + L && maxX >= labelX - 1;
-        if (labelOverlapX) {
-          return false;
-        }
-      }
-    }
-  }
-
-  return true;
-}
-
-function findFreeConnectorRow(
-  preferredY: number,
-  minX: number,
-  maxX: number,
-  gridNodes: Map<string, GridNode>,
-  gridGroups: Map<string, GridGroup>,
-  srcId: string,
-  tgtId: string,
-  direction: number,
-): number {
-  if (isRowFree(preferredY, minX, maxX, gridNodes, gridGroups, srcId, tgtId)) {
-    return preferredY;
-  }
-
-  const primaryStep = direction >= 0 ? 1 : -1;
-  for (let attempt = 1; attempt <= 4; attempt++) {
-    const primary = preferredY + primaryStep * attempt;
-    if (isRowFree(primary, minX, maxX, gridNodes, gridGroups, srcId, tgtId)) {
-      return primary;
-    }
-
-    const fallback = preferredY - primaryStep * attempt;
-    if (isRowFree(fallback, minX, maxX, gridNodes, gridGroups, srcId, tgtId)) {
-      return fallback;
-    }
-  }
-
-  return preferredY;
-}
-
-function findFreeConnectorColumn(
-  preferredX: number,
-  minY: number,
-  maxY: number,
-  gridNodes: Map<string, GridNode>,
-  gridGroups: Map<string, GridGroup>,
-  srcId: string,
-  tgtId: string,
-  direction: number,
-): number {
-  if (isColumnFree(preferredX, minY, maxY, gridNodes, gridGroups, srcId, tgtId)) {
-    return preferredX;
-  }
-
-  const primaryStep = direction >= 0 ? 1 : -1;
-  for (let attempt = 1; attempt <= 4; attempt++) {
-    const primary = preferredX + primaryStep * attempt;
-    if (isColumnFree(primary, minY, maxY, gridNodes, gridGroups, srcId, tgtId)) {
-      return primary;
-    }
-
-    const fallback = preferredX - primaryStep * attempt;
-    if (isColumnFree(fallback, minY, maxY, gridNodes, gridGroups, srcId, tgtId)) {
-      return fallback;
-    }
-  }
-
-  return preferredX;
-}
-
-function resolveNodeCrossings(
-  points: GridPoint[],
-  gridNodes: Map<string, GridNode>,
-  gridGroups: Map<string, GridGroup>,
-  srcNodeId: string,
-  tgtNodeId: string,
-  layouted: LayoutedDiagram,
-): GridPoint[] {
-  if (points.length < 2) {
-    return points;
-  }
-
-  const result: GridPoint[] = [];
-  result.push({ ...points[0]! });
-
-  const origSrc = layouted.nodes.find(n => n.id === srcNodeId)!;
-  const origTgt = layouted.nodes.find(n => n.id === tgtNodeId)!;
-  const elkEdge = layouted.edges.find(e => e.from === srcNodeId && e.to === tgtNodeId);
-
-  // If there are no ELK edge points for some reason, just return the grid points as is
-  if (!elkEdge || elkEdge.points.length < 2) {
-    return points;
-  }
-
-  for (let i = 0; i < points.length - 1; i++) {
-    const p1 = points[i]!;
-    const p2 = points[i + 1]!;
-
-    if (p1.x === p2.x) {
-      // Vertical segment
-      let shiftedX = p1.x;
-      let crossed = false;
-      const minY = Math.min(p1.y, p2.y);
-      const maxY = Math.max(p1.y, p2.y);
-
-      // Check if it's already free
-      if (!isColumnFree(shiftedX, minY, maxY, gridNodes, gridGroups, srcNodeId, tgtNodeId)) {
-        crossed = true;
-        // Find which side it was on in ELK space
-        let isRight = true;
-        const elkX = (elkEdge.points[0].x + elkEdge.points[elkEdge.points.length - 1].x) / 2;
-        
-        // Find the node it crossed to decide direction
-        for (const node of gridNodes.values()) {
-          if (node.id === srcNodeId || node.id === tgtNodeId) {
-            continue;
-          }
-          const insideX = shiftedX >= node.x - 1 && shiftedX <= node.x + node.width;
-          const overlapY = minY < node.y + node.height && maxY > node.y;
-          if (insideX && overlapY) {
-            const origNode = layouted.nodes.find(n => n.id === node.id)!;
-            const origNodeCenter = origNode.x + origNode.measuredWidth / 2;
-            isRight = elkX >= origNodeCenter;
-            break;
-          }
-        }
-
-        // Search for a free column
-        let found = false;
-        const step = isRight ? 1 : -1;
-        let candidateX = shiftedX + step;
-        
-        // Try up to 20 columns outwards
-        for (let attempt = 0; attempt < 20; attempt++) {
-          if (isColumnFree(candidateX, minY, maxY, gridNodes, gridGroups, srcNodeId, tgtNodeId)) {
-            shiftedX = candidateX;
-            found = true;
-            break;
-          }
-          candidateX += step;
-        }
-
-        if (!found) {
-          // If we couldn't find a free column in preferred direction, try the other direction
-          candidateX = shiftedX - step;
-          for (let attempt = 0; attempt < 20; attempt++) {
-            if (isColumnFree(candidateX, minY, maxY, gridNodes, gridGroups, srcNodeId, tgtNodeId)) {
-              shiftedX = candidateX;
-              found = true;
-              break;
-            }
-            candidateX -= step;
-          }
-        }
-      }
-
-      if (crossed && shiftedX !== p1.x) {
-        let last = result[result.length - 1]!;
-        const connectorY = findFreeConnectorRow(
-          last.y,
-          Math.min(last.x, shiftedX),
-          Math.max(last.x, shiftedX),
-          gridNodes,
-          gridGroups,
-          srcNodeId,
-          tgtNodeId,
-          p2.y - p1.y,
-        );
-        if (connectorY !== last.y && last.x === p1.x && last.y === p1.y && result.length > 1) {
-          result.pop();
-          last = result[result.length - 1]!;
-        }
-        if (last.y !== connectorY) {
-          result.push({ x: last.x, y: connectorY });
-        }
-        if (last.x !== shiftedX) {
-          result.push({ x: shiftedX, y: connectorY });
-        }
-        result.push({ x: shiftedX, y: p2.y });
-      } else {
-        result.push({ ...p2 });
-      }
-    } else if (p1.y === p2.y) {
-      // Horizontal segment
-      let shiftedY = p1.y;
-      let crossed = false;
-      const minX = Math.min(p1.x, p2.x);
-      const maxX = Math.max(p1.x, p2.x);
-
-      if (!isRowFree(shiftedY, minX, maxX, gridNodes, gridGroups, srcNodeId, tgtNodeId)) {
-        crossed = true;
-        let isDown = true;
-        const elkY = (elkEdge.points[0].y + elkEdge.points[elkEdge.points.length - 1].y) / 2;
-
-        for (const node of gridNodes.values()) {
-          if (node.id === srcNodeId || node.id === tgtNodeId) {
-            continue;
-          }
-          const insideY = shiftedY >= node.y - 1 && shiftedY <= node.y + node.height;
-          const overlapX = minX < node.x + node.width && maxX > node.x;
-          if (insideY && overlapX) {
-            const origNode = layouted.nodes.find(n => n.id === node.id)!;
-            const origNodeCenterY = origNode.y + origNode.measuredHeight / 2;
-            isDown = elkY >= origNodeCenterY;
-            break;
-          }
-        }
-
-        let found = false;
-        const step = isDown ? 1 : -1;
-        let candidateY = shiftedY + step;
-
-        for (let attempt = 0; attempt < 10; attempt++) {
-          if (isRowFree(candidateY, minX, maxX, gridNodes, gridGroups, srcNodeId, tgtNodeId)) {
-            shiftedY = candidateY;
-            found = true;
-            break;
-          }
-          candidateY += step;
-        }
-
-        if (!found) {
-          candidateY = shiftedY - step;
-          for (let attempt = 0; attempt < 10; attempt++) {
-            if (isRowFree(candidateY, minX, maxX, gridNodes, gridGroups, srcNodeId, tgtNodeId)) {
-              shiftedY = candidateY;
-              found = true;
-              break;
-            }
-            candidateY -= step;
-          }
-        }
-      }
-
-      if (crossed && shiftedY !== p1.y) {
-        let last = result[result.length - 1]!;
-        const connectorX = findFreeConnectorColumn(
-          last.x,
-          Math.min(last.y, shiftedY),
-          Math.max(last.y, shiftedY),
-          gridNodes,
-          gridGroups,
-          srcNodeId,
-          tgtNodeId,
-          p2.x - p1.x,
-        );
-        if (connectorX !== last.x && last.x === p1.x && last.y === p1.y && result.length > 1) {
-          result.pop();
-          last = result[result.length - 1]!;
-        }
-        if (last.x !== connectorX) {
-          result.push({ x: connectorX, y: last.y });
-        }
-        if (last.y !== shiftedY) {
-          result.push({ x: connectorX, y: shiftedY });
-        }
-        result.push({ x: p2.x, y: shiftedY });
-      } else {
-        result.push({ ...p2 });
-      }
-    } else {
-      result.push({ ...p2 });
-    }
-  }
-
-  const finalPoints: GridPoint[] = [];
-  for (const pt of result) {
-    if (finalPoints.length === 0) {
-      finalPoints.push(pt);
-    } else {
-      const last = finalPoints[finalPoints.length - 1]!;
-      if (last.x !== pt.x || last.y !== pt.y) {
-        finalPoints.push(pt);
-      }
-    }
-  }
-
-  return finalPoints;
-}
-
-function cleanSpikesAndCollinear(points: GridPoint[]): GridPoint[] {
-  if (points.length < 2) return points;
-  let cleaned: GridPoint[] = [];
-
-  for (const pt of points) {
-    if (cleaned.length > 0) {
-      const last = cleaned[cleaned.length - 1]!;
-      if (last.x === pt.x && last.y === pt.y) continue;
-    }
-
-    while (cleaned.length >= 2) {
-      const prev = cleaned[cleaned.length - 2]!;
-      const curr = cleaned[cleaned.length - 1]!;
-
-      if ((prev.x === curr.x && curr.x === pt.x) || (prev.y === curr.y && curr.y === pt.y)) {
-        cleaned.pop(); // remove curr
-      } else {
-        break;
-      }
-    }
-
-    if (cleaned.length > 0) {
-      const last = cleaned[cleaned.length - 1]!;
-      if (last.x === pt.x && last.y === pt.y) continue;
-    }
-
-    cleaned.push(pt);
-  }
-
-  return cleaned;
-}
-
-function trimGrid(grid: string[][]): string {
-  return grid
-    .map((row) => row.join('').replace(/\s+$/u, ''))
-    .join('\n')
-    .replace(/\s+$/u, '');
-}
-
-function renderLegend(layouted: LayoutedDiagram): string {
-  const lines = ['Nodes:'];
-  for (const node of layouted.nodes) {
-    lines.push(`- ${node.id}: ${node.label}`);
-  }
-
-  if ((layouted.groups ?? []).length > 0) {
-    lines.push('', 'Groups:');
-    for (const group of layouted.groups ?? []) {
-      lines.push(`- ${group.id}: ${group.label}`);
-    }
-  }
-
-  const labeledEdges = layouted.edges.filter((edge) => edge.label);
-  if (labeledEdges.length > 0) {
-    lines.push('', 'Edges:');
-    for (const edge of labeledEdges) {
-      lines.push(`- ${edge.from} -> ${edge.to}: ${edge.label}`);
-    }
-  }
-
-  return lines.join('\n');
-}
-
-// ── Grid node/group types ──
+const MIN_BOX_WIDTH = 12;
+const MIN_BOX_HEIGHT = 3;
+const NODE_GAP_X = 6;  // Min columns between nodes for routing channels
+const NODE_GAP_Y = 4;  // Min rows between nodes
+const RUNWAY_LEN = 2;  // Min runway cells from box to first bend
+
+// ── Types ──
+
+interface Pt { x: number; y: number; }
+type Side = 'top' | 'bottom' | 'left' | 'right';
 
 interface GridNode {
   id: string;
   label: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  cx?: number;
+  lines: string[];     // wrapped text lines
+  x: number;           // top-left grid x
+  y: number;           // top-left grid y
+  w: number;           // width
+  h: number;           // height
+  anchors: Map<string, Pt>;  // edgeKey → anchor point ON the border
 }
 
 interface GridGroup {
@@ -758,123 +99,340 @@ interface GridGroup {
   label: string;
   x: number;
   y: number;
-  width: number;
-  height: number;
+  w: number;
+  h: number;
   contains: string[];
 }
 
-function nodePortGlyph(
-  point: GridPoint,
-  node: GridNode,
-  glyphs: GlyphSet,
-): string | null {
-  const top = node.y;
-  const bottom = node.y + node.height - 1;
-  const left = node.x;
-  const right = node.x + node.width - 1;
+interface EdgeRoute {
+  from: string;
+  to: string;
+  label?: string;
+  labelLines: string[];
+  points: Pt[];            // full path including anchors
+  labelPt: Pt;
+  labelIsH: boolean;
+  startMarker: string;
+  endMarker: string;
+}
 
-  if (point.y === bottom && point.x > left && point.x < right) {
-    return glyphs.portDown;
+// ── Utility functions ──
+
+function clamp(v: number, lo: number, hi: number): number {
+  return Math.max(lo, Math.min(hi, v));
+}
+
+/** Wrap label text according to rules 2a/2b. */
+function wrapLabel(text: string, totalBoxes: number): string[] {
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  if (words.length <= 1) return [text.trim()];
+
+  const shouldWrap = totalBoxes > 7 || words.length > 3;
+  if (!shouldWrap) return [words.join(' ')];
+
+  // Wrap to roughly half width
+  const full = words.join(' ');
+  const longest = Math.max(...words.map(w => w.length));
+  let maxW = Math.max(longest, Math.ceil(full.length / 2));
+
+  while (maxW < full.length) {
+    const lines: string[] = [];
+    let cur: string[] = [];
+    let len = 0;
+    for (const w of words) {
+      if (cur.length === 0) {
+        cur.push(w); len = w.length;
+      } else if (len + 1 + w.length <= maxW) {
+        cur.push(w); len += 1 + w.length;
+      } else {
+        lines.push(cur.join(' '));
+        cur = [w]; len = w.length;
+      }
+    }
+    if (cur.length > 0) lines.push(cur.join(' '));
+    if (lines.length > 1) return lines;
+    maxW--;
   }
-  if (point.y === top && point.x > left && point.x < right) {
-    return glyphs.portUp;
+  return [full];
+}
+
+/** Determine which side of srcNode faces tgtNode. */
+function facingSide(src: GridNode, tgt: GridNode): Side {
+  const scx = src.x + src.w / 2, scy = src.y + src.h / 2;
+  const tcx = tgt.x + tgt.w / 2, tcy = tgt.y + tgt.h / 2;
+  const dx = Math.abs(tcx - scx), dy = Math.abs(tcy - scy);
+  if (dy >= dx) {
+    return tcy > scy ? 'bottom' : 'top';
+  } else {
+    return tcx > scx ? 'right' : 'left';
   }
-  if (point.x === right && point.y > top && point.y < bottom) {
-    return glyphs.portRight;
+}
+
+/** Compute the edge length (interior cells) of a side. */
+function sideLen(node: GridNode, side: Side): number {
+  return side === 'top' || side === 'bottom' ? node.w - 2 : node.h - 2;
+}
+
+/** Distribute K anchors evenly across I interior cells (0-indexed positions). 
+ *  Returns 0-based offsets within the interior. */
+function distributeAnchors(K: number, I: number): number[] {
+  if (K === 0) return [];
+  if (K === 1) return [Math.floor(I / 2)];
+  // Even distribution: padding on each side, equal spacing between
+  const positions: number[] = [];
+  const gap = (I - 1) / (K + 1);
+  for (let i = 0; i < K; i++) {
+    positions.push(Math.round(gap * (i + 1)));
   }
-  if (point.x === left && point.y > top && point.y < bottom) {
-    return glyphs.portLeft;
+  return positions;
+}
+
+/** Make a unique key for an edge to track anchor assignment. */
+function edgeKey(from: string, to: string): string {
+  return `${from}->${to}`;
+}
+
+// ── Grid drawing ──
+
+function createGrid(w: number, h: number): string[][] {
+  return Array.from({ length: h }, () => Array.from({ length: w }, () => ' '));
+}
+
+function setChar(grid: string[][], p: Pt, ch: string, g: GlyphSet): void {
+  const row = grid[p.y];
+  if (!row || p.x < 0 || p.x >= row.length) return;
+  const existing = row[p.x] ?? ' ';
+  // Never overwrite cross
+  if (existing === g.cross) return;
+  // Don't overwrite corners with plain lines
+  const isCorner = existing === g.topLeft || existing === g.topRight ||
+    existing === g.bottomLeft || existing === g.bottomRight;
+  if (isCorner && (ch === g.horizontal || ch === g.vertical)) return;
+  // Cross detection
+  if ((existing === g.horizontal && ch === g.vertical) ||
+    (existing === g.vertical && ch === g.horizontal)) {
+    row[p.x] = g.cross;
+    return;
+  }
+  row[p.x] = ch;
+}
+
+function setForce(grid: string[][], p: Pt, ch: string): void {
+  const row = grid[p.y];
+  if (row && p.x >= 0 && p.x < row.length) row[p.x] = ch;
+}
+
+function writeText(grid: string[][], x: number, y: number, text: string): void {
+  const row = grid[y];
+  if (!row) return;
+  [...text].forEach((ch, i) => {
+    const col = x + i;
+    if (col >= 0 && col < row.length) row[col] = ch;
+  });
+}
+
+function clearRect(grid: string[][], x: number, y: number, w: number, h: number): void {
+  for (let dy = 0; dy < h; dy++) {
+    const row = grid[y + dy];
+    if (!row) continue;
+    for (let dx = 0; dx < w; dx++) {
+      const col = x + dx;
+      if (col >= 0 && col < row.length) row[col] = ' ';
+    }
+  }
+}
+
+function drawBox(
+  grid: string[][],
+  x0: number, y0: number, w: number, h: number,
+  lines: string[],
+  g: GlyphSet,
+  fill: boolean,
+): void {
+  const x1 = x0 + w - 1;
+  const y1 = y0 + h - 1;
+  const maxY = grid.length - 1;
+  const maxX = (grid[0]?.length ?? 1) - 1;
+  if (x0 > maxX || y0 > maxY) return;
+
+  // Fill interior
+  if (fill) {
+    for (let y = Math.max(0, y0 + 1); y < Math.min(y1, maxY + 1); y++) {
+      for (let x = Math.max(0, x0 + 1); x < Math.min(x1, maxX + 1); x++) {
+        const row = grid[y];
+        if (row) row[x] = ' ';
+      }
+    }
   }
 
+  // Corners
+  setChar(grid, { x: x0, y: y0 }, g.topLeft, g);
+  setChar(grid, { x: x1, y: y0 }, g.topRight, g);
+  setChar(grid, { x: x0, y: y1 }, g.bottomLeft, g);
+  setChar(grid, { x: x1, y: y1 }, g.bottomRight, g);
+
+  // Horizontal borders
+  for (let x = x0 + 1; x < x1; x++) {
+    setChar(grid, { x, y: y0 }, g.horizontal, g);
+    setChar(grid, { x, y: y1 }, g.horizontal, g);
+  }
+
+  // Vertical borders
+  for (let y = y0 + 1; y < y1; y++) {
+    setChar(grid, { x: x0, y }, g.vertical, g);
+    setChar(grid, { x: x1, y }, g.vertical, g);
+  }
+
+  // Center text vertically and horizontally (Rule 1)
+  if (lines.length > 0) {
+    const interiorH = h - 2;
+    const yStart = y0 + 1 + Math.floor((interiorH - lines.length) / 2);
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const ly = yStart + i;
+      if (ly <= y0 || ly >= y1) continue;
+      const interiorW = w - 2;
+      const pad = Math.floor((interiorW - line.length) / 2);
+      const lx = x0 + 1 + pad;
+      writeText(grid, lx, ly, line);
+    }
+  }
+}
+
+function drawSegment(grid: string[][], a: Pt, b: Pt, g: GlyphSet, exclusiveEnd = false): void {
+  if (a.x === b.x && a.y === b.y) return;
+  if (a.y === b.y) {
+    const step = a.x < b.x ? 1 : -1;
+    for (let x = a.x; x !== b.x; x += step) {
+      setChar(grid, { x, y: a.y }, g.horizontal, g);
+    }
+    if (!exclusiveEnd) setChar(grid, { x: b.x, y: b.y }, g.horizontal, g);
+  } else if (a.x === b.x) {
+    const step = a.y < b.y ? 1 : -1;
+    for (let y = a.y; y !== b.y; y += step) {
+      setChar(grid, { x: a.x, y }, g.vertical, g);
+    }
+    if (!exclusiveEnd) setChar(grid, { x: b.x, y: b.y }, g.vertical, g);
+  }
+}
+
+function getCornerGlyph(prev: Pt, curr: Pt, next: Pt, g: GlyphSet): string | null {
+  const dx1 = curr.x - prev.x, dy1 = curr.y - prev.y;
+  const dx2 = next.x - curr.x, dy2 = next.y - curr.y;
+  if ((dy1 < 0 && dx2 > 0) || (dx1 < 0 && dy2 > 0)) return g.topLeft;     // ┌
+  if ((dy1 < 0 && dx2 < 0) || (dx1 > 0 && dy2 > 0)) return g.topRight;    // ┐
+  if ((dy1 > 0 && dx2 > 0) || (dx1 < 0 && dy2 < 0)) return g.bottomLeft;  // └
+  if ((dy1 > 0 && dx2 < 0) || (dx1 > 0 && dy2 < 0)) return g.bottomRight; // ┘
   return null;
 }
 
-// ── Coordinate system ──
-// All layout coordinates from ELK are in continuous pixel space.
-// We normalize to a unit grid by dividing by average cell dimensions,
-// then place elements using direct grid coordinates from the
-// relative positions of ELK nodes. Edges are routed directly
-// between the final grid positions of their source/target nodes.
-
-function computeNodeCenter(node: GridNode): GridPoint {
-  return {
-    x: node.x + Math.floor(node.width / 2),
-    y: node.y + Math.floor(node.height / 2),
-  };
+function getArrowGlyph(from: Pt, to: Pt, g: GlyphSet): string {
+  if (from.x === to.x) return to.y >= from.y ? g.downArrow : g.upArrow;
+  if (from.y === to.y) return to.x >= from.x ? g.rightArrow : g.leftArrow;
+  return Math.abs(to.x - from.x) >= Math.abs(to.y - from.y)
+    ? (to.x >= from.x ? g.rightArrow : g.leftArrow)
+    : (to.y >= from.y ? g.downArrow : g.upArrow);
 }
 
-/** Compute the exit point from a node for an edge going to target. */
-function computeExitPoint(node: GridNode, target: GridNode): GridPoint {
-  const nc = computeNodeCenter(node);
-  const tc = computeNodeCenter(target);
-  const dx = Math.abs(tc.x - nc.x);
-  const dy = Math.abs(tc.y - nc.y);
+function getPortGlyph(p: Pt, node: GridNode, g: GlyphSet): string | null {
+  const top = node.y, bot = node.y + node.h - 1;
+  const left = node.x, right = node.x + node.w - 1;
+  if (p.y === bot && p.x > left && p.x < right) return g.portDown;
+  if (p.y === top && p.x > left && p.x < right) return g.portUp;
+  if (p.x === right && p.y > top && p.y < bot) return g.portRight;
+  if (p.x === left && p.y > top && p.y < bot) return g.portLeft;
+  return null;
+}
 
-  if (dy >= dx) {
-    // Primarily vertical
-    if (tc.y > nc.y) {
-      // Exit from bottom
-      return { x: nc.x, y: node.y + node.height };
-    } else {
-      // Exit from top
-      return { x: nc.x, y: node.y - 1 };
-    }
-  } else {
-    // Primarily horizontal
-    if (tc.x > nc.x) {
-      // Exit from right
-      return { x: node.x + node.width, y: nc.y };
-    } else {
-      // Exit from left
-      return { x: node.x - 1, y: nc.y };
-    }
+// ── Occupancy tracker for Rule 3 ──
+
+interface OccSegment {
+  val: number;   // column (for vertical) or row (for horizontal)
+  min: number;
+  max: number;
+  edgeKey: string;
+}
+
+class OccupancyTracker {
+  private hSegs: OccSegment[] = [];
+  private vSegs: OccSegment[] = [];
+
+  addH(row: number, x1: number, x2: number, ek: string): void {
+    this.hSegs.push({ val: row, min: Math.min(x1, x2), max: Math.max(x1, x2), edgeKey: ek });
   }
-}
 
-/** Compute the entry point into a node for an edge coming from source. */
-function computeEntryPoint(node: GridNode, source: GridNode): GridPoint {
-  const nc = computeNodeCenter(node);
-  const sc = computeNodeCenter(source);
-  const dx = Math.abs(sc.x - nc.x);
-  const dy = Math.abs(sc.y - nc.y);
+  addV(col: number, y1: number, y2: number, ek: string): void {
+    this.vSegs.push({ val: col, min: Math.min(y1, y2), max: Math.max(y1, y2), edgeKey: ek });
+  }
 
-  if (dy >= dx) {
-    // Primarily vertical
-    if (sc.y < nc.y) {
-      // Enter from top
-      return { x: nc.x, y: node.y };
-    } else {
-      // Enter from bottom
-      return { x: nc.x, y: node.y + node.height - 1 };
+  /** Check if a horizontal segment at row, from minX to maxX, is free. */
+  isRowFree(row: number, minX: number, maxX: number): boolean {
+    for (const s of this.hSegs) {
+      if (s.val === row && Math.max(minX, s.min) <= Math.min(maxX, s.max)) {
+        return false;
+      }
     }
-  } else {
-    // Primarily horizontal
-    if (sc.x < nc.x) {
-      // Enter from left
-      return { x: node.x, y: nc.y };
-    } else {
-      // Enter from right
-      return { x: node.x + node.width - 1, y: nc.y };
+    return true;
+  }
+
+  /** Check if a vertical segment at col, from minY to maxY, is free. */
+  isColFree(col: number, minY: number, maxY: number): boolean {
+    for (const s of this.vSegs) {
+      if (s.val === col && Math.max(minY, s.min) <= Math.min(maxY, s.max)) {
+        return false;
+      }
     }
+    return true;
   }
 }
 
-/** Route an orthogonal path between two points. */
-function routeOrthogonal(from: GridPoint, to: GridPoint, preferVerticalFirst: boolean): GridPoint[] {
-  if (from.x === to.x || from.y === to.y) {
-    // Already aligned - single segment
-    return [from, to];
-  }
+// ── Clean collinear and duplicate points ──
 
-  if (preferVerticalFirst) {
-    // Go vertical first, then horizontal
-    const mid: GridPoint = { x: from.x, y: to.y };
-    return [from, mid, to];
-  } else {
-    // Go horizontal first, then vertical
-    const mid: GridPoint = { x: to.x, y: from.y };
-    return [from, mid, to];
+function cleanPath(pts: Pt[]): Pt[] {
+  if (pts.length < 2) return pts;
+  const out: Pt[] = [];
+  for (const pt of pts) {
+    if (out.length > 0) {
+      const last = out[out.length - 1]!;
+      if (last.x === pt.x && last.y === pt.y) continue;
+    }
+    // Remove collinear midpoints
+    while (out.length >= 2) {
+      const prev = out[out.length - 2]!;
+      const curr = out[out.length - 1]!;
+      if ((prev.x === curr.x && curr.x === pt.x) ||
+        (prev.y === curr.y && curr.y === pt.y)) {
+        out.pop();
+      } else {
+        break;
+      }
+    }
+    out.push(pt);
   }
+  return out;
+}
+
+// ── Legend ──
+
+function renderLegend(layouted: LayoutedDiagram): string {
+  const lines = ['Nodes:'];
+  for (const node of layouted.nodes) {
+    lines.push(`- ${node.id}: ${node.label}`);
+  }
+  if ((layouted.groups ?? []).length > 0) {
+    lines.push('', 'Groups:');
+    for (const group of layouted.groups ?? []) {
+      lines.push(`- ${group.id}: ${group.label}`);
+    }
+  }
+  const labeledEdges = layouted.edges.filter(e => e.label);
+  if (labeledEdges.length > 0) {
+    lines.push('', 'Edges:');
+    for (const edge of labeledEdges) {
+      lines.push(`- ${edge.from} -> ${edge.to}: ${edge.label}`);
+    }
+  }
+  return lines.join('\n');
 }
 
 // ── Main export ──
@@ -885,758 +443,808 @@ export function renderToText(
 ): string {
   const charset = options.charset ?? 'unicode';
   const glyphs = GLYPHS[charset];
+  const totalBoxes = layouted.nodes.length;
 
-  // Find bounds of all elements in ELK pixel space
+  // ════════════════════════════════════════════
+  // PHASE 1: Grid Placement
+  // ════════════════════════════════════════════
+
+  // Find ELK pixel bounds
   let minX = Infinity, minY = Infinity;
-  for (const node of layouted.nodes) {
-    minX = Math.min(minX, node.x);
-    minY = Math.min(minY, node.y);
+  for (const n of layouted.nodes) {
+    minX = Math.min(minX, n.x);
+    minY = Math.min(minY, n.y);
   }
-  for (const group of layouted.groups ?? []) {
-    minX = Math.min(minX, group.x);
-    minY = Math.min(minY, group.y);
-  }
-  for (const edge of layouted.edges) {
-    for (const point of edge.points) {
-      minX = Math.min(minX, point.x);
-      minY = Math.min(minY, point.y);
-    }
-    if (edge.labelPlacement) {
-      minX = Math.min(minX, edge.labelPlacement.x);
-      minY = Math.min(minY, edge.labelPlacement.y);
-    }
+  for (const g of layouted.groups ?? []) {
+    minX = Math.min(minX, g.x);
+    minY = Math.min(minY, g.y);
   }
   if (!Number.isFinite(minX)) { minX = 0; minY = 0; }
 
-  // Find the smallest ELK cell dimensions to use as our scale factor.
-  // We want to preserve relative positions, so we use a consistent scale.
-  const SCALE_X = 10; // pixels per grid column
-  const SCALE_Y = 18; // pixels per grid row
+  const SCALE_X = 10;
+  const SCALE_Y = 18;
+  const toGX = (px: number) => Math.round((px - minX) / SCALE_X) + GRID_PADDING;
+  const toGY = (px: number) => Math.round((px - minY) / SCALE_Y) + GRID_PADDING;
 
-  // Scale a pixel coordinate to grid space
-  const toGridX = (px: number) => Math.round((px - minX) / SCALE_X) + GRID_PADDING;
-  const toGridY = (px: number) => Math.round((px - minY) / SCALE_Y) + GRID_PADDING;
+  // Create GridNodes with proper sizing for text centering (Rule 1)
+  const gridNodes = new Map<string, GridNode>();
 
-  // 1. Create grid nodes at their scaled positions
-  const gridNodes: Map<string, GridNode> = new Map();
-  const useMeasuredNodeHeight = layouted.width > layouted.height * 2;
-  for (const node of layouted.nodes) {
-    const elkGridX = toGridX(node.x);
-    const elkGridWidth = Math.max(Math.round(node.measuredWidth / SCALE_X), MIN_BOX_WIDTH);
-    const boxWidth = Math.max(
-      elkGridWidth,
-      textWidth(node.label) + 4
-    );
-    const shiftX = Math.floor((boxWidth - elkGridWidth) / 2);
+  for (const n of layouted.nodes) {
+    const lines = wrapLabel(n.label, totalBoxes);
+    const maxTextW = Math.max(...lines.map(l => l.length));
+    const textH = lines.length;
 
-    gridNodes.set(node.id, {
-      id: node.id,
-      label: node.label,
-      x: Math.max(0, elkGridX - shiftX),
-      y: toGridY(node.y),
-      width: boxWidth,
-      height: useMeasuredNodeHeight
-        ? Math.max(Math.round(node.measuredHeight / SCALE_Y), 3)
-        : 3,
-      cx: toGridX(node.x + node.width / 2),
+    // Compute min size from ELK
+    const elkW = Math.max(Math.round(n.measuredWidth / SCALE_X), MIN_BOX_WIDTH);
+    const elkH = MIN_BOX_HEIGHT;
+
+    // Width: text + 2 border + enough for centering (must be even diff with text)
+    let w = Math.max(elkW, maxTextW + 4);
+    // Ensure (w - 2 - maxTextW) is even for perfect centering
+    if ((w - 2 - maxTextW) % 2 !== 0) w++;
+    w = Math.max(w, MIN_BOX_WIDTH);
+
+    // Height: text + 2 border + centering
+    let h = Math.max(elkH, textH + 2);
+    if ((h - 2 - textH) % 2 !== 0) h++;
+    h = Math.max(h, MIN_BOX_HEIGHT);
+
+    const gx = toGX(n.x);
+    const gy = toGY(n.y);
+    // Center the box around the ELK center point
+    const elkCX = toGX(n.x + n.measuredWidth / 2);
+    const shiftX = Math.max(0, elkCX - Math.floor(w / 2));
+
+    gridNodes.set(n.id, {
+      id: n.id,
+      label: n.label,
+      lines,
+      x: shiftX,
+      y: gy,
+      w,
+      h,
+      anchors: new Map(),
     });
   }
 
-  // 2. Create grid groups
-  const gridGroups: Map<string, GridGroup> = new Map();
-  for (const group of layouted.groups ?? []) {
-    const elkGridX = toGridX(group.x);
-    const elkGridWidth = Math.max(Math.round(group.width / SCALE_X), MIN_BOX_WIDTH);
-    const boxWidth = Math.max(elkGridWidth, textWidth(group.label) + 5);
-    const shiftX = Math.floor((boxWidth - elkGridWidth) / 2);
-
-    gridGroups.set(group.id, {
-      id: group.id,
-      label: group.label,
-      x: Math.max(0, elkGridX - shiftX),
-      y: toGridY(group.y),
-      width: boxWidth,
-      height: Math.max(Math.round(group.height / SCALE_Y), 3 + 2),
-      contains: group.contains ?? [],
+  // Create GridGroups
+  const gridGroups = new Map<string, GridGroup>();
+  for (const g of layouted.groups ?? []) {
+    const elkW = Math.max(Math.round(g.width / SCALE_X), MIN_BOX_WIDTH);
+    const elkH = Math.max(Math.round(g.height / SCALE_Y), 5);
+    let w = Math.max(elkW, g.label.length + 6);
+    gridGroups.set(g.id, {
+      id: g.id,
+      label: g.label,
+      x: toGX(g.x),
+      y: toGY(g.y),
+      w,
+      h: elkH,
+      contains: g.contains ?? [],
     });
   }
 
-  // 3. Overlap resolution and containment constraints (multiple iterations)
-  const nodes = Array.from(gridNodes.values());
+  // Overlap resolution
+  const nodeArr = Array.from(gridNodes.values());
 
-  for (let iteration = 0; iteration < 6; iteration++) {
-    // Phase A: Resolve node-node overlaps
-    for (let pass = 0; pass < 10; pass++) {
-      let resolvedAny = false;
-      for (let i = 0; i < nodes.length; i++) {
-        for (let j = i + 1; j < nodes.length; j++) {
-          const a = nodes[i]!;
-          const b = nodes[j]!;
-
-          const overlapX = a.x < b.x + b.width + NODE_SPACING_X && b.x < a.x + a.width + NODE_SPACING_X;
-          const overlapY = a.y < b.y + b.height && b.y < a.y + a.height;
-
-          if (overlapX && overlapY) {
+  for (let iter = 0; iter < 8; iter++) {
+    // Node-node overlap
+    for (let pass = 0; pass < 15; pass++) {
+      let resolved = false;
+      for (let i = 0; i < nodeArr.length; i++) {
+        for (let j = i + 1; j < nodeArr.length; j++) {
+          const a = nodeArr[i]!, b = nodeArr[j]!;
+          const ox = a.x < b.x + b.w + NODE_GAP_X && b.x < a.x + a.w + NODE_GAP_X;
+          const oy = a.y < b.y + b.h + NODE_GAP_Y && b.y < a.y + a.h + NODE_GAP_Y;
+          if (ox && oy) {
             const origA = layouted.nodes.find(n => n.id === a.id)!;
             const origB = layouted.nodes.find(n => n.id === b.id)!;
-            const dx = Math.abs(origA.x - origB.x);
-            const dy = Math.abs(origA.y - origB.y);
-
-            if (dx >= dy) {
-              // Separate horizontally
-              if (origA.x <= origB.x) {
-                b.x = a.x + a.width + NODE_SPACING_X;
-              } else {
-                a.x = b.x + b.width + NODE_SPACING_X;
-              }
+            const edx = Math.abs(origA.x - origB.x);
+            const edy = Math.abs(origA.y - origB.y);
+            if (edx >= edy) {
+              if (origA.x <= origB.x) b.x = a.x + a.w + NODE_GAP_X;
+              else a.x = b.x + b.w + NODE_GAP_X;
             } else {
-              // Separate vertically
-              if (origA.y <= origB.y) {
-                b.y = a.y + a.height + NODE_SPACING_Y;
-              } else {
-                a.y = b.y + b.height + NODE_SPACING_Y;
-              }
+              if (origA.y <= origB.y) b.y = a.y + a.h + NODE_GAP_Y;
+              else a.y = b.y + b.h + NODE_GAP_Y;
             }
-            resolvedAny = true;
+            resolved = true;
           }
         }
       }
-      if (!resolvedAny) break;
+      if (!resolved) break;
     }
 
-    // Phase C: Resolve group-group overlaps/adjacency to ensure at least 1 blank row in between
+    // Group-group overlap
     if (gridGroups.size > 1) {
-      const groupsList = Array.from(gridGroups.values());
+      const gArr = Array.from(gridGroups.values());
       for (let pass = 0; pass < 10; pass++) {
-        let resolvedAny = false;
-        for (let i = 0; i < groupsList.length; i++) {
-          for (let j = i + 1; j < groupsList.length; j++) {
-            const a = groupsList[i]!;
-            const b = groupsList[j]!;
-
-            const overlapX = a.x < b.x + b.width && b.x < a.x + a.width;
-            const overlapY = a.y < b.y + b.height + 1 && b.y < a.y + a.height + 1;
-
-            if (overlapX && overlapY) {
+        let resolved = false;
+        for (let i = 0; i < gArr.length; i++) {
+          for (let j = i + 1; j < gArr.length; j++) {
+            const a = gArr[i]!, b = gArr[j]!;
+            const ox = a.x < b.x + b.w && b.x < a.x + a.w;
+            const oy = a.y < b.y + b.h + 2 && b.y < a.y + a.h + 2;
+            if (ox && oy) {
               const origA = layouted.groups?.find(g => g.id === a.id);
               const origB = layouted.groups?.find(g => g.id === b.id);
               const ay = origA ? origA.y : a.y;
               const by = origB ? origB.y : b.y;
-
               if (ay <= by) {
-                const dy = (a.y + a.height + 1) - b.y;
+                const dy = (a.y + a.h + 2) - b.y;
                 b.y += dy;
-                for (const nodeId of b.contains) {
-                  const n = gridNodes.get(nodeId);
-                  if (n) {
-                    n.y += dy;
-                  }
+                for (const nid of b.contains) {
+                  const n = gridNodes.get(nid);
+                  if (n) n.y += dy;
                 }
               } else {
-                const dy = (b.y + b.height + 1) - a.y;
+                const dy = (b.y + b.h + 2) - a.y;
                 a.y += dy;
-                for (const nodeId of a.contains) {
-                  const n = gridNodes.get(nodeId);
-                  if (n) {
-                    n.y += dy;
-                  }
+                for (const nid of a.contains) {
+                  const n = gridNodes.get(nid);
+                  if (n) n.y += dy;
                 }
               }
-              resolvedAny = true;
+              resolved = true;
             }
           }
         }
-        if (!resolvedAny) break;
+        if (!resolved) break;
       }
     }
 
-    // Phase B: Containment constraints - ensure nodes are inside their groups
+    // Containment: nodes must be inside their groups
     for (const group of gridGroups.values()) {
-      let gX0 = group.x;
-      let gY0 = group.y;
-      let gX1 = gX0 + group.width - 1;
-      let gY1 = gY0 + group.height - 1;
+      const leftPad = group.label ? 3 : 2;
+      const topPad = group.label ? 3 : 2;
+      const rightPad = 3;
+      const bottomPad = 2;
 
-      for (const nodeId of group.contains) {
-        const node = gridNodes.get(nodeId);
+      for (const nid of group.contains) {
+        const node = gridNodes.get(nid);
         if (!node) continue;
-
-        // Ensure node is inside the group with padding
-        const leftPad = group.label ? 3 : 2;
-        const topPad = group.label ? 3 : 2;
-        const rightPad = 2;
-        const bottomPad = 2;
-
-        if (node.x < gX0 + leftPad) {
-          node.x = gX0 + leftPad;
+        if (node.x < group.x + leftPad) node.x = group.x + leftPad;
+        if (node.y < group.y + topPad) node.y = group.y + topPad;
+        if (node.x + node.w + rightPad > group.x + group.w) {
+          group.w = node.x + node.w + rightPad - group.x;
         }
-        if (node.y < gY0 + topPad) {
-          node.y = gY0 + topPad;
-        }
-        if (node.x + node.width + rightPad > gX1) {
-          group.width = Math.max(group.width, node.x + node.width + rightPad - gX0);
-          gX1 = gX0 + group.width - 1;
-        }
-        if (node.y + node.height + bottomPad > gY1) {
-          group.height = Math.max(group.height, node.y + node.height + bottomPad - gY0);
-          gY1 = gY0 + group.height - 1;
+        if (node.y + node.h + bottomPad > group.y + group.h) {
+          group.h = node.y + node.h + bottomPad - group.y;
         }
       }
     }
   }
 
-  // 4. Compute edge routes using final grid positions
-  interface EdgeRoute {
-    from: string;
-    to: string;
-    label?: string;
-    points: GridPoint[];
-    labelPoint: GridPoint;
-    labelIsHorizontal: boolean;
-    startMarker?: 'none' | 'arrow' | 'circle' | 'filledCircle';
-    endMarker?: 'none' | 'arrow' | 'circle' | 'filledCircle';
+  // ════════════════════════════════════════════
+  // PHASE 2: Anchor Assignment (Rules 4a, 4b)
+  // ════════════════════════════════════════════
+
+  // Collect edges per node per side
+  interface SideInfo {
+    ek: string;         // edge key
+    otherNodeId: string;
+    isSource: boolean;
+  }
+
+  const nodeSides = new Map<string, { top: SideInfo[]; bottom: SideInfo[]; left: SideInfo[]; right: SideInfo[] }>();
+  for (const n of layouted.nodes) {
+    nodeSides.set(n.id, { top: [], bottom: [], left: [], right: [] });
+  }
+
+  for (const edge of layouted.edges) {
+    const src = gridNodes.get(edge.from);
+    const tgt = gridNodes.get(edge.to);
+    if (!src || !tgt) continue;
+
+    const srcSide = facingSide(src, tgt);
+    const tgtSide = facingSide(tgt, src);
+    const ek = edgeKey(edge.from, edge.to);
+
+    nodeSides.get(edge.from)![srcSide].push({ ek, otherNodeId: edge.to, isSource: true });
+    nodeSides.get(edge.to)![tgtSide].push({ ek, otherNodeId: edge.from, isSource: false });
+  }
+
+  // Sort edges on each side by other node's position for consistent layout
+  for (const [nodeId, sides] of nodeSides.entries()) {
+    const node = gridNodes.get(nodeId)!;
+    // Top/bottom: sort by other node's center X
+    for (const side of ['top', 'bottom'] as const) {
+      sides[side].sort((a, b) => {
+        const na = gridNodes.get(a.otherNodeId)!;
+        const nb = gridNodes.get(b.otherNodeId)!;
+        return (na.x + na.w / 2) - (nb.x + nb.w / 2);
+      });
+    }
+    // Left/right: sort by other node's center Y
+    for (const side of ['left', 'right'] as const) {
+      sides[side].sort((a, b) => {
+        const na = gridNodes.get(a.otherNodeId)!;
+        const nb = gridNodes.get(b.otherNodeId)!;
+        return (na.y + na.h / 2) - (nb.y + nb.h / 2);
+      });
+    }
+  }
+
+  // Grow boxes if needed to accommodate anchors, then assign anchors (Rule 4b)
+  for (const [nodeId, sides] of nodeSides.entries()) {
+    const node = gridNodes.get(nodeId)!;
+
+    // Check if box needs to grow for horizontal sides
+    const maxHAnchors = Math.max(sides.top.length, sides.bottom.length);
+    const minInteriorW = maxHAnchors * 2 + 1;
+    if (node.w - 2 < minInteriorW) {
+      const oldW = node.w;
+      node.w = minInteriorW + 2;
+      // Re-check centering
+      const maxTextW = Math.max(...node.lines.map(l => l.length));
+      if ((node.w - 2 - maxTextW) % 2 !== 0) node.w++;
+      // Re-center
+      node.x -= Math.floor((node.w - oldW) / 2);
+      if (node.x < 0) node.x = 0;
+    }
+
+    // Check vertical sides
+    const maxVAnchors = Math.max(sides.left.length, sides.right.length);
+    const minInteriorH = maxVAnchors * 2 + 1;
+    if (node.h - 2 < minInteriorH) {
+      const oldH = node.h;
+      node.h = minInteriorH + 2;
+      const textH = node.lines.length;
+      if ((node.h - 2 - textH) % 2 !== 0) node.h++;
+    }
+
+    // Now assign anchor positions
+    for (const side of ['top', 'bottom', 'left', 'right'] as const) {
+      const conns = sides[side];
+      if (conns.length === 0) continue;
+
+      const interior = sideLen(node, side);
+      const positions = distributeAnchors(conns.length, interior);
+
+      for (let i = 0; i < conns.length; i++) {
+        const offset = positions[i] ?? 0;
+        let anchor: Pt;
+        switch (side) {
+          case 'top':
+            anchor = { x: node.x + 1 + offset, y: node.y };
+            break;
+          case 'bottom':
+            anchor = { x: node.x + 1 + offset, y: node.y + node.h - 1 };
+            break;
+          case 'left':
+            anchor = { x: node.x, y: node.y + 1 + offset };
+            break;
+          case 'right':
+            anchor = { x: node.x + node.w - 1, y: node.y + 1 + offset };
+            break;
+        }
+        node.anchors.set(conns[i].ek, anchor);
+      }
+    }
+  }
+
+  // ════════════════════════════════════════════
+  // PHASE 3: Edge Routing (Rules 3, 4e, 5, 6)
+  // ════════════════════════════════════════════
+
+  const occ = new OccupancyTracker();
+  
+  // Register group borders as occupied segments so lines don't route ON them
+  for (const g of gridGroups.values()) {
+    occ.addH(g.y, g.x, g.x + g.w - 1, 'group-border');
+    occ.addH(g.y + g.h - 1, g.x, g.x + g.w - 1, 'group-border');
+    occ.addV(g.x, g.y, g.y + g.h - 1, 'group-border');
+    occ.addV(g.x + g.w - 1, g.y, g.y + g.h - 1, 'group-border');
   }
 
   const edgeRoutes: EdgeRoute[] = [];
+  const placedLabels: Array<{ x: number; y: number; w: number; h: number }> = [];
 
-  // Determine which edges connect to each port direction for each node
-  // to assign distinct x-columns for multiple vertical edges from the same node
-  const nodeEdgeInfo = new Map<string, { outEdges: string[]; inEdges: string[] }>();
-  for (const node of layouted.nodes) {
-    nodeEdgeInfo.set(node.id, { outEdges: [], inEdges: [] });
-  }
-  for (const edge of layouted.edges) {
-    nodeEdgeInfo.get(edge.from)?.outEdges.push(edge.to);
-    nodeEdgeInfo.get(edge.to)?.inEdges.push(edge.from);
+  /** Check if a point is inside any node's bounding box (excluding source/target). */
+  function pointInsideNode(p: Pt, excludeIds: string[]): boolean {
+    for (const n of gridNodes.values()) {
+      if (excludeIds.includes(n.id)) continue;
+      if (p.x >= n.x && p.x < n.x + n.w && p.y >= n.y && p.y < n.y + n.h) {
+        return true;
+      }
+    }
+    return false;
   }
 
-  // Track placed label positions for label-label collision detection
-  const placedLabels: Array<{ x: number; y: number; length: number }> = [];
+  /** Check if a point is on a group border. */
+  function pointOnGroupBorder(p: Pt): boolean {
+    for (const g of gridGroups.values()) {
+      const onHBorder = (p.y === g.y || p.y === g.y + g.h - 1) && p.x >= g.x && p.x <= g.x + g.w - 1;
+      const onVBorder = (p.x === g.x || p.x === g.x + g.w - 1) && p.y >= g.y && p.y <= g.y + g.h - 1;
+      if (onHBorder || onVBorder) return true;
+    }
+    return false;
+  }
+
+  /** Find a free column near preferredX for a vertical segment from minY to maxY. */
+  function findFreeCol(preferredX: number, minY: number, maxY: number, ek: string): number {
+    if (occ.isColFree(preferredX, minY, maxY) &&
+      !pathBlockedByNode(preferredX, preferredX, minY, maxY, true, [])) {
+      return preferredX;
+    }
+    for (let d = 1; d <= 30; d++) {
+      for (const sign of [1, -1]) {
+        const x = preferredX + d * sign;
+        if (x < 0) continue;
+        if (occ.isColFree(x, minY, maxY) &&
+          !pathBlockedByNode(x, x, minY, maxY, true, [])) {
+          return x;
+        }
+      }
+    }
+    return preferredX;
+  }
+
+  /** Find a free row near preferredY for a horizontal segment from minX to maxX. */
+  function findFreeRow(preferredY: number, minX: number, maxX: number, ek: string): number {
+    if (occ.isRowFree(preferredY, minX, maxX) &&
+      !pathBlockedByNode(minX, maxX, preferredY, preferredY, false, [])) {
+      return preferredY;
+    }
+    for (let d = 1; d <= 30; d++) {
+      for (const sign of [1, -1]) {
+        const y = preferredY + d * sign;
+        if (y < 0) continue;
+        if (occ.isRowFree(y, minX, maxX) &&
+          !pathBlockedByNode(minX, maxX, y, y, false, [])) {
+          return y;
+        }
+      }
+    }
+    return preferredY;
+  }
+
+  /** Check if a straight path goes through any node (other than excluded). */
+  function pathBlockedByNode(
+    x1: number, x2: number, y1: number, y2: number,
+    isVertical: boolean, excludeIds: string[],
+  ): boolean {
+    for (const n of gridNodes.values()) {
+      if (excludeIds.includes(n.id)) continue;
+      if (isVertical) {
+        const minY = Math.min(y1, y2), maxY = Math.max(y1, y2);
+        if (x1 >= n.x && x1 < n.x + n.w && maxY >= n.y && minY < n.y + n.h) {
+          return true;
+        }
+      } else {
+        const minX = Math.min(x1, x2), maxX = Math.max(x1, x2);
+        if (y1 >= n.y && y1 < n.y + n.h && maxX >= n.x && minX < n.x + n.w) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 
   for (const edge of layouted.edges) {
     const srcNode = gridNodes.get(edge.from);
     const tgtNode = gridNodes.get(edge.to);
     if (!srcNode || !tgtNode) continue;
 
-    const srcCenter = computeNodeCenter(srcNode);
-    const tgtCenter = computeNodeCenter(tgtNode);
-    const dx = Math.abs(tgtCenter.x - srcCenter.x);
-    const dy = Math.abs(tgtCenter.y - srcCenter.y);
-    const isVertical = dy >= dx;
+    const ek = edgeKey(edge.from, edge.to);
+    const srcAnchor = srcNode.anchors.get(ek);
+    const tgtAnchor = tgtNode.anchors.get(ek);
+    if (!srcAnchor || !tgtAnchor) continue;
 
-    // Determine port positions based on edge topology from ELK
-    const elkEdge = layouted.edges.find(e => e.from === edge.from && e.to === edge.to)!;
-    const startPt = elkEdge.points[0];
-    const endPt = elkEdge.points[elkEdge.points.length - 1];
-    const origSrc = layouted.nodes.find(n => n.id === edge.from)!;
-    const origTgt = layouted.nodes.find(n => n.id === edge.to)!;
+    const excludeIds = [edge.from, edge.to];
 
-    // Map the ELK port position proportionally onto the grid node
-    let exitPoint: GridPoint;
-    let entryPoint: GridPoint;
+    // Determine exit direction from anchor position
+    const srcSide = facingSide(srcNode, tgtNode);
+    const tgtSide = facingSide(tgtNode, srcNode);
 
-    if (isVertical && tgtCenter.y > srcCenter.y) {
-      // Going down
-      const srcPortFraction = (startPt.x - origSrc.x) / origSrc.measuredWidth;
-      const tgtPortFraction = (endPt.x - origTgt.x) / origTgt.measuredWidth;
-      exitPoint = {
-        x: srcNode.x + Math.round(srcPortFraction * srcNode.width),
-        y: srcNode.y + srcNode.height,
-      };
-      entryPoint = {
-        x: tgtNode.x + Math.round(tgtPortFraction * tgtNode.width),
-        y: tgtNode.y,
-      };
-    } else if (isVertical && tgtCenter.y <= srcCenter.y) {
-      // Going up
-      const srcPortFraction = (startPt.x - origSrc.x) / origSrc.measuredWidth;
-      const tgtPortFraction = (endPt.x - origTgt.x) / origTgt.measuredWidth;
-      exitPoint = {
-        x: srcNode.x + Math.round(srcPortFraction * srcNode.width),
-        y: srcNode.y - 1,
-      };
-      entryPoint = {
-        x: tgtNode.x + Math.round(tgtPortFraction * tgtNode.width),
-        y: tgtNode.y + tgtNode.height - 1,
-      };
-    } else if (tgtCenter.x > srcCenter.x) {
-      // Going right
-      const srcPortFraction = (startPt.y - origSrc.y) / origSrc.measuredHeight;
-      const tgtPortFraction = (endPt.y - origTgt.y) / origTgt.measuredHeight;
-      exitPoint = {
-        x: srcNode.x + srcNode.width,
-        y: srcNode.y + Math.round(srcPortFraction * srcNode.height),
-      };
-      entryPoint = {
-        x: tgtNode.x,
-        y: tgtNode.y + Math.round(tgtPortFraction * tgtNode.height),
-      };
-    } else {
-      // Going left
-      const srcPortFraction = (startPt.y - origSrc.y) / origSrc.measuredHeight;
-      const tgtPortFraction = (endPt.y - origTgt.y) / origTgt.measuredHeight;
-      exitPoint = {
-        x: srcNode.x - 1,
-        y: srcNode.y + Math.round(srcPortFraction * srcNode.height),
-      };
-      entryPoint = {
-        x: tgtNode.x + tgtNode.width - 1,
-        y: tgtNode.y + Math.round(tgtPortFraction * tgtNode.height),
-      };
-    }
-
-    // If the edge was perfectly vertical or horizontal in ELK space,
-    // try to preserve its straightness in grid space.
-    const isElkStraightVertical = elkEdge.points.every(p => p.x === startPt.x);
-    const isElkStraightHorizontal = elkEdge.points.every(p => p.y === startPt.y);
-
-    if (isElkStraightVertical) {
-      const minOverlapX = Math.max(srcNode.x + 1, tgtNode.x + 1);
-      const maxOverlapX = Math.min(srcNode.x + srcNode.width - 2, tgtNode.x + tgtNode.width - 2);
-      if (minOverlapX <= maxOverlapX) {
-        const x = clamp(Math.round((exitPoint.x + entryPoint.x) / 2), minOverlapX, maxOverlapX);
-        exitPoint.x = x;
-        entryPoint.x = x;
-      }
-    } else if (isElkStraightHorizontal) {
-      const minOverlapY = Math.max(srcNode.y + 1, tgtNode.y + 1);
-      const maxOverlapY = Math.min(srcNode.y + srcNode.height - 2, tgtNode.y + tgtNode.height - 2);
-      if (minOverlapY <= maxOverlapY) {
-        const y = clamp(Math.round((exitPoint.y + entryPoint.y) / 2), minOverlapY, maxOverlapY);
-        exitPoint.y = y;
-        entryPoint.y = y;
-      }
-    }
-
-    // Route the edge
-    let points: GridPoint[];
-
-    if (elkEdge.points.length === 2) {
-      // Simple direct edge - just connect exit to entry
-      points = routeOrthogonal(exitPoint, entryPoint, isVertical);
-    } else {
-      // Multi-segment edge: use the ELK routing topology but in grid coords
-      // Scale the intermediate points, keeping exit/entry anchored to nodes
-      points = [exitPoint];
-
-      for (let i = 1; i < elkEdge.points.length - 1; i++) {
-        const pt = elkEdge.points[i];
-        points.push({ x: toGridX(pt.x), y: toGridY(pt.y) });
-      }
-
-      points.push(entryPoint);
-
-      // Enforce orthogonality on consecutive point pairs
-      for (let i = 0; i < points.length - 1; i++) {
-        const p1 = points[i]!;
-        const p2 = points[i + 1]!;
-        if (p1.x !== p2.x && p1.y !== p2.y) {
-          // Need to make it orthogonal - check original orientation
-          const origP1 = elkEdge.points[i];
-          const origP2 = elkEdge.points[i + 1];
-          if (origP1 && origP2) {
-            const oDx = Math.abs(origP2.x - origP1.x);
-            const oDy = Math.abs(origP2.y - origP1.y);
-            if (oDy > oDx) {
-              // Was vertical - align x
-              p2.x = p1.x;
-            } else {
-              // Was horizontal - align y
-              p2.y = p1.y;
-            }
+    // Build the runway points (Rule 5: min 2 chars runway, but don't pierce nodes)
+    function getRunway(anchor: Pt, side: Side, maxLen: number, excludeId: string): Pt {
+      let pt: Pt = { ...anchor };
+      for (let d = 1; d <= maxLen; d++) {
+        let testPt: Pt;
+        switch (side) {
+          case 'top': testPt = { x: anchor.x, y: anchor.y - d }; break;
+          case 'bottom': testPt = { x: anchor.x, y: anchor.y + d }; break;
+          case 'left': testPt = { x: anchor.x - d, y: anchor.y }; break;
+          case 'right': testPt = { x: anchor.x + d, y: anchor.y }; break;
+        }
+        let inside = false;
+        for (const n of gridNodes.values()) {
+          if (n.id === excludeId) continue;
+          if (testPt.x >= n.x && testPt.x < n.x + n.w && testPt.y >= n.y && testPt.y < n.y + n.h) {
+            inside = true;
+            break;
           }
         }
+        if (inside) break;
+        pt = testPt;
       }
+      return pt;
     }
 
-    points = cleanSpikesAndCollinear(resolveNodeCrossings(points, gridNodes, gridGroups, edge.from, edge.to, layouted));
+    const srcRunway = getRunway(srcAnchor, srcSide, RUNWAY_LEN, edge.from);
+    const tgtRunway = getRunway(tgtAnchor, tgtSide, RUNWAY_LEN, edge.to);
 
-    if (points.length >= 1) {
-      const p0 = points[0]!;
-      let borderPoint: GridPoint;
-      if (isVertical && tgtCenter.y > srcCenter.y) {
-        borderPoint = { x: p0.x, y: p0.y - 1 };
-      } else if (isVertical && tgtCenter.y <= srcCenter.y) {
-        borderPoint = { x: p0.x, y: p0.y + 1 };
-      } else if (tgtCenter.x > srcCenter.x) {
-        borderPoint = { x: p0.x - 1, y: p0.y };
+    // Route between srcRunway and tgtRunway
+    let midPoints: Pt[] = [];
+
+    const isVerticalPrimary = srcSide === 'top' || srcSide === 'bottom';
+    const isSameAxis = (srcSide === 'top' || srcSide === 'bottom') ===
+      (tgtSide === 'top' || tgtSide === 'bottom');
+
+    if (srcRunway.x === tgtRunway.x) {
+      // Straight vertical connection
+      const col = findFreeCol(srcRunway.x, Math.min(srcRunway.y, tgtRunway.y),
+        Math.max(srcRunway.y, tgtRunway.y), ek);
+      if (col !== srcRunway.x) {
+        midPoints = [
+          { x: srcRunway.x, y: srcRunway.y },
+          { x: col, y: srcRunway.y },
+          { x: col, y: tgtRunway.y },
+          { x: tgtRunway.x, y: tgtRunway.y },
+        ];
       } else {
-        borderPoint = { x: p0.x + 1, y: p0.y };
+        midPoints = [srcRunway, tgtRunway];
       }
-      points = [borderPoint, ...points];
+    } else if (srcRunway.y === tgtRunway.y) {
+      // Straight horizontal connection
+      const row = findFreeRow(srcRunway.y, Math.min(srcRunway.x, tgtRunway.x),
+        Math.max(srcRunway.x, tgtRunway.x), ek);
+      if (row !== srcRunway.y) {
+        midPoints = [
+          { x: srcRunway.x, y: srcRunway.y },
+          { x: srcRunway.x, y: row },
+          { x: tgtRunway.x, y: row },
+          { x: tgtRunway.x, y: tgtRunway.y },
+        ];
+      } else {
+        midPoints = [srcRunway, tgtRunway];
+      }
+    } else if (isVerticalPrimary) {
+      // Vertical first, then horizontal
+      const midY = Math.round((srcRunway.y + tgtRunway.y) / 2);
+      const freeRow = findFreeRow(midY, Math.min(srcRunway.x, tgtRunway.x),
+        Math.max(srcRunway.x, tgtRunway.x), ek);
+      const freeCol1 = findFreeCol(srcRunway.x, Math.min(srcRunway.y, freeRow),
+        Math.max(srcRunway.y, freeRow), ek);
+      const freeCol2 = findFreeCol(tgtRunway.x, Math.min(tgtRunway.y, freeRow),
+        Math.max(tgtRunway.y, freeRow), ek);
+
+      midPoints = [
+        srcRunway,
+        { x: freeCol1, y: srcRunway.y },
+        { x: freeCol1, y: freeRow },
+        { x: freeCol2, y: freeRow },
+        { x: freeCol2, y: tgtRunway.y },
+        tgtRunway,
+      ];
+
+      // Simplify if columns align
+      if (freeCol1 === srcRunway.x && freeCol2 === tgtRunway.x) {
+        midPoints = [
+          srcRunway,
+          { x: srcRunway.x, y: freeRow },
+          { x: tgtRunway.x, y: freeRow },
+          tgtRunway,
+        ];
+      }
+    } else {
+      // Horizontal first, then vertical
+      const midX = Math.round((srcRunway.x + tgtRunway.x) / 2);
+      const freeCol = findFreeCol(midX, Math.min(srcRunway.y, tgtRunway.y),
+        Math.max(srcRunway.y, tgtRunway.y), ek);
+      const freeRow1 = findFreeRow(srcRunway.y, Math.min(srcRunway.x, freeCol),
+        Math.max(srcRunway.x, freeCol), ek);
+      const freeRow2 = findFreeRow(tgtRunway.y, Math.min(tgtRunway.x, freeCol),
+        Math.max(tgtRunway.x, freeCol), ek);
+
+      midPoints = [
+        srcRunway,
+        { x: srcRunway.x, y: freeRow1 },
+        { x: freeCol, y: freeRow1 },
+        { x: freeCol, y: freeRow2 },
+        { x: tgtRunway.x, y: freeRow2 },
+        tgtRunway,
+      ];
+
+      if (freeRow1 === srcRunway.y && freeRow2 === tgtRunway.y) {
+        midPoints = [
+          srcRunway,
+          { x: freeCol, y: srcRunway.y },
+          { x: freeCol, y: tgtRunway.y },
+          tgtRunway,
+        ];
+      }
     }
 
-    // Find the best segment for the label and place it avoiding collisions
-    let labelPoint: GridPoint = { x: points[0].x, y: points[0].y };
-    let labelIsHorizontal = true;
+    // Build complete path: anchor → runway → mid → runway → anchor
+    let fullPath = cleanPath([srcAnchor, ...midPoints, tgtAnchor]);
 
-    if (edge.label && points.length >= 2) {
-      const L = edge.label.length;
-      let longestLength = -1;
+    // Register occupied segments
+    for (let i = 0; i < fullPath.length - 1; i++) {
+      const a = fullPath[i]!, b = fullPath[i + 1]!;
+      if (a.x === b.x) {
+        occ.addV(a.x, a.y, b.y, ek);
+      } else if (a.y === b.y) {
+        occ.addH(a.y, a.x, b.x, ek);
+      }
+    }
+
+    // Label placement (Rule 4d)
+    const labelLines = edge.label ? wrapLabel(edge.label, totalBoxes) : [];
+    let labelPt: Pt = { x: 0, y: 0 };
+    let labelIsH = true;
+
+    if (labelLines.length > 0 && fullPath.length >= 2) {
+      const maxLabelW = Math.max(...labelLines.map(l => l.length));
+      const labelH = labelLines.length;
+
+      // Find longest segment
+      let bestLen = -1;
       let bestIdx = 0;
       let bestIsH = true;
 
-      for (let i = 0; i < points.length - 1; i++) {
-        const p1 = points[i]!;
-        const p2 = points[i + 1]!;
-        const lenX = Math.abs(p2.x - p1.x);
-        const lenY = Math.abs(p2.y - p1.y);
-        if (lenX > longestLength && lenX >= lenY) {
-          longestLength = lenX;
-          bestIdx = i;
-          bestIsH = true;
-        }
-        if (lenY > longestLength && lenY > lenX) {
-          longestLength = lenY;
-          bestIdx = i;
-          bestIsH = false;
+      for (let i = 0; i < fullPath.length - 1; i++) {
+        const a = fullPath[i]!, b = fullPath[i + 1]!;
+        const lenX = Math.abs(b.x - a.x);
+        const lenY = Math.abs(b.y - a.y);
+        if (lenX >= lenY && lenX > bestLen) {
+          bestLen = lenX; bestIdx = i; bestIsH = true;
+        } else if (lenY > lenX && lenY > bestLen) {
+          bestLen = lenY; bestIdx = i; bestIsH = false;
         }
       }
 
-      if (layouted.kind === 'database' && edge.labelPlacement?.orientation === 'vertical') {
-        const preferredIsH = edge.labelPlacement.orientation === 'horizontal';
-        const preferredLine = preferredIsH
-          ? toGridY(edge.labelPlacement.y)
-          : toGridX(edge.labelPlacement.x);
-        const preferredSpanMid = preferredIsH
-          ? toGridX(edge.labelPlacement.x + edge.labelPlacement.width / 2)
-          : toGridY(edge.labelPlacement.y);
-
-        let bestScore = Infinity;
-        for (let i = 0; i < points.length - 1; i++) {
-          const p1 = points[i]!;
-          const p2 = points[i + 1]!;
-          const isH = p1.y === p2.y;
-          const isV = p1.x === p2.x;
-          if ((preferredIsH && !isH) || (!preferredIsH && !isV)) {
-            continue;
-          }
-
-          const line = preferredIsH ? p1.y : p1.x;
-          const minSpan = preferredIsH ? Math.min(p1.x, p2.x) : Math.min(p1.y, p2.y);
-          const maxSpan = preferredIsH ? Math.max(p1.x, p2.x) : Math.max(p1.y, p2.y);
-          const spanDistance =
-            preferredSpanMid < minSpan
-              ? minSpan - preferredSpanMid
-              : preferredSpanMid > maxSpan
-                ? preferredSpanMid - maxSpan
-                : 0;
-          const score = Math.abs(line - preferredLine) * 10 + spanDistance;
-          if (score < bestScore) {
-            bestScore = score;
-            bestIdx = i;
-            bestIsH = preferredIsH;
-          }
-        }
-      }
-
-      const p1 = points[bestIdx]!;
-      const p2 = points[bestIdx + 1]!;
-      labelIsHorizontal = bestIsH;
+      const p1 = fullPath[bestIdx]!, p2 = fullPath[bestIdx + 1]!;
+      labelIsH = bestIsH;
 
       if (bestIsH) {
         const midX = Math.round((p1.x + p2.x) / 2);
-        const minSX = Math.min(p1.x, p2.x);
-        const maxSX = Math.max(p1.x, p2.x);
-        const minLabelX = minSX + 1;
-        const maxLabelX = maxSX - L - 1;
-        labelPoint = {
-          x: minLabelX <= maxLabelX
-            ? clamp(midX - Math.floor(L / 2), minLabelX, maxLabelX)
-            : maxSX - L - 1,
-          y: p1.y,
+        labelPt = {
+          x: midX - Math.floor(maxLabelW / 2),
+          y: p1.y - labelH, // above the line
         };
       } else {
         const midY = Math.round((p1.y + p2.y) / 2);
-        labelPoint = { x: p1.x + 1, y: midY };
+        labelPt = {
+          x: p1.x + 2,
+          y: midY - Math.floor(labelH / 2),
+        };
       }
 
-      // Clamp label x to be non-negative
-      if (labelPoint.x < 0) {
-        labelPoint.x = 0;
-      }
+      if (labelPt.x < 0) labelPt.x = 0;
+      if (labelPt.y < 0) labelPt.y = 0;
 
-      // Check if label collides with any node or previously-placed label
-      const labelCollides = (lp: GridPoint): boolean => {
-        if (lp.x < 0) return true;
-        const lx0 = lp.x;
-        const lx1 = lp.x + L - 1;
-        const ly = lp.y;
+      // Collision check and resolution (Rule 4d3)
+      const labelCollides = (lp: Pt): boolean => {
+        if (lp.x < 0 || lp.y < 0) return true;
+        const lx0 = lp.x, lx1 = lp.x + maxLabelW - 1;
+        const ly0 = lp.y, ly1 = lp.y + labelH - 1;
 
-        // Check against nodes
         for (const n of gridNodes.values()) {
-          if (ly >= n.y && ly < n.y + n.height) {
-            if (lx1 >= n.x && lx0 < n.x + n.width) {
-              return true;
-            }
-          }
+          if (ly1 >= n.y && ly0 < n.y + n.h && lx1 >= n.x && lx0 < n.x + n.w) return true;
         }
-
-        // Check against previously placed labels
+        for (const g of gridGroups.values()) {
+          // Check group borders
+          const gy0 = g.y, gy1 = g.y + g.h - 1, gx0 = g.x, gx1 = g.x + g.w - 1;
+          if (((ly0 <= gy0 && ly1 >= gy0) || (ly0 <= gy1 && ly1 >= gy1)) && lx1 >= gx0 && lx0 <= gx1) return true;
+          if (((lx0 <= gx0 && lx1 >= gx0) || (lx0 <= gx1 && lx1 >= gx1)) && ly1 >= gy0 && ly0 <= gy1) return true;
+        }
         for (const prev of placedLabels) {
-          if (ly === prev.y) {
-            if (lx1 >= prev.x - 1 && lx0 <= prev.x + prev.length) {
-              return true;
-            }
-          }
+          if (ly1 >= prev.y && ly0 < prev.y + prev.h && lx1 >= prev.x - 1 && lx0 <= prev.x + prev.w) return true;
         }
-
         return false;
       };
 
-      if (labelCollides(labelPoint)) {
-        let placed = false;
+      if (labelCollides(labelPt)) {
+        // Try alternative positions
+        let found = false;
+        const candidates: Pt[] = [];
 
         if (bestIsH) {
+          // Try below the line
+          candidates.push({ x: labelPt.x, y: p1.y + 1 });
+          // Try at segment ends
           const minSX = Math.min(p1.x, p2.x);
           const maxSX = Math.max(p1.x, p2.x);
-          for (const candidate of [
-            { x: maxSX + 1, y: p1.y },
-            { x: minSX - L - 1, y: p1.y },
-            { x: labelPoint.x, y: labelPoint.y - 1 },
-            { x: labelPoint.x, y: labelPoint.y + 1 },
-            { x: maxSX + 1, y: p1.y - 1 },
-            { x: maxSX + 1, y: p1.y + 1 },
-          ]) {
-            if (candidate.x >= 0 && !labelCollides(candidate)) {
-              labelPoint = candidate;
-              placed = true;
-              break;
-            }
-          }
+          candidates.push({ x: maxSX + 2, y: p1.y - Math.floor(labelH / 2) });
+          candidates.push({ x: minSX - maxLabelW - 2, y: p1.y - Math.floor(labelH / 2) });
+          candidates.push({ x: labelPt.x, y: labelPt.y - 1 });
+          candidates.push({ x: labelPt.x, y: labelPt.y + labelH + 1 });
         } else {
+          // Try left of line
+          candidates.push({ x: p1.x - maxLabelW - 1, y: labelPt.y });
+          candidates.push({ x: p1.x + 2, y: labelPt.y - 1 });
+          candidates.push({ x: p1.x + 2, y: labelPt.y + 1 });
+          // Scan along segment
           const minSY = Math.min(p1.y, p2.y);
           const maxSY = Math.max(p1.y, p2.y);
-          const midY = Math.round((p1.y + p2.y) / 2);
-          const candidatesY: number[] = [];
           for (let y = minSY; y <= maxSY; y++) {
-            candidatesY.push(y);
+            candidates.push({ x: p1.x + 2, y: y - Math.floor(labelH / 2) });
+            candidates.push({ x: p1.x - maxLabelW - 1, y: y - Math.floor(labelH / 2) });
           }
-          candidatesY.sort((a, b) => Math.abs(a - midY) - Math.abs(b - midY));
+        }
 
-          for (const tryY of candidatesY) {
-            for (const xOff of [1, 2, -L, -L - 1]) {
-              const candidate = { x: Math.max(0, p1.x + xOff), y: tryY };
-              if (!labelCollides(candidate)) {
-                labelPoint = candidate;
-                placed = true;
-                break;
+        for (const c of candidates) {
+          if (c.x >= 0 && c.y >= 0 && !labelCollides(c)) {
+            labelPt = c;
+            found = true;
+            break;
+          }
+        }
+
+        if (!found) {
+          // Spiral search
+          for (let r = 1; r <= 12 && !found; r++) {
+            for (let dx = -r; dx <= r && !found; dx++) {
+              for (const dy of [-r, r]) {
+                const c = { x: labelPt.x + dx, y: labelPt.y + dy };
+                if (c.x >= 0 && c.y >= 0 && !labelCollides(c)) {
+                  labelPt = c; found = true; break;
+                }
               }
             }
-            if (placed) break;
+            for (let dy = -r + 1; dy < r && !found; dy++) {
+              for (const dx of [-r, r]) {
+                const c = { x: labelPt.x + dx, y: labelPt.y + dy };
+                if (c.x >= 0 && c.y >= 0 && !labelCollides(c)) {
+                  labelPt = c; found = true; break;
+                }
+              }
+            }
           }
         }
       }
 
-      // Track this label for future collision checks
-      placedLabels.push({ x: labelPoint.x, y: labelPoint.y, length: L });
+      placedLabels.push({ x: labelPt.x, y: labelPt.y, w: maxLabelW, h: labelH });
     }
 
     edgeRoutes.push({
       from: edge.from,
       to: edge.to,
       label: edge.label,
-      points,
-      labelPoint,
-      labelIsHorizontal,
-      startMarker: edge.startMarker,
-      endMarker: edge.endMarker,
+      labelLines,
+      points: fullPath,
+      labelPt,
+      labelIsH,
+      startMarker: edge.startMarker ?? 'none',
+      endMarker: edge.endMarker ?? 'arrow',
     });
   }
 
-  // 5. Compute grid dimensions
-  let maxGridX = 0;
-  let maxGridY = 0;
+  // ════════════════════════════════════════════
+  // PHASE 4: Drawing
+  // ════════════════════════════════════════════
 
-  const updateMax = (x: number, y: number) => {
-    if (x > maxGridX) maxGridX = x;
-    if (y > maxGridY) maxGridY = y;
-  };
+  // Compute grid dimensions
+  let maxGX = 0, maxGY = 0;
+  const updateMax = (x: number, y: number) => { if (x > maxGX) maxGX = x; if (y > maxGY) maxGY = y; };
 
-  for (const group of gridGroups.values()) {
-    updateMax(group.x + group.width, group.y + group.height);
-  }
-
-  for (const node of gridNodes.values()) {
-    updateMax(node.x + node.width, node.y + node.height);
-  }
-
-  for (const route of edgeRoutes) {
-    for (const pt of route.points) {
-      updateMax(pt.x + 1, pt.y + 1);
-    }
-    if (route.label) {
-      updateMax(route.labelPoint.x + route.label.length + 1, route.labelPoint.y + 1);
+  for (const g of gridGroups.values()) updateMax(g.x + g.w, g.y + g.h);
+  for (const n of gridNodes.values()) updateMax(n.x + n.w, n.y + n.h);
+  for (const r of edgeRoutes) {
+    for (const p of r.points) updateMax(p.x + 1, p.y + 1);
+    if (r.labelLines.length > 0) {
+      const maxL = Math.max(...r.labelLines.map(l => l.length));
+      updateMax(r.labelPt.x + maxL + 1, r.labelPt.y + r.labelLines.length + 1);
     }
   }
 
-  const gridWidth = Math.max(maxGridX + GRID_PADDING * 2, 32);
-  const gridHeight = Math.max(maxGridY + GRID_PADDING * 2, 8);
-  const grid = createGrid(gridWidth, gridHeight);
+  const gridW = Math.max(maxGX + GRID_PADDING * 2, 32);
+  const gridH = Math.max(maxGY + GRID_PADDING * 2, 8);
+  const grid = createGrid(gridW, gridH);
 
-  // 6. Layered rendering
-  const setCharForce = (point: GridPoint, char: string): void => {
-    const row = grid[point.y];
-    if (row && point.x >= 0 && point.x < row.length) {
-      row[point.x] = char;
-    }
-  };
-
-  // Step A: Draw group boundaries
-  for (const group of gridGroups.values()) {
-    drawBox(grid, { x: group.x, y: group.y }, group.width, group.height, '', glyphs, false);
+  // Layer 1: Group borders
+  for (const g of gridGroups.values()) {
+    drawBox(grid, g.x, g.y, g.w, g.h, [], glyphs, false);
   }
 
-  // Step B: Draw edge lines below nodes so compact routes cannot overwrite labels.
+  // Layer 2: Edge line segments
   for (const route of edgeRoutes) {
     if (route.points.length < 2) continue;
-
     for (let i = 0; i < route.points.length - 1; i++) {
-      drawSegment(grid, route.points[i]!, route.points[i + 1]!, glyphs);
+      const isLast = i === route.points.length - 2;
+      drawSegment(grid, route.points[i]!, route.points[i + 1]!, glyphs, !isLast);
     }
   }
 
-  // Draw corners/elbows for all edge lines
+  // Layer 3: Edge corners
   for (const route of edgeRoutes) {
     if (route.points.length < 3) continue;
-
     for (let i = 1; i < route.points.length - 1; i++) {
-      const corner = getCornerGlyph(
-        route.points[i - 1]!,
-        route.points[i]!,
-        route.points[i + 1]!,
-        glyphs,
-      );
-      if (corner) {
-        setChar(grid, route.points[i]!, corner, glyphs);
-      }
+      const corner = getCornerGlyph(route.points[i - 1]!, route.points[i]!, route.points[i + 1]!, glyphs);
+      if (corner) setChar(grid, route.points[i]!, corner, glyphs);
     }
   }
 
-  // Step C: Draw nodes (borders + fill + labels), masking edge interiors.
+  // Layer 4: Node boxes (fill interior to mask underlying edges)
   for (const node of gridNodes.values()) {
-    drawBox(
-      grid,
-      { x: node.x, y: node.y },
-      node.width,
-      node.height,
-      node.label,
-      glyphs,
-      true,
-      node.cx,
-    );
+    drawBox(grid, node.x, node.y, node.w, node.h, node.lines, glyphs, true);
   }
 
-  // Step D: Draw edge labels above lines but below ports/markers.
+  // Layer 5: Edge labels
   for (const route of edgeRoutes) {
-    if (route.label) {
-      clearTextBackground(
-        grid,
-        route.labelPoint.x,
-        route.labelPoint.y,
-        route.label.length,
-        route.labelIsHorizontal ? 1 : 0,
-      );
-      writeText(grid, route.labelPoint.x, route.labelPoint.y, route.label);
+    if (route.labelLines.length === 0) continue;
+    const maxL = Math.max(...route.labelLines.map(l => l.length));
+    for (let j = 0; j < route.labelLines.length; j++) {
+      const line = route.labelLines[j];
+      const lx = route.labelPt.x + Math.floor((maxL - line.length) / 2);
+      const ly = route.labelPt.y + j;
+      // Clear background
+      clearRect(grid, lx - (route.labelIsH ? 1 : 0), ly,
+        line.length + (route.labelIsH ? 2 : 0), 1);
+      writeText(grid, lx, ly, line);
     }
   }
 
+  // Layer 6: Port glyphs on box borders
   for (const route of edgeRoutes) {
     const srcNode = gridNodes.get(route.from);
     const tgtNode = gridNodes.get(route.to);
-    const startPoint = route.points[0];
-    const endPoint = route.points[route.points.length - 1];
+    const startPt = route.points[0];
+    const endPt = route.points[route.points.length - 1];
 
-    if (srcNode && startPoint && (route.startMarker ?? 'none') === 'none') {
-      const glyph = nodePortGlyph(startPoint, srcNode, glyphs);
-      if (glyph) {
-        setCharForce(startPoint, glyph);
-      }
+    if (srcNode && startPt && route.startMarker === 'none') {
+      const pg = getPortGlyph(startPt, srcNode, glyphs);
+      if (pg) setForce(grid, startPt, pg);
     }
-
-    if (tgtNode && endPoint && (route.endMarker ?? 'arrow') === 'none') {
-      const glyph = nodePortGlyph(endPoint, tgtNode, glyphs);
-      if (glyph) {
-        setCharForce(endPoint, glyph);
-      }
+    if (tgtNode && endPt && route.endMarker === 'none') {
+      const pg = getPortGlyph(endPt, tgtNode, glyphs);
+      if (pg) setForce(grid, endPt, pg);
     }
   }
 
-  // Draw edge start and end markers
+  // Layer 7: Markers (arrows, circles) — Rule 4c
   for (const route of edgeRoutes) {
     if (route.points.length < 2) continue;
 
-    const startMarker = route.startMarker ?? 'none';
-    const endMarker = route.endMarker ?? 'arrow';
-
     // Start marker
-    if (startMarker !== 'none') {
-      const firstPoint = route.points[0]!;
-      let dirTarget = route.points[1]!;
+    if (route.startMarker !== 'none') {
+      const pt = route.points[0]!;
+      let dirPt = route.points[1]!;
       for (let i = 1; i < route.points.length; i++) {
-        const pt = route.points[i]!;
-        if (pt.x !== firstPoint.x || pt.y !== firstPoint.y) {
-          dirTarget = pt;
-          break;
+        if (route.points[i]!.x !== pt.x || route.points[i]!.y !== pt.y) {
+          dirPt = route.points[i]!; break;
         }
       }
-
-      let char = '';
-      if (startMarker === 'arrow') {
-        char = getArrowGlyph(dirTarget, firstPoint, glyphs);
-      } else if (startMarker === 'circle') {
-        char = glyphs.circle;
-      } else if (startMarker === 'filledCircle') {
-        char = glyphs.filledCircle;
-      }
-
-      if (char) {
-        setCharForce(firstPoint, char);
-      }
+      let ch = '';
+      if (route.startMarker === 'arrow') ch = getArrowGlyph(dirPt, pt, glyphs);
+      else if (route.startMarker === 'circle') ch = glyphs.circle;
+      else if (route.startMarker === 'filledCircle') ch = glyphs.filledCircle;
+      if (ch) setForce(grid, pt, ch);
     }
 
     // End marker
-    if (endMarker !== 'none') {
-      const lastPoint = route.points[route.points.length - 1]!;
-      let dirSource = route.points[route.points.length - 2]!;
+    if (route.endMarker !== 'none') {
+      const pt = route.points[route.points.length - 1]!;
+      let dirPt = route.points[route.points.length - 2]!;
       for (let i = route.points.length - 2; i >= 0; i--) {
-        const pt = route.points[i]!;
-        if (pt.x !== lastPoint.x || pt.y !== lastPoint.y) {
-          dirSource = pt;
-          break;
+        if (route.points[i]!.x !== pt.x || route.points[i]!.y !== pt.y) {
+          dirPt = route.points[i]!; break;
         }
       }
-
-      let char = '';
-      if (endMarker === 'arrow') {
-        char = getArrowGlyph(dirSource, lastPoint, glyphs);
-      } else if (endMarker === 'circle') {
-        char = glyphs.circle;
-      } else if (endMarker === 'filledCircle') {
-        char = glyphs.filledCircle;
-      }
-
-      if (char) {
-        setCharForce(lastPoint, char);
-      }
+      let ch = '';
+      if (route.endMarker === 'arrow') ch = getArrowGlyph(dirPt, pt, glyphs);
+      else if (route.endMarker === 'circle') ch = glyphs.circle;
+      else if (route.endMarker === 'filledCircle') ch = glyphs.filledCircle;
+      if (ch) setForce(grid, pt, ch);
     }
   }
 
-  // Step E: Draw group labels
-  for (const group of gridGroups.values()) {
-    if (!group.label) continue;
-    const gX0 = group.x;
-    const gY0 = group.y;
-    const gX1 = group.x + group.width - 1;
-    const gY1 = group.y + group.height - 1;
-    const labelY = clamp(gY0 + 1, gY0, gY1);
-    const labelX = clamp(
-      gX0 + 2,
-      gX0 + 1,
-      Math.max(gX0 + 1, gX1 - textWidth(group.label) - 1),
-    );
-    writeText(grid, labelX, labelY, group.label.slice(0, Math.max(0, gX1 - gX0 - 1)));
+  // Layer 8: Group labels
+  for (const g of gridGroups.values()) {
+    if (!g.label) continue;
+    const labelY = Math.min(g.y + 1, g.y + g.h - 1);
+    const labelX = g.x + 2;
+    const maxLen = Math.max(0, g.w - 3);
+    writeText(grid, labelX, labelY, g.label.slice(0, maxLen));
   }
 
-  return `${trimGrid(grid)}\n\n${renderLegend(layouted)}\n`;
+  // Trim and output
+  const trimmed = grid
+    .map(row => row.join('').replace(/\s+$/u, ''))
+    .join('\n')
+    .replace(/\s+$/u, '');
+
+  return `${trimmed}\n\n${renderLegend(layouted)}\n`;
 }

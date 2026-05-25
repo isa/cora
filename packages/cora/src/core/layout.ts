@@ -374,7 +374,7 @@ function buildGroupElkNode(
     id: group.id,
     layoutOptions: {
       ...baseLayoutOptions(diagram),
-      'elk.padding': '[16,16,16,16]',
+      'elk.padding': '[60,60,60,60]',
     },
     children,
   };
@@ -501,8 +501,8 @@ export async function computeLayout(input: {
 
   const nodeById = new Map(nodes.map((node) => [node.id, node]));
   const edges = buildLayoutedEdges(diagram.edges, nodeById, laidOut);
-  expandLayoutForLabeledEdges(nodes, edges, diagram.direction);
   const groups = buildGroupsFromElk(diagram, laidOut);
+  expandLayoutForLabeledEdges(nodes, edges, groups, diagram.direction);
 
   offsetDiagram(nodes, groups, edges);
   applyEdgeBridges(edges);

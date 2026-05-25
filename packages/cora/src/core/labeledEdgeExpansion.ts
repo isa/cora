@@ -4,7 +4,7 @@ import {
   edgeShaftPoints,
 } from './edgeGeometry.js';
 import { measureLabel } from './measureText.js';
-import type { Diagram, LayoutedEdge, LayoutedNode } from './types.js';
+import type { Diagram, LayoutedEdge, LayoutedNode, LayoutedGroup } from './types.js';
 
 export const LABELED_EDGE_LABEL_PADDING = 3;
 export const MIN_LABELED_EDGE_STUB = 18;
@@ -171,6 +171,7 @@ function shiftLabelSegment(edge: LayoutedEdge, axis: 'x' | 'y', delta: number): 
 function rerouteLabeledEdgesAroundNodes(
   nodes: LayoutedNode[],
   edges: LayoutedEdge[],
+  
 ): void {
   for (const edge of edges) {
     const shift = candidateSegmentShift(edge, nodes);
@@ -202,6 +203,7 @@ function updateEdgeLabelPlacement(edge: LayoutedEdge): void {
 
 function refreshShiftedEdgeLabels(
   edges: LayoutedEdge[],
+  
   shiftedNodeIds: Set<string>,
 ): void {
   for (const edge of edges) {
@@ -214,6 +216,7 @@ function refreshShiftedEdgeLabels(
 export function updateLabeledEdgePlacements(
   nodes: LayoutedNode[],
   edges: LayoutedEdge[],
+  
 ): void {
   rerouteLabeledEdgesAroundNodes(nodes, edges);
   for (const edge of edges) {
@@ -224,6 +227,8 @@ export function updateLabeledEdgePlacements(
 export function expandLayoutForLabeledEdges(
   nodes: LayoutedNode[],
   edges: LayoutedEdge[],
+  
+  groups: LayoutedGroup[],
   direction: Diagram['direction'],
 ): void {
   const nodeById = new Map(nodes.map((node) => [node.id, node]));
@@ -253,6 +258,12 @@ export function expandLayoutForLabeledEdges(
       if (node[axis] >= threshold) {
         node[axis] += delta;
         shiftedNodeIds.add(node.id);
+      }
+    }
+
+    for (const group of groups) {
+      if (group[axis] >= threshold) {
+        group[axis] += delta;
       }
     }
 
