@@ -64,8 +64,8 @@ const GLYPHS: Record<TextCharset, GlyphSet> = {
     upArrow: '▲',
     circle: 'O',
     filledCircle: '●',
-    dashH: '╌',
-    dashV: '╎',
+    dashH: '┄',
+    dashV: '┆',
     junctionDown: '┬',
     junctionUp: '┴',
     junctionLeft: '┤',
@@ -610,6 +610,34 @@ function drawBox(
   }
 }
 
+function drawGroupBox(
+  grid: string[][],
+  x0: number,
+  y0: number,
+  w: number,
+  h: number,
+  g: GlyphSet,
+): void {
+  if (w < 2 || h < 2) return;
+  const x1 = x0 + w - 1;
+  const y1 = y0 + h - 1;
+
+  setChar(grid, x0, y0, g.topLeft, g);
+  setChar(grid, x1, y0, g.topRight, g);
+  setChar(grid, x0, y1, g.bottomLeft, g);
+  setChar(grid, x1, y1, g.bottomRight, g);
+
+  for (let x = x0 + 1; x < x1; x++) {
+    setChar(grid, x, y0, g.dashH, g);
+    setChar(grid, x, y1, g.dashH, g);
+  }
+
+  for (let y = y0 + 1; y < y1; y++) {
+    setChar(grid, x0, y, g.dashV, g);
+    setChar(grid, x1, y, g.dashV, g);
+  }
+}
+
 // ── Edge drawing ──
 
 interface BoxBounds {
@@ -617,6 +645,134 @@ interface BoxBounds {
   x1: number;
   y0: number;
   y1: number;
+}
+
+type BoxSide = 'top' | 'bottom' | 'left' | 'right';
+
+interface EndpointRef {
+  edgeId: string;
+  nodeId: string;
+  otherNodeId: string;
+  isStart: boolean;
+  side: BoxSide;
+}
+
+function distributeSurfaceOffsets(count: number, length: number): number[] {
+  if (count <= 0 || length <= 0) return [];
+  if (count === 1) return [Math.floor(length / 2)];
+
+  const positions: number[] = [];
+  const offset = length / (2 * count);
+  for (let i = 0; i < count; i++) {
+    positions.push(Math.floor(offset + i * (length / count)));
+  }
+  return positions.map(pos => Math.max(0, Math.min(length - 1, pos)));
+}
+
+function sideForBoxPoint(pt: { x: number; y: number }, box: BoxBounds): BoxSide {
+  const distances: Array<{ side: BoxSide; distance: number }> = [
+    { side: 'top', distance: Math.abs(pt.y - box.y0) },
+    { side: 'bottom', distance: Math.abs(pt.y - box.y1) },
+    { side: 'left', distance: Math.abs(pt.x - box.x0) },
+    { side: 'right', distance: Math.abs(pt.x - box.x1) },
+  ];
+  distances.sort((a, b) => a.distance - b.distance);
+  return distances[0]!.side;
+}
+
+function sideForEndpoint(
+  pt: { x: number; y: number },
+  adjacent: { x: number; y: number } | undefined,
+  box: BoxBounds,
+): BoxSide {
+  if (adjacent) {
+    const dx = adjacent.x - pt.x;
+    const dy = adjacent.y - pt.y;
+    if (Math.abs(dx) > Math.abs(dy)) return dx > 0 ? 'right' : 'left';
+    if (Math.abs(dy) > 0) return dy > 0 ? 'bottom' : 'top';
+  }
+  return sideForBoxPoint(pt, box);
+}
+
+function anchorForSide(box: BoxBounds, side: BoxSide, offset: number): { x: number; y: number } {
+  switch (side) {
+    case 'top':
+      return { x: box.x0 + 1 + offset, y: box.y0 };
+    case 'bottom':
+      return { x: box.x0 + 1 + offset, y: box.y1 };
+    case 'left':
+      return { x: box.x0, y: box.y0 + 1 + offset };
+    case 'right':
+      return { x: box.x1, y: box.y0 + 1 + offset };
+  }
+}
+
+function alignAdjacentToAnchor(
+  pts: Array<{ x: number; y: number }>,
+  idx: number,
+  adjacentIdx: number,
+  side: BoxSide,
+): void {
+  const anchor = pts[idx];
+  const adjacent = pts[adjacentIdx];
+  if (!anchor || !adjacent) return;
+
+  if (side === 'top' || side === 'bottom') {
+    adjacent.x = anchor.x;
+  } else {
+    adjacent.y = anchor.y;
+  }
+}
+
+function redistributeEdgeEndpoints(
+  edgeGridPoints: Map<string, Array<{ x: number; y: number }>>,
+  endpoints: EndpointRef[],
+  nodeBoxes: Map<string, BoxBounds>,
+): void {
+  const byNodeSide = new Map<string, EndpointRef[]>();
+  for (const ref of endpoints) {
+    const key = `${ref.nodeId}:${ref.side}`;
+    const refs = byNodeSide.get(key) ?? [];
+    refs.push(ref);
+    byNodeSide.set(key, refs);
+  }
+
+  for (const refs of byNodeSide.values()) {
+    const nodeBox = nodeBoxes.get(refs[0]!.nodeId);
+    if (!nodeBox) continue;
+    const side = refs[0]!.side;
+
+    refs.sort((a, b) => {
+      const aBox = nodeBoxes.get(a.otherNodeId);
+      const bBox = nodeBoxes.get(b.otherNodeId);
+      if (!aBox || !bBox) return 0;
+      if (side === 'top' || side === 'bottom') {
+        return ((aBox.x0 + aBox.x1) / 2) - ((bBox.x0 + bBox.x1) / 2);
+      }
+      return ((aBox.y0 + aBox.y1) / 2) - ((bBox.y0 + bBox.y1) / 2);
+    });
+
+    const interiorLen = side === 'top' || side === 'bottom'
+      ? Math.max(1, nodeBox.x1 - nodeBox.x0 - 1)
+      : Math.max(1, nodeBox.y1 - nodeBox.y0 - 1);
+    const offsets = distributeSurfaceOffsets(refs.length, interiorLen);
+
+    for (let i = 0; i < refs.length; i++) {
+      const ref = refs[i]!;
+      const pts = edgeGridPoints.get(ref.edgeId);
+      if (!pts || pts.length < 2) continue;
+
+      const anchor = anchorForSide(nodeBox, side, offsets[i] ?? 0);
+      if (ref.isStart) {
+        pts[0] = anchor;
+        alignAdjacentToAnchor(pts, 0, 1, side);
+      } else {
+        const lastIdx = pts.length - 1;
+        pts[lastIdx] = anchor;
+        alignAdjacentToAnchor(pts, lastIdx, lastIdx - 1, side);
+      }
+    }
+  }
 }
 
 function adjustEdgeEndpoints(
@@ -955,6 +1111,60 @@ function placeVerticalLabelBesideLine(
   return Math.max(0, Math.min(gridW - len, lineX + 1));
 }
 
+function canPlaceGroupBorderLabel(
+  grid: string[][],
+  box: BoxBounds,
+  x: number,
+  y: number,
+  label: string,
+  g: GlyphSet,
+): boolean {
+  const row = grid[y];
+  if (!row) return false;
+  if (x <= box.x0 || x + label.length >= box.x1) return false;
+  if (row[x - 1] !== g.dashH || row[x + label.length] !== g.dashH) return false;
+
+  for (let i = 0; i < label.length; i++) {
+    if (row[x + i] !== g.dashH) return false;
+  }
+  return true;
+}
+
+function placeGroupBorderLabel(
+  grid: string[][],
+  box: BoxBounds,
+  label: string,
+  g: GlyphSet,
+): void {
+  const maxLen = Math.max(0, box.x1 - box.x0 - 3);
+  const displayLabel = label.slice(0, maxLen);
+  if (!displayLabel) return;
+
+  const yCandidates = [box.y0, box.y1];
+  for (const y of yCandidates) {
+    const centeredX = Math.round((box.x0 + box.x1 - displayLabel.length) / 2);
+    const preferred = [
+      box.x0 + 2,
+      centeredX,
+      box.x1 - displayLabel.length - 2,
+    ];
+
+    for (const x of preferred) {
+      if (canPlaceGroupBorderLabel(grid, box, x, y, displayLabel, g)) {
+        writeText(grid, x, y, displayLabel);
+        return;
+      }
+    }
+
+    for (let x = box.x0 + 2; x <= box.x1 - displayLabel.length - 1; x++) {
+      if (canPlaceGroupBorderLabel(grid, box, x, y, displayLabel, g)) {
+        writeText(grid, x, y, displayLabel);
+        return;
+      }
+    }
+  }
+}
+
 // ── Main export ──
 
 export function renderToTextFromSvg(
@@ -968,6 +1178,18 @@ export function renderToTextFromSvg(
   const mapper = buildMapper(diagram, maxWidth);
   const grid = createGrid(mapper.gridW, mapper.gridH);
 
+  const groupBoxes: Map<string, BoxBounds> = new Map();
+  for (const group of diagram.groups ?? []) {
+    const gx = mapper.toCol(group.x);
+    const gy = mapper.toRow(group.y);
+    const gw = Math.max(
+      group.label.length + 3,
+      mapper.toCol(group.x + group.width) - gx + 1,
+    );
+    const gh = Math.max(3, mapper.toRow(group.y + group.height) - gy + 1);
+    groupBoxes.set(group.id, { x0: gx, x1: gx + gw - 1, y0: gy, y1: gy + gh - 1 });
+  }
+
   const nodeBoxes: Map<string, BoxBounds> = new Map();
   for (const node of diagram.nodes) {
     const nx = mapper.toCol(node.x);
@@ -980,11 +1202,27 @@ export function renderToTextFromSvg(
     nodeBoxes.set(node.id, { x0: nx, x1: nx + nw - 1, y0: ny, y1: ny + nh - 1 });
   }
 
+  // ── Layer 1: Group boundaries ──
+  for (const group of diagram.groups ?? []) {
+    const box = groupBoxes.get(group.id);
+    if (!box) continue;
+    drawGroupBox(
+      grid,
+      box.x0,
+      box.y0,
+      box.x1 - box.x0 + 1,
+      box.y1 - box.y0 + 1,
+      g,
+    );
+  }
+
   // ── Layer 2: Edge paths (use ELK's routed points directly) ──
   const edgeGridPoints: Map<string, Array<{ x: number; y: number }>> = new Map();
+  const endpointRefs: EndpointRef[] = [];
 
   for (const edge of diagram.edges) {
     if (edge.points.length < 2) continue;
+    const edgeId = `${edge.from}->${edge.to}`;
 
     const gridPts = edge.points.map(p => ({
       x: mapper.toCol(p.x),
@@ -995,8 +1233,31 @@ export function renderToTextFromSvg(
     const toBox = nodeBoxes.get(edge.to);
     adjustEdgeEndpoints(gridPts, fromBox, toBox);
 
+    edgeGridPoints.set(edgeId, gridPts);
+    if (fromBox) {
+      endpointRefs.push({
+        edgeId,
+        nodeId: edge.from,
+        otherNodeId: edge.to,
+        isStart: true,
+        side: sideForEndpoint(gridPts[0]!, gridPts[1], fromBox),
+      });
+    }
+    if (toBox) {
+      endpointRefs.push({
+        edgeId,
+        nodeId: edge.to,
+        otherNodeId: edge.from,
+        isStart: false,
+        side: sideForEndpoint(gridPts[gridPts.length - 1]!, gridPts[gridPts.length - 2], toBox),
+      });
+    }
+  }
+
+  redistributeEdgeEndpoints(edgeGridPoints, endpointRefs, nodeBoxes);
+
+  for (const gridPts of edgeGridPoints.values()) {
     drawEdgePath(grid, gridPts, g);
-    edgeGridPoints.set(`${edge.from}->${edge.to}`, gridPts);
   }
 
   // Precompute arrow points to prevent collisions with labels
@@ -1100,7 +1361,8 @@ export function renderToTextFromSvg(
       );
     }
 
-    const ly = getSafeLabelRow(lx, rawLy, label.length, mapper.gridH, nodeBoxes, arrowPts);
+    const desiredLy = segment?.orientation === 'horizontal' ? segment.y0 : rawLy;
+    const ly = getSafeLabelRow(lx, desiredLy, label.length, mapper.gridH, nodeBoxes, arrowPts);
 
     // Clear only the label glyphs; line shoulders are restored below.
     clearRect(grid, lx, ly, label.length, 1);
@@ -1135,6 +1397,14 @@ export function renderToTextFromSvg(
     if (info.startPt) {
       setForce(grid, info.startPt.x, info.startPt.y, info.startPt.ch);
     }
+  }
+
+  // ── Layer 6: Group labels ──
+  // Group labels live on dotted group borders, but never overwrite routed edges.
+  for (const group of diagram.groups ?? []) {
+    const box = groupBoxes.get(group.id);
+    if (!box) continue;
+    placeGroupBorderLabel(grid, box, group.label, g);
   }
 
   // Trim trailing whitespace per line
