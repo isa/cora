@@ -43,6 +43,10 @@ interface GlyphSet {
   // dashed borders for groups
   dashH: string;
   dashV: string;
+  junctionDown: string;
+  junctionUp: string;
+  junctionLeft: string;
+  junctionRight: string;
 }
 
 const GLYPHS: Record<TextCharset, GlyphSet> = {
@@ -54,14 +58,18 @@ const GLYPHS: Record<TextCharset, GlyphSet> = {
     horizontal: '─',
     vertical: '│',
     cross: '┼',
-    rightArrow: '→',
-    downArrow: '↓',
-    leftArrow: '←',
-    upArrow: '↑',
+    rightArrow: '▶',
+    downArrow: '▼',
+    leftArrow: '◀',
+    upArrow: '▲',
     circle: 'O',
     filledCircle: '●',
     dashH: '╌',
     dashV: '╎',
+    junctionDown: '┬',
+    junctionUp: '┴',
+    junctionLeft: '┤',
+    junctionRight: '├',
   },
   ascii: {
     topLeft: '+',
@@ -79,6 +87,10 @@ const GLYPHS: Record<TextCharset, GlyphSet> = {
     filledCircle: '*',
     dashH: '-',
     dashV: ':',
+    junctionDown: '+',
+    junctionUp: '+',
+    junctionLeft: '+',
+    junctionRight: '+',
   },
 };
 
@@ -92,21 +104,75 @@ function inBounds(grid: string[][], x: number, y: number): boolean {
   return y >= 0 && y < grid.length && x >= 0 && x < (grid[0]?.length ?? 0);
 }
 
-function setChar(grid: string[][], x: number, y: number, ch: string, g: GlyphSet): void {
+function getJunctionChar(
+  x: number,
+  y: number,
+  nodeBoxes: Map<string, BoxBounds>,
+  g: GlyphSet,
+): string | null {
+  for (const box of nodeBoxes.values()) {
+    const isCorner =
+      (x === box.x0 && y === box.y0) ||
+      (x === box.x1 && y === box.y0) ||
+      (x === box.x0 && y === box.y1) ||
+      (x === box.x1 && y === box.y1);
+    if (isCorner) continue;
+
+    if (y === box.y0 && x > box.x0 && x < box.x1) {
+      return g.junctionDown;
+    }
+    if (y === box.y1 && x > box.x0 && x < box.x1) {
+      return g.junctionUp;
+    }
+    if (x === box.x0 && y > box.y0 && y < box.y1) {
+      return g.junctionLeft;
+    }
+    if (x === box.x1 && y > box.y0 && y < box.y1) {
+      return g.junctionRight;
+    }
+  }
+  return null;
+}
+
+function setChar(
+  grid: string[][],
+  x: number,
+  y: number,
+  ch: string,
+  g: GlyphSet,
+  nodeBoxes?: Map<string, BoxBounds>,
+): void {
   if (!inBounds(grid, x, y)) return;
   const existing = grid[y]![x]!;
-  // Never overwrite crosses
   if (existing === g.cross) return;
-  // Cross detection
-  if ((existing === g.horizontal && ch === g.vertical) ||
-      (existing === g.vertical && ch === g.horizontal)) {
+
+  if (
+    (existing === g.horizontal && ch === g.vertical) ||
+    (existing === g.vertical && ch === g.horizontal)
+  ) {
+    if (nodeBoxes) {
+      const junc = getJunctionChar(x, y, nodeBoxes, g);
+      if (junc) {
+        grid[y]![x] = junc;
+        return;
+      }
+    }
     grid[y]![x] = g.cross;
     return;
   }
-  // Don't overwrite corners with plain lines
-  const isCorner = existing === g.topLeft || existing === g.topRight ||
-    existing === g.bottomLeft || existing === g.bottomRight;
-  if (isCorner && (ch === g.horizontal || ch === g.vertical)) return;
+
+  const isCornerOrJunction =
+    existing === g.topLeft ||
+    existing === g.topRight ||
+    existing === g.bottomLeft ||
+    existing === g.bottomRight ||
+    existing === g.junctionDown ||
+    existing === g.junctionUp ||
+    existing === g.junctionLeft ||
+    existing === g.junctionRight ||
+    existing === g.cross;
+
+  if (isCornerOrJunction && (ch === g.horizontal || ch === g.vertical)) return;
   grid[y]![x] = ch;
 }
 
@@ -200,6 +266,37 @@ interface Constraint {
   idx1: number;
   idx2: number;
   minGap: number;
+  isEquality?: boolean;
+}
+
+function solveConstraints(coords: number[], constraints: Constraint[]): number[] {
+  const result = [...coords];
+  for (let iter = 0; iter < 200; iter++) {
+    let changed = false;
+
+    // 1. Monotonicity & separation constraint
+    for (let i = 1; i < result.length; i++) {
+      if (result[i]! < result[i - 1]! + 1) {
+        result[i] = result[i - 1]! + 1;
+        changed = true;
+      }
+    }
+
+    // 2. Custom gap constraints
+    for (const c of constraints) {
+      const currentGap = result[c.idx2]! - result[c.idx1]!;
+      if (currentGap < c.minGap) {
+        result[c.idx2] = result[c.idx1]! + c.minGap;
+        changed = true;
+      } else if (c.isEquality && currentGap > c.minGap) {
+        result[c.idx1] = result[c.idx2]! - c.minGap;
+        changed = true;
+      }
+    }
+
+    if (!changed) break;
+  }
+  return result;
 }
 
 function buildAxisMapper(
@@ -209,156 +306,165 @@ function buildAxisMapper(
   pad: number,
   pxMin: number,
   constraints: Constraint[],
+  maxWidth?: number,
 ): (px: number) => number {
   if (uniqueValues.length === 0) {
     return (px: number) => px;
   }
 
-  // Initialize grid coords using initialScale
-  const gridCoords = uniqueValues.map(
+  // 1. Compute relaxed coordinates using initialScale
+  const initialScaled = uniqueValues.map(
     px => Math.round((px - pxMin) * initialScale) + pad,
   );
+  const relaxedCoords = solveConstraints(initialScaled, constraints);
 
-  // Relax constraints iteratively
-  for (let iter = 0; iter < 200; iter++) {
-    let changed = false;
+  let finalCoords = relaxedCoords;
 
-    // 1. Monotonicity & separation constraint
-    for (let i = 1; i < gridCoords.length; i++) {
-      if (gridCoords[i]! < gridCoords[i - 1]! + 1) {
-        gridCoords[i] = gridCoords[i - 1]! + 1;
-        changed = true;
+  // 2. If maxWidth is defined and relaxedCoords exceeds it, compress to fit
+  if (maxWidth !== undefined && relaxedCoords.length > 0) {
+    const relaxedWidth = relaxedCoords[relaxedCoords.length - 1]! + pad;
+    if (relaxedWidth > maxWidth) {
+      // Compute the most compact coordinates possible
+      const compactBase = uniqueValues.map((_, i) => pad + i);
+      const minCoords = solveConstraints(compactBase, constraints);
+
+      const minWidth = minCoords[minCoords.length - 1]! + pad;
+      if (minWidth <= maxWidth) {
+        // Binary search for interpolation parameter t in [0, 1]
+        let low = 0;
+        let high = 1;
+        let bestCoords = minCoords;
+
+        for (let step = 0; step < 10; step++) {
+          const t = (low + high) / 2;
+          const interpolated = uniqueValues.map((_, i) =>
+            Math.round(t * relaxedCoords[i]! + (1 - t) * minCoords[i]!),
+          );
+          const solved = solveConstraints(interpolated, constraints);
+          const solvedWidth = solved[solved.length - 1]! + pad;
+
+          if (solvedWidth <= maxWidth) {
+            bestCoords = solved;
+            low = t; // try to keep more proportion
+          } else {
+            high = t; // too wide, compress more
+          }
+        }
+        finalCoords = bestCoords;
+      } else {
+        // Even the most compact version doesn't fit, use minCoords as the best effort
+        finalCoords = minCoords;
       }
     }
-
-    // 2. Custom gap constraints
-    for (const c of constraints) {
-      const currentGap = gridCoords[c.idx2]! - gridCoords[c.idx1]!;
-      if (currentGap < c.minGap) {
-        gridCoords[c.idx2] = gridCoords[c.idx1]! + c.minGap;
-        changed = true;
-      }
-    }
-
-    if (!changed) break;
   }
 
-  return createPiecewiseLinearMapper(uniqueValues, gridCoords);
+  return createPiecewiseLinearMapper(uniqueValues, finalCoords);
 }
 
 function buildMapper(diagram: LayoutedDiagram, maxWidth: number): CoordMapper {
-  // Find initial bounds from structural elements (nodes, groups, edge points)
-  let structuralMinX = Infinity, structuralMinY = Infinity;
-  let structuralMaxX = -Infinity, structuralMaxY = -Infinity;
+  // 1. Collect all original coordinates
+  const originalXs: number[] = [];
+  const originalYs: number[] = [];
 
   for (const n of diagram.nodes) {
-    structuralMinX = Math.min(structuralMinX, n.x);
-    structuralMinY = Math.min(structuralMinY, n.y);
-    structuralMaxX = Math.max(structuralMaxX, n.x + n.measuredWidth);
-    structuralMaxY = Math.max(structuralMaxY, n.y + n.measuredHeight);
+    originalXs.push(n.x, n.x + n.measuredWidth);
+    originalYs.push(n.y, n.y + n.measuredHeight);
   }
   for (const g of diagram.groups ?? []) {
-    structuralMinX = Math.min(structuralMinX, g.x);
-    structuralMinY = Math.min(structuralMinY, g.y);
-    structuralMaxX = Math.max(structuralMaxX, g.x + g.width);
-    structuralMaxY = Math.max(structuralMaxY, g.y + g.height);
+    originalXs.push(g.x, g.x + g.width);
+    originalYs.push(g.y, g.y + g.height);
   }
   for (const e of diagram.edges) {
     for (const p of e.points) {
-      structuralMinX = Math.min(structuralMinX, p.x);
-      structuralMinY = Math.min(structuralMinY, p.y);
-      structuralMaxX = Math.max(structuralMaxX, p.x);
-      structuralMaxY = Math.max(structuralMaxY, p.y);
+      originalXs.push(p.x);
+      originalYs.push(p.y);
+    }
+    if (e.label && e.labelX !== undefined && e.labelY !== undefined) {
+      originalXs.push(e.labelX);
+      originalYs.push(e.labelY);
     }
   }
 
-  if (!Number.isFinite(structuralMinX)) {
-    structuralMinX = 0; structuralMinY = 0; structuralMaxX = 100; structuralMaxY = 100;
-  }
+  const structuralMinX = Math.min(...originalXs, 0);
+  const structuralMaxX = Math.max(...originalXs, 100);
+  const structuralMinY = Math.min(...originalYs, 0);
+  const structuralMaxY = Math.max(...originalYs, 100);
 
   const PAD = 2;
   const usableW = maxWidth - PAD * 2;
 
-  // Solve scaleX and scaleY iteratively to accommodate labels
+  // Initial scales for bounds estimations
   let scaleX = usableW / Math.max(structuralMaxX - structuralMinX, 1);
+  scaleX = Math.min(0.07, scaleX); // Cap scaleX to keep small diagrams compact!
   let scaleY = scaleX * 0.5;
+  scaleY = Math.min(0.035, scaleY); // Cap scaleY to keep small diagrams compact!
 
-  let pxXs: number[] = [];
-  let pxYs: number[] = [];
-  let pxMinX = structuralMinX, pxMaxX = structuralMaxX;
-  let pxMinY = structuralMinY, pxMaxY = structuralMaxY;
-
-  for (let iter = 0; iter < 5; iter++) {
-    pxXs = [structuralMinX, structuralMaxX];
-    pxYs = [structuralMinY, structuralMaxY];
-
-    for (const n of diagram.nodes) {
-      pxXs.push(n.x, n.x + n.measuredWidth);
-      pxYs.push(n.y, n.y + n.measuredHeight);
+  // Max label extension estimations
+  let maxLabelExtendX = 0;
+  let maxLabelExtendY = 0;
+  for (const e of diagram.edges) {
+    if (e.label && e.labelX !== undefined && e.labelY !== undefined) {
+      maxLabelExtendX = Math.max(maxLabelExtendX, e.labelX + e.label.length / scaleX);
+      maxLabelExtendY = Math.max(maxLabelExtendY, e.labelY + 1 / scaleY);
     }
-    for (const g of diagram.groups ?? []) {
-      pxXs.push(g.x, g.x + g.width);
-      pxYs.push(g.y, g.y + g.height);
-      if (g.label) {
-        pxXs.push(g.x + g.label.length / scaleX);
-      }
+  }
+  for (const g of diagram.groups ?? []) {
+    if (g.label) {
+      maxLabelExtendX = Math.max(maxLabelExtendX, g.x + g.label.length / scaleX);
     }
-    for (const e of diagram.edges) {
-      for (const p of e.points) {
-        pxXs.push(p.x);
-        pxYs.push(p.y);
-      }
-      if (e.label && e.labelX !== undefined && e.labelY !== undefined) {
-        pxXs.push(e.labelX, e.labelX + e.label.length / scaleX);
-        pxYs.push(e.labelY, e.labelY + 1 / scaleY);
-      }
-    }
-
-    pxMinX = Math.min(...pxXs);
-    pxMaxX = Math.max(...pxXs);
-    pxMinY = Math.min(...pxYs);
-    pxMaxY = Math.max(...pxYs);
-
-    scaleX = usableW / Math.max(pxMaxX - pxMinX, 1);
-    scaleY = scaleX * 0.5;
   }
 
-  // 3. Deduplicate
-  const uniqueXs = deduplicateWithTolerance(pxXs, 0.1);
-  const uniqueYs = deduplicateWithTolerance(pxYs, 0.1);
+  const pxMinX = structuralMinX;
+  const pxMaxX = Math.max(structuralMaxX, maxLabelExtendX);
+  const pxMinY = structuralMinY;
+  const pxMaxY = Math.max(structuralMaxY, maxLabelExtendY);
 
-  // 4. Build constraints
+  // Push final boundaries to make sure they are in the coordinate mappers
+  originalXs.push(pxMinX, pxMaxX);
+  originalYs.push(pxMinY, pxMaxY);
+
+  // Deduplicate
+  const uniqueXs = deduplicateWithTolerance(originalXs, 0.1);
+  const uniqueYs = deduplicateWithTolerance(originalYs, 0.1);
+
+  // Build constraints
   const xConstraints: Constraint[] = [];
   const yConstraints: Constraint[] = [];
 
-  // Node width & height constraints
+  // Node width & height constraints (Locked to compact sizes using minimum constraints)
   for (const n of diagram.nodes) {
     const idx1 = findClosestIndex(uniqueXs, n.x);
     const idx2 = findClosestIndex(uniqueXs, n.x + n.measuredWidth);
-    const minGapX = n.label.length + 3; // so grid width is at least label.length + 4
+    const minGapX = n.label.length + 3; // grid width = label.length + 4
     xConstraints.push({ idx1, idx2, minGap: minGapX });
 
     const idy1 = findClosestIndex(uniqueYs, n.y);
     const idy2 = findClosestIndex(uniqueYs, n.y + n.measuredHeight);
-    const minGapY = 2; // so grid height is at least 3
+    const minGapY = 2; // grid height = 3
     yConstraints.push({ idx1: idy1, idx2: idy2, minGap: minGapY });
-  }
-
-  // Edge label width constraints
-  for (const e of diagram.edges) {
-    if (e.label && e.labelX !== undefined && e.labelY !== undefined) {
-      const idx1 = findClosestIndex(uniqueXs, e.labelX);
-      const idx2 = findClosestIndex(uniqueXs, e.labelX + e.label.length / scaleX);
-      xConstraints.push({ idx1, idx2, minGap: e.label.length });
-    }
   }
 
   // Group label width constraints
   for (const g of diagram.groups ?? []) {
     if (g.label) {
       const idx1 = findClosestIndex(uniqueXs, g.x);
-      const idx2 = findClosestIndex(uniqueXs, g.x + g.label.length / scaleX);
-      xConstraints.push({ idx1, idx2, minGap: g.label.length });
+      const idx2 = findClosestIndex(uniqueXs, g.x + g.width);
+      xConstraints.push({ idx1, idx2, minGap: g.label.length + 2 });
+    }
+  }
+
+  // Edge label width constraints (push the immediate successor coordinate out of the label text)
+  for (const e of diagram.edges) {
+    if (e.label && e.labelX !== undefined && e.labelY !== undefined) {
+      const idx1 = findClosestIndex(uniqueXs, e.labelX);
+      let successorIdx = uniqueXs.length - 1;
+      for (let i = 0; i < uniqueXs.length; i++) {
+        if (uniqueXs[i]! > e.labelX + 0.1) {
+          successorIdx = i;
+          break;
+        }
+      }
+      xConstraints.push({ idx1, idx2: successorIdx, minGap: e.label.length + 1 });
     }
   }
 
@@ -373,34 +479,40 @@ function buildMapper(diagram: LayoutedDiagram, maxWidth: number): CoordMapper {
       if (nA.x + nA.measuredWidth <= nB.x) {
         const idxA = findClosestIndex(uniqueXs, nA.x + nA.measuredWidth);
         const idxB = findClosestIndex(uniqueXs, nB.x);
-        xConstraints.push({ idx1: idxA, idx2: idxB, minGap: 2 }); // at least 2 grid units separation
+        if (idxA < idxB) {
+          xConstraints.push({ idx1: idxA, idx2: idxB, minGap: 2 });
+        }
       }
 
       // nA is completely above nB
       if (nA.y + nA.measuredHeight <= nB.y) {
         const idyA = findClosestIndex(uniqueYs, nA.y + nA.measuredHeight);
         const idyB = findClosestIndex(uniqueYs, nB.y);
-        yConstraints.push({ idx1: idyA, idx2: idyB, minGap: 2 }); // at least 2 grid units separation
+        if (idyA < idyB) {
+          yConstraints.push({ idx1: idyA, idx2: idyB, minGap: 2 });
+        }
       }
     }
   }
 
-  // 5. Build monotonic piecewise mappers
+  // Build monotonic piecewise mappers
   const mapX = buildAxisMapper(
-    pxXs,
+    originalXs,
     uniqueXs,
     scaleX,
     PAD,
     pxMinX,
     xConstraints,
+    maxWidth,
   );
   const mapY = buildAxisMapper(
-    pxYs,
+    originalYs,
     uniqueYs,
     scaleY,
     PAD,
     pxMinY,
     yConstraints,
+    undefined,
   );
 
   const toCol = (px: number) => Math.round(mapX(px));
@@ -420,6 +532,7 @@ function drawBox(
   label: string,
   g: GlyphSet,
   dashed: boolean,
+  nodeBoxes?: Map<string, BoxBounds>,
 ): void {
   if (w < 2 || h < 2) return;
   const x1 = x0 + w - 1;
@@ -429,21 +542,21 @@ function drawBox(
   const vChar = dashed ? g.dashV : g.vertical;
 
   // Corners
-  setChar(grid, x0, y0, g.topLeft, g);
-  setChar(grid, x1, y0, g.topRight, g);
-  setChar(grid, x0, y1, g.bottomLeft, g);
-  setChar(grid, x1, y1, g.bottomRight, g);
+  setChar(grid, x0, y0, g.topLeft, g, nodeBoxes);
+  setChar(grid, x1, y0, g.topRight, g, nodeBoxes);
+  setChar(grid, x0, y1, g.bottomLeft, g, nodeBoxes);
+  setChar(grid, x1, y1, g.bottomRight, g, nodeBoxes);
 
   // Horizontal borders
   for (let x = x0 + 1; x < x1; x++) {
-    setChar(grid, x, y0, hChar, g);
-    setChar(grid, x, y1, hChar, g);
+    setChar(grid, x, y0, hChar, g, nodeBoxes);
+    setChar(grid, x, y1, hChar, g, nodeBoxes);
   }
 
   // Vertical borders
   for (let y = y0 + 1; y < y1; y++) {
-    setChar(grid, x0, y, vChar, g);
-    setChar(grid, x1, y, vChar, g);
+    setChar(grid, x0, y, vChar, g, nodeBoxes);
+    setChar(grid, x1, y, vChar, g, nodeBoxes);
   }
 
   // Fill interior (mask underlying edges)
@@ -621,6 +734,26 @@ function getArrowChar(
   return dy >= 0 ? g.downArrow : g.upArrow;
 }
 
+function getArrowheadGridPt(
+  borderPt: { x: number; y: number },
+  adjacentPt: { x: number; y: number },
+): { x: number; y: number } {
+  const dx = adjacentPt.x - borderPt.x;
+  const dy = adjacentPt.y - borderPt.y;
+
+  if (Math.abs(dx) >= Math.abs(dy)) {
+    return {
+      x: borderPt.x + (dx > 0 ? 1 : dx < 0 ? -1 : 0),
+      y: borderPt.y,
+    };
+  } else {
+    return {
+      x: borderPt.x,
+      y: borderPt.y + (dy > 0 ? 1 : dy < 0 ? -1 : 0),
+    };
+  }
+}
+
 // ── Legend ──
 
 function renderLegend(diagram: LayoutedDiagram): string {
@@ -642,6 +775,52 @@ function renderLegend(diagram: LayoutedDiagram): string {
     }
   }
   return lines.join('\n');
+}
+
+function getSafeLabelRow(
+  lx: number,
+  ly: number,
+  len: number,
+  gridH: number,
+  nodeBoxes: Map<string, BoxBounds>,
+  arrowPts: Array<{ x: number; y: number }>,
+): number {
+  const maxDelta = 5;
+  for (let dy = 0; dy <= maxDelta; dy++) {
+    for (const sign of [0, -1, 1]) {
+      if (dy === 0 && sign !== 0) continue;
+      if (dy > 0 && sign === 0) continue;
+
+      const targetY = ly + dy * sign;
+      if (targetY < 0 || targetY >= gridH) continue;
+
+      // Check collision with any box
+      let collidesWithBox = false;
+      for (const box of nodeBoxes.values()) {
+        const yOverlap = targetY >= box.y0 && targetY <= box.y1;
+        const xOverlap = lx <= box.x1 && lx + len - 1 >= box.x0;
+        if (yOverlap && xOverlap) {
+          collidesWithBox = true;
+          break;
+        }
+      }
+      if (collidesWithBox) continue;
+
+      // Check collision with any arrowhead
+      let collidesWithArrow = false;
+      for (const pt of arrowPts) {
+        if (pt.y === targetY && pt.x >= lx && pt.x <= lx + len - 1) {
+          collidesWithArrow = true;
+          break;
+        }
+      }
+      if (collidesWithArrow) continue;
+
+      // Found a safe row!
+      return targetY;
+    }
+  }
+  return ly; // fallback
 }
 
 // ── Main export ──
@@ -688,6 +867,55 @@ export function renderToTextFromSvg(
     edgeGridPoints.set(`${edge.from}->${edge.to}`, gridPts);
   }
 
+  // Precompute arrow points to prevent collisions with labels
+  const edgeMarkers: Array<{
+    edgeId: string;
+    endPt?: { x: number; y: number; ch: string };
+    startPt?: { x: number; y: number; ch: string };
+  }> = [];
+  const arrowPts: Array<{ x: number; y: number }> = [];
+
+  for (const edge of diagram.edges) {
+    const pts = edgeGridPoints.get(`${edge.from}->${edge.to}`);
+    if (!pts || pts.length < 2) continue;
+
+    const markerInfo: any = { edgeId: `${edge.from}->${edge.to}` };
+
+    // End marker
+    const endMarker = edge.endMarker ?? 'arrow';
+    if (endMarker !== 'none') {
+      const endPt = pts[pts.length - 1]!;
+      const prevPt = pts[pts.length - 2]!;
+      const arrowPt = getArrowheadGridPt(endPt, prevPt);
+      let ch = '';
+      if (endMarker === 'arrow') ch = getArrowChar(prevPt, endPt, g);
+      else if (endMarker === 'circle') ch = g.circle;
+      else if (endMarker === 'filledCircle') ch = g.filledCircle;
+      if (ch) {
+        markerInfo.endPt = { ...arrowPt, ch };
+        arrowPts.push(arrowPt);
+      }
+    }
+
+    // Start marker
+    const startMarker = edge.startMarker ?? 'none';
+    if (startMarker !== 'none') {
+      const startPt = pts[0]!;
+      const nextPt = pts[1]!;
+      const arrowPt = getArrowheadGridPt(startPt, nextPt);
+      let ch = '';
+      if (startMarker === 'arrow') ch = getArrowChar(nextPt, startPt, g);
+      else if (startMarker === 'circle') ch = g.circle;
+      else if (startMarker === 'filledCircle') ch = g.filledCircle;
+      if (ch) {
+        markerInfo.startPt = { ...arrowPt, ch };
+        arrowPts.push(arrowPt);
+      }
+    }
+
+    edgeMarkers.push(markerInfo);
+  }
+
   // ── Layer 3: Node boxes (drawn after edges to mask overlaps) ──
   for (const node of diagram.nodes) {
     const box = nodeBoxes.get(node.id)!;
@@ -700,6 +928,7 @@ export function renderToTextFromSvg(
       node.label,
       g,
       false,
+      nodeBoxes,
     );
   }
 
@@ -709,8 +938,10 @@ export function renderToTextFromSvg(
     if (edge.labelX === undefined || edge.labelY === undefined) continue;
 
     const lx = mapper.toCol(edge.labelX);
-    const ly = mapper.toRow(edge.labelY);
+    const rawLy = mapper.toRow(edge.labelY);
     const label = edge.label;
+
+    const ly = getSafeLabelRow(lx, rawLy, label.length, mapper.gridH, nodeBoxes, arrowPts);
 
     // Clear a background area for the label
     clearRect(grid, lx - 1, ly, label.length + 2, 1);
@@ -718,32 +949,12 @@ export function renderToTextFromSvg(
   }
 
   // ── Layer 5: Edge markers (arrows) ──
-  for (const edge of diagram.edges) {
-    const pts = edgeGridPoints.get(`${edge.from}->${edge.to}`);
-    if (!pts || pts.length < 2) continue;
-
-    // End marker
-    const endMarker = edge.endMarker ?? 'arrow';
-    if (endMarker !== 'none') {
-      const endPt = pts[pts.length - 1]!;
-      const prevPt = pts[pts.length - 2]!;
-      let ch = '';
-      if (endMarker === 'arrow') ch = getArrowChar(prevPt, endPt, g);
-      else if (endMarker === 'circle') ch = g.circle;
-      else if (endMarker === 'filledCircle') ch = g.filledCircle;
-      if (ch) setForce(grid, endPt.x, endPt.y, ch);
+  for (const info of edgeMarkers) {
+    if (info.endPt) {
+      setForce(grid, info.endPt.x, info.endPt.y, info.endPt.ch);
     }
-
-    // Start marker
-    const startMarker = edge.startMarker ?? 'none';
-    if (startMarker !== 'none') {
-      const startPt = pts[0]!;
-      const nextPt = pts[1]!;
-      let ch = '';
-      if (startMarker === 'arrow') ch = getArrowChar(nextPt, startPt, g);
-      else if (startMarker === 'circle') ch = g.circle;
-      else if (startMarker === 'filledCircle') ch = g.filledCircle;
-      if (ch) setForce(grid, startPt.x, startPt.y, ch);
+    if (info.startPt) {
+      setForce(grid, info.startPt.x, info.startPt.y, info.startPt.ch);
     }
   }
 

@@ -14,6 +14,7 @@ import {
 } from '../../src/core/index.js';
 import type { Diagram } from '../../src/core/types.js';
 import { renderToText } from '../../src/renderer/renderToText.js';
+import { renderToTextFromSvg } from '../../src/renderer/renderToTextFromSvg.js';
 import { defaultTheme } from '../../src/renderer/themes/default.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -96,3 +97,58 @@ describe('renderToText', () => {
     expect(output).toMatchSnapshot();
   });
 });
+
+describe('renderToTextFromSvg', () => {
+  it('renders Unicode box drawing by default', async () => {
+    const layouted = await buildLayouted('minimal.yaml');
+    const output = renderToTextFromSvg(layouted);
+
+    expect(output).toContain('API');
+    expect(output).toContain('Database');
+    expect(output).toMatch(/[┌┐└┘─│]/u);
+  });
+
+  it('renders explicit ASCII output', async () => {
+    const layouted = await buildLayouted('minimal.yaml');
+    const output = renderToTextFromSvg(layouted, { charset: 'ascii' });
+
+    expect(output).toContain('API');
+    expect(output).toContain('Database');
+    expect(output).toContain('+');
+    expect(output).toContain('-');
+    expect(output).toContain('|');
+    expect(output).not.toMatch(/[┌┐└┘─│]/u);
+  });
+
+  it('uses solid triangular arrowheads in Unicode mode', async () => {
+    const layouted = await buildLayouted('minimal.yaml');
+    const output = renderToTextFromSvg(layouted, { charset: 'unicode' });
+
+    expect(output).toContain('▼');
+    expect(output).not.toMatch(/[↓v]/u);
+  });
+
+  it('uses T-junctions on node borders instead of crosses', async () => {
+    const layouted = await buildLayouted('minimal.yaml');
+    const output = renderToTextFromSvg(layouted, { charset: 'unicode' });
+
+    // The vertical line connects API bottom border and Database top border
+    expect(output).toContain('┴');
+    expect(output).toContain('┬');
+    expect(output).not.toContain('┼');
+  });
+
+  it.each([
+    'minimal.yaml',
+    'box-arrows.yaml',
+    'flowchart.yaml',
+    'database.yaml',
+    'infra.yaml',
+    'microservice.yaml',
+  ])('matches snapshot for %s', async (fixture) => {
+    const layouted = await buildLayouted(fixture);
+    const output = renderToTextFromSvg(layouted);
+    expect(output).toMatchSnapshot();
+  });
+});
+
