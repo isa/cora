@@ -104,36 +104,6 @@ function inBounds(grid: string[][], x: number, y: number): boolean {
   return y >= 0 && y < grid.length && x >= 0 && x < (grid[0]?.length ?? 0);
 }
 
-function getJunctionChar(
-  x: number,
-  y: number,
-  nodeBoxes: Map<string, BoxBounds>,
-  g: GlyphSet,
-): string | null {
-  for (const box of nodeBoxes.values()) {
-    const isCorner =
-      (x === box.x0 && y === box.y0) ||
-      (x === box.x1 && y === box.y0) ||
-      (x === box.x0 && y === box.y1) ||
-      (x === box.x1 && y === box.y1);
-    if (isCorner) continue;
-
-    if (y === box.y0 && x > box.x0 && x < box.x1) {
-      return g.junctionDown;
-    }
-    if (y === box.y1 && x > box.x0 && x < box.x1) {
-      return g.junctionUp;
-    }
-    if (x === box.x0 && y > box.y0 && y < box.y1) {
-      return g.junctionLeft;
-    }
-    if (x === box.x1 && y > box.y0 && y < box.y1) {
-      return g.junctionRight;
-    }
-  }
-  return null;
-}
-
 function setChar(
   grid: string[][],
   x: number,
@@ -143,6 +113,12 @@ function setChar(
   nodeBoxes?: Map<string, BoxBounds>,
 ): void {
   if (!inBounds(grid, x, y)) return;
+
+  if (nodeBoxes) {
+    grid[y]![x] = ch;
+    return;
+  }
+
   const existing = grid[y]![x]!;
   if (existing === g.cross) return;
 
@@ -150,13 +126,6 @@ function setChar(
     (existing === g.horizontal && ch === g.vertical) ||
     (existing === g.vertical && ch === g.horizontal)
   ) {
-    if (nodeBoxes) {
-      const junc = getJunctionChar(x, y, nodeBoxes, g);
-      if (junc) {
-        grid[y]![x] = junc;
-        return;
-      }
-    }
     grid[y]![x] = g.cross;
     return;
   }
@@ -453,7 +422,14 @@ function buildMapper(diagram: LayoutedDiagram, maxWidth: number): CoordMapper {
     }
   }
 
-  // Edge label width constraints (push the immediate successor coordinate out of the label text)
+  // Collect connected nodes to enforce general spacing
+  const connected = new Set<string>();
+  for (const e of diagram.edges) {
+    connected.add(`${e.from}->${e.to}`);
+    connected.add(`${e.to}->${e.from}`);
+  }
+
+  // Edge label width constraints (push the immediate successor coordinate out of the label text + runway)
   for (const e of diagram.edges) {
     if (e.label && e.labelX !== undefined && e.labelY !== undefined) {
       const idx1 = findClosestIndex(uniqueXs, e.labelX);
@@ -464,7 +440,30 @@ function buildMapper(diagram: LayoutedDiagram, maxWidth: number): CoordMapper {
           break;
         }
       }
-      xConstraints.push({ idx1, idx2: successorIdx, minGap: e.label.length + 1 });
+      xConstraints.push({ idx1, idx2: successorIdx, minGap: e.label.length + 4 });
+    }
+  }
+
+  // Edge arrowhead runway constraints (minimum 2-3 characters of runway before the arrowhead)
+  for (const e of diagram.edges) {
+    if (e.points.length < 2) continue;
+    const pEnd = e.points[e.points.length - 1]!;
+    const pPrev = e.points[e.points.length - 2]!;
+
+    if (Math.abs(pPrev.y - pEnd.y) < 0.1) {
+      // Horizontal segment
+      const idx1 = findClosestIndex(uniqueXs, Math.min(pPrev.x, pEnd.x));
+      const idx2 = findClosestIndex(uniqueXs, Math.max(pPrev.x, pEnd.x));
+      if (idx1 < idx2) {
+        xConstraints.push({ idx1, idx2, minGap: 4 }); // 3 characters of runway + 1 for arrowhead
+      }
+    } else if (Math.abs(pPrev.x - pEnd.x) < 0.1) {
+      // Vertical segment
+      const idy1 = findClosestIndex(uniqueYs, Math.min(pPrev.y, pEnd.y));
+      const idy2 = findClosestIndex(uniqueYs, Math.max(pPrev.y, pEnd.y));
+      if (idy1 < idy2) {
+        yConstraints.push({ idx1: idy1, idx2: idy2, minGap: 3 }); // 2 rows of runway + 1 for arrowhead
+      }
     }
   }
 
@@ -474,13 +473,15 @@ function buildMapper(diagram: LayoutedDiagram, maxWidth: number): CoordMapper {
       if (i === j) continue;
       const nA = diagram.nodes[i]!;
       const nB = diagram.nodes[j]!;
+      const isConnected = connected.has(`${nA.id}->${nB.id}`) || connected.has(`${nB.id}->${nA.id}`);
 
       // nA is completely to the left of nB
       if (nA.x + nA.measuredWidth <= nB.x) {
         const idxA = findClosestIndex(uniqueXs, nA.x + nA.measuredWidth);
         const idxB = findClosestIndex(uniqueXs, nB.x);
         if (idxA < idxB) {
-          xConstraints.push({ idx1: idxA, idx2: idxB, minGap: 2 });
+          const minGap = isConnected ? 5 : 2;
+          xConstraints.push({ idx1: idxA, idx2: idxB, minGap });
         }
       }
 
@@ -489,7 +490,8 @@ function buildMapper(diagram: LayoutedDiagram, maxWidth: number): CoordMapper {
         const idyA = findClosestIndex(uniqueYs, nA.y + nA.measuredHeight);
         const idyB = findClosestIndex(uniqueYs, nB.y);
         if (idyA < idyB) {
-          yConstraints.push({ idx1: idyA, idx2: idyB, minGap: 2 });
+          const minGap = isConnected ? 4 : 2;
+          yConstraints.push({ idx1: idyA, idx2: idyB, minGap });
         }
       }
     }

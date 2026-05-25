@@ -128,13 +128,13 @@ describe('renderToTextFromSvg', () => {
     expect(output).not.toMatch(/[↓v]/u);
   });
 
-  it('uses T-junctions on node borders instead of crosses', async () => {
+  it('does not draw any junction stems or spikes on the borders', async () => {
     const layouted = await buildLayouted('minimal.yaml');
     const output = renderToTextFromSvg(layouted, { charset: 'unicode' });
 
-    // The vertical line connects API bottom border and Database top border
-    expect(output).toContain('┴');
-    expect(output).toContain('┬');
+    // The vertical line should touch the clean box borders without junction characters
+    expect(output).not.toContain('┴');
+    expect(output).not.toContain('┬');
     expect(output).not.toContain('┼');
   });
 
