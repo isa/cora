@@ -150,6 +150,36 @@ function setForce(grid: string[][], x: number, y: number, ch: string): void {
   grid[y]![x] = ch;
 }
 
+function isLineish(ch: string, g: GlyphSet): boolean {
+  return (
+    ch === ' ' ||
+    ch === g.horizontal ||
+    ch === g.vertical ||
+    ch === g.cross ||
+    ch === g.topLeft ||
+    ch === g.topRight ||
+    ch === g.bottomLeft ||
+    ch === g.bottomRight ||
+    ch === g.junctionDown ||
+    ch === g.junctionUp ||
+    ch === g.junctionLeft ||
+    ch === g.junctionRight
+  );
+}
+
+function setLineGuard(
+  grid: string[][],
+  x: number,
+  y: number,
+  ch: string,
+  g: GlyphSet,
+): void {
+  if (!inBounds(grid, x, y)) return;
+  if (isLineish(grid[y]![x]!, g)) {
+    setChar(grid, x, y, ch, g);
+  }
+}
+
 function writeText(grid: string[][], x: number, y: number, text: string): void {
   if (!inBounds(grid, x, y)) return;
   const row = grid[y]!;
@@ -756,6 +786,16 @@ function getArrowheadGridPt(
   }
 }
 
+function getLineCharForDirection(
+  from: { x: number; y: number },
+  to: { x: number; y: number },
+  g: GlyphSet,
+): string {
+  return Math.abs(to.x - from.x) >= Math.abs(to.y - from.y)
+    ? g.horizontal
+    : g.vertical;
+}
+
 // ── Legend ──
 
 function renderLegend(diagram: LayoutedDiagram): string {
@@ -825,6 +865,96 @@ function getSafeLabelRow(
   return ly; // fallback
 }
 
+interface SegmentInfo {
+  orientation: 'horizontal' | 'vertical';
+  x0: number;
+  x1: number;
+  y0: number;
+  y1: number;
+}
+
+function findNearestSegment(
+  pts: Array<{ x: number; y: number }>,
+  lx: number,
+  ly: number,
+  len: number,
+): SegmentInfo | null {
+  let best: SegmentInfo | null = null;
+  let bestScore = Infinity;
+  const labelMidX = lx + Math.max(0, len - 1) / 2;
+
+  for (let i = 0; i < pts.length - 1; i++) {
+    const a = pts[i]!;
+    const b = pts[i + 1]!;
+    if (a.x === b.x && a.y === b.y) continue;
+
+    if (a.y === b.y) {
+      const x0 = Math.min(a.x, b.x);
+      const x1 = Math.max(a.x, b.x);
+      const dx = labelMidX < x0 ? x0 - labelMidX : labelMidX > x1 ? labelMidX - x1 : 0;
+      const score = Math.abs(ly - a.y) * 3 + dx;
+      if (score < bestScore) {
+        bestScore = score;
+        best = { orientation: 'horizontal', x0, x1, y0: a.y, y1: a.y };
+      }
+    } else if (a.x === b.x) {
+      const y0 = Math.min(a.y, b.y);
+      const y1 = Math.max(a.y, b.y);
+      const dy = ly < y0 ? y0 - ly : ly > y1 ? ly - y1 : 0;
+      const overlapsLine = lx <= a.x && a.x <= lx + len - 1 ? 0 : 1;
+      const edgeDistance = Math.min(Math.abs(lx - a.x), Math.abs(lx + len - 1 - a.x));
+      const score = dy * 3 + overlapsLine * edgeDistance;
+      if (score < bestScore) {
+        bestScore = score;
+        best = { orientation: 'vertical', x0: a.x, x1: a.x, y0, y1 };
+      }
+    }
+  }
+
+  return best;
+}
+
+function labelIntersectsBox(
+  lx: number,
+  ly: number,
+  len: number,
+  nodeBoxes: Map<string, BoxBounds>,
+): boolean {
+  for (const box of nodeBoxes.values()) {
+    if (ly >= box.y0 && ly <= box.y1 && lx <= box.x1 && lx + len - 1 >= box.x0) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function placeVerticalLabelBesideLine(
+  desiredX: number,
+  ly: number,
+  len: number,
+  lineX: number,
+  gridW: number,
+  nodeBoxes: Map<string, BoxBounds>,
+): number {
+  if (desiredX > lineX || desiredX + len - 1 < lineX) {
+    return Math.max(0, Math.min(gridW - len, desiredX));
+  }
+
+  const candidates = [
+    lineX + 2,
+    lineX - len - 1,
+    lineX + 1,
+    lineX - len,
+  ];
+
+  for (const candidate of candidates) {
+    const x = Math.max(0, Math.min(gridW - len, candidate));
+    if (!labelIntersectsBox(x, ly, len, nodeBoxes)) return x;
+  }
+
+  return Math.max(0, Math.min(gridW - len, lineX + 1));
+}
+
 // ── Main export ──
 
 export function renderToTextFromSvg(
@@ -872,8 +1002,8 @@ export function renderToTextFromSvg(
   // Precompute arrow points to prevent collisions with labels
   const edgeMarkers: Array<{
     edgeId: string;
-    endPt?: { x: number; y: number; ch: string };
-    startPt?: { x: number; y: number; ch: string };
+    endPt?: { x: number; y: number; ch: string; lineX: number; lineY: number; lineCh: string };
+    startPt?: { x: number; y: number; ch: string; lineX: number; lineY: number; lineCh: string };
   }> = [];
   const arrowPts: Array<{ x: number; y: number }> = [];
 
@@ -894,7 +1024,14 @@ export function renderToTextFromSvg(
       else if (endMarker === 'circle') ch = g.circle;
       else if (endMarker === 'filledCircle') ch = g.filledCircle;
       if (ch) {
-        markerInfo.endPt = { ...arrowPt, ch };
+        const lineCh = getLineCharForDirection(prevPt, endPt, g);
+        markerInfo.endPt = {
+          ...arrowPt,
+          ch,
+          lineX: arrowPt.x - Math.sign(endPt.x - prevPt.x),
+          lineY: arrowPt.y - Math.sign(endPt.y - prevPt.y),
+          lineCh,
+        };
         arrowPts.push(arrowPt);
       }
     }
@@ -910,7 +1047,14 @@ export function renderToTextFromSvg(
       else if (startMarker === 'circle') ch = g.circle;
       else if (startMarker === 'filledCircle') ch = g.filledCircle;
       if (ch) {
-        markerInfo.startPt = { ...arrowPt, ch };
+        const lineCh = getLineCharForDirection(nextPt, startPt, g);
+        markerInfo.startPt = {
+          ...arrowPt,
+          ch,
+          lineX: arrowPt.x - Math.sign(startPt.x - nextPt.x),
+          lineY: arrowPt.y - Math.sign(startPt.y - nextPt.y),
+          lineCh,
+        };
         arrowPts.push(arrowPt);
       }
     }
@@ -939,15 +1083,48 @@ export function renderToTextFromSvg(
     if (!edge.label) continue;
     if (edge.labelX === undefined || edge.labelY === undefined) continue;
 
-    const lx = mapper.toCol(edge.labelX);
+    let lx = mapper.toCol(edge.labelX);
     const rawLy = mapper.toRow(edge.labelY);
     const label = edge.label;
+    const pts = edgeGridPoints.get(`${edge.from}->${edge.to}`);
+    const segment = pts ? findNearestSegment(pts, lx, rawLy, label.length) : null;
+
+    if (segment?.orientation === 'vertical') {
+      lx = placeVerticalLabelBesideLine(
+        lx,
+        rawLy,
+        label.length,
+        segment.x0,
+        mapper.gridW,
+        nodeBoxes,
+      );
+    }
 
     const ly = getSafeLabelRow(lx, rawLy, label.length, mapper.gridH, nodeBoxes, arrowPts);
 
-    // Clear a background area for the label
-    clearRect(grid, lx - 1, ly, label.length + 2, 1);
+    // Clear only the label glyphs; line shoulders are restored below.
+    clearRect(grid, lx, ly, label.length, 1);
     writeText(grid, lx, ly, label);
+
+    if (segment?.orientation === 'horizontal') {
+      setLineGuard(grid, lx - 1, ly, g.horizontal, g);
+      setLineGuard(grid, lx + label.length, ly, g.horizontal, g);
+    } else if (segment?.orientation === 'vertical') {
+      setLineGuard(grid, segment.x0, ly - 1, g.vertical, g);
+      setLineGuard(grid, segment.x0, ly, g.vertical, g);
+      setLineGuard(grid, segment.x0, ly + 1, g.vertical, g);
+    }
+  }
+
+  // ── Layer 4.5: Marker runways ──
+  // Labels can occupy the cell adjacent to a marker; restore one body cell first.
+  for (const info of edgeMarkers) {
+    if (info.endPt) {
+      setLineGuard(grid, info.endPt.lineX, info.endPt.lineY, info.endPt.lineCh, g);
+    }
+    if (info.startPt) {
+      setLineGuard(grid, info.startPt.lineX, info.startPt.lineY, info.startPt.lineCh, g);
+    }
   }
 
   // ── Layer 5: Edge markers (arrows) ──

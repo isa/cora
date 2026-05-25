@@ -224,6 +224,25 @@ function setForce(grid: string[][], p: Pt, ch: string): void {
   if (row && p.x >= 0 && p.x < row.length) row[p.x] = ch;
 }
 
+function setLineGuard(grid: string[][], p: Pt, ch: string, g: GlyphSet): void {
+  const row = grid[p.y];
+  if (!row || p.x < 0 || p.x >= row.length) return;
+  const existing = row[p.x] ?? ' ';
+  const isLineish =
+    existing === ' ' ||
+    existing === g.horizontal ||
+    existing === g.vertical ||
+    existing === g.cross ||
+    existing === g.topLeft ||
+    existing === g.topRight ||
+    existing === g.bottomLeft ||
+    existing === g.bottomRight;
+
+  if (isLineish) {
+    setChar(grid, p, ch, g);
+  }
+}
+
 function writeText(grid: string[][], x: number, y: number, text: string): void {
   const row = grid[y];
   if (!row) return;
@@ -334,6 +353,44 @@ function getArrowGlyph(from: Pt, to: Pt, g: GlyphSet): string {
   return Math.abs(to.x - from.x) >= Math.abs(to.y - from.y)
     ? (to.x >= from.x ? g.rightArrow : g.leftArrow)
     : (to.y >= from.y ? g.downArrow : g.upArrow);
+}
+
+function lineGlyphBetween(a: Pt, b: Pt, g: GlyphSet): string | null {
+  if (a.x === b.x && a.y !== b.y) return g.vertical;
+  if (a.y === b.y && a.x !== b.x) return g.horizontal;
+  return null;
+}
+
+function adjacentPoint(from: Pt, toward: Pt): Pt | null {
+  const dx = Math.sign(toward.x - from.x);
+  const dy = Math.sign(toward.y - from.y);
+  if (dx === 0 && dy === 0) return null;
+  return { x: from.x + dx, y: from.y + dy };
+}
+
+function nearestVerticalSegmentX(route: EdgeRoute): number | null {
+  let bestX: number | null = null;
+  let bestDistance = Infinity;
+  const labelCenterY = route.labelPt.y + Math.floor(Math.max(0, route.labelLines.length - 1) / 2);
+
+  for (let i = 0; i < route.points.length - 1; i++) {
+    const a = route.points[i]!, b = route.points[i + 1]!;
+    if (a.x !== b.x) continue;
+    const minY = Math.min(a.y, b.y);
+    const maxY = Math.max(a.y, b.y);
+    const distance =
+      labelCenterY < minY
+        ? minY - labelCenterY
+        : labelCenterY > maxY
+          ? labelCenterY - maxY
+          : 0;
+    if (distance < bestDistance) {
+      bestDistance = distance;
+      bestX = a.x;
+    }
+  }
+
+  return bestX;
 }
 
 function getPortGlyph(p: Pt, node: GridNode, g: GlyphSet): string | null {
@@ -1069,10 +1126,6 @@ export function renderToText(
           break;
         }
       }
-      if (labelLines.join(' ') === 'retry') {
-        console.error(`Label retry: p1=${p1.x},${p1.y} p2=${p2.x},${p2.y} tryPositions=`, tryPositions, 'found=', found);
-      }
-
       if (!found) {
         // Spiral search fallback (try expanding outwards up to radius 12)
         for (let r = 1; r <= 12 && !found; r++) {
@@ -1181,6 +1234,29 @@ export function renderToText(
     }
   }
 
+  // Layer 5.5: Label shoulder guards.
+  // Keep at least one route-line character before and after visible labels.
+  for (const route of edgeRoutes) {
+    if (route.labelLines.length === 0) continue;
+    const maxL = Math.max(...route.labelLines.map(l => l.length));
+
+    if (route.labelIsH) {
+      for (let j = 0; j < route.labelLines.length; j++) {
+        const line = route.labelLines[j]!;
+        const lx = route.labelPt.x + Math.floor((maxL - line.length) / 2);
+        const ly = route.labelPt.y + j;
+        setLineGuard(grid, { x: lx - 1, y: ly }, glyphs.horizontal, glyphs);
+        setLineGuard(grid, { x: lx + line.length, y: ly }, glyphs.horizontal, glyphs);
+      }
+    } else {
+      const lineX = nearestVerticalSegmentX(route);
+      if (lineX !== null) {
+        setLineGuard(grid, { x: lineX, y: route.labelPt.y - 1 }, glyphs.vertical, glyphs);
+        setLineGuard(grid, { x: lineX, y: route.labelPt.y + route.labelLines.length }, glyphs.vertical, glyphs);
+      }
+    }
+  }
+
   // Layer 6: Port glyphs on box borders
   for (const route of edgeRoutes) {
     const srcNode = gridNodes.get(route.from);
@@ -1195,6 +1271,43 @@ export function renderToText(
     if (tgtNode && endPt && route.endMarker === 'none') {
       const pg = getPortGlyph(endPt, tgtNode, glyphs);
       if (pg) setForce(grid, endPt, pg);
+    }
+  }
+
+  // Layer 6.5: Runway guards.
+  // Keep at least one visible line cell after source anchors and before markers.
+  for (const route of edgeRoutes) {
+    if (route.points.length < 2) continue;
+
+    const startPt = route.points[0]!;
+    const startNext = route.points.find((pt, i) =>
+      i > 0 && (pt.x !== startPt.x || pt.y !== startPt.y),
+    );
+    if (startNext) {
+      const guard = adjacentPoint(startPt, startNext);
+      const glyph = guard ? lineGlyphBetween(startPt, guard, glyphs) : null;
+      if (guard && glyph) setLineGuard(grid, guard, glyph, glyphs);
+    }
+
+    const endPt = route.points[route.points.length - 1]!;
+    let endPrev: Pt | undefined;
+    for (let i = route.points.length - 2; i >= 0; i--) {
+      const pt = route.points[i]!;
+      if (pt.x !== endPt.x || pt.y !== endPt.y) {
+        endPrev = pt;
+        break;
+      }
+    }
+    if (endPrev && route.endMarker !== 'none') {
+      const guard = adjacentPoint(endPt, endPrev);
+      const glyph = guard ? lineGlyphBetween(endPt, guard, glyphs) : null;
+      if (guard && glyph) setLineGuard(grid, guard, glyph, glyphs);
+    }
+
+    if (startNext && route.startMarker !== 'none') {
+      const guard = adjacentPoint(startPt, startNext);
+      const glyph = guard ? lineGlyphBetween(startPt, guard, glyphs) : null;
+      if (guard && glyph) setLineGuard(grid, guard, glyph, glyphs);
     }
   }
 
