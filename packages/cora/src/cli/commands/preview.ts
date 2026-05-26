@@ -59,9 +59,7 @@ export function registerPreviewCommand(
         open: options.open,
       });
 
-      process.stdout.write(
-        `Cora preview running at ${server.url} (${server.vite ? 'source' : 'built'})\n`,
-      );
+      process.stdout.write(`Cora preview running at ${server.url}\n`);
 
       if (options.open) {
         await open(server.url);

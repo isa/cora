@@ -1,25 +1,50 @@
 import { useState, type ReactNode } from 'react';
 
-import { displayNameForComponent, layerNodeTitle } from '../pack/displayNames.js';
-import { catalogItems } from '../pack/catalogItems.js';
 import type { WorkbenchState } from '../state.js';
+import { selectCanvasItem } from '../state.js';
+
+export interface CatalogItem {
+  id: string;
+  label: string;
+  family: string;
+}
 
 interface CatalogSidebarProps {
   state: WorkbenchState;
+  searchQuery?: string;
   onSelectItem?(selection: WorkbenchState['selected']): void;
   isOpen: boolean;
   onClose(): void;
 }
 
-export function CatalogSidebar({
-  state,
-  onSelectItem,
-  isOpen,
-  onClose,
-}: CatalogSidebarProps) {
-  const [areLayersOpen, setAreLayersOpen] = useState(true);
+export function catalogItems(state: WorkbenchState): CatalogItem[] {
+  return [
+    ...state.pack.components
+      .filter((component) => component.id !== 'shape')
+      .map((component) => ({
+        id: component.id,
+        label: component.label,
+        family: state.pack.families.find((item) => item.id === component.family)?.label ?? component.family,
+      })),
+    { id: 'group', label: 'Group', family: 'Layout' },
+  ];
+}
+
+export function filterComponents(state: WorkbenchState, query: string) {
+  const needle = query.trim().toLowerCase();
+  const items = catalogItems(state);
+  if (!needle) {
+    return items;
+  }
+  return items.filter((component) =>
+    `${component.label} ${component.id} ${component.family}`.toLowerCase().includes(needle),
+  );
+}
+
+export function CatalogSidebar({ state, searchQuery = '', onSelectItem, isOpen, onClose }: CatalogSidebarProps) {
+  const components = filterComponents(state, searchQuery);
+  const [areLayersOpen, setAreLayersOpen] = useState(false);
   const [areComponentsOpen, setAreComponentsOpen] = useState(true);
-  const components = catalogItems(state);
 
   return (
     <aside className={`catalog-panel ${!isOpen ? 'collapsed' : ''}`} aria-label="Catalog">
@@ -31,7 +56,6 @@ export function CatalogSidebar({
       >
         <span className="material-symbols-outlined">close</span>
       </button>
-
       <section className={`sidebar-section layers-section ${!areLayersOpen ? 'collapsed' : ''}`} aria-label="Canvas layers">
         <button
           type="button"
@@ -53,21 +77,20 @@ export function CatalogSidebar({
               <p className="catalog-empty">Drop components onto the canvas.</p>
             ) : null}
             {state.nodes.map((node) => {
+              const definition = state.pack.components.find((component) => component.id === node.componentId);
+              const label = visibleComponentLabel(definition?.label ?? node.componentId);
               const selected = state.selected?.kind === 'node' && state.selected.id === node.id;
-              const title = layerNodeTitle(node.componentId, node.props);
               return (
                 <button
                   key={node.id}
                   type="button"
-                  role="listitem"
                   className={selected ? 'component-tile component-tile-selected' : 'component-tile'}
-                  onClick={() => onSelectItem?.({ kind: 'node', id: node.id })}
+                  onClick={() => onSelectItem?.(selectCanvasItem(state, { kind: 'node', id: node.id }).selected)}
                 >
-                  <span className="component-icon" aria-hidden="true">
-                    {componentIcon(node.componentId)}
-                  </span>
+                  <span className="material-symbols-outlined layer-chevron" aria-hidden="true">chevron_right</span>
+                  <span className="component-icon" aria-hidden="true">{componentIcon(node.componentId)}</span>
                   <span className="component-copy">
-                    <strong>{title}</strong>
+                    <strong>{String(node.props.title ?? node.props.text ?? label)}</strong>
                   </span>
                 </button>
               );
@@ -78,15 +101,13 @@ export function CatalogSidebar({
                 <button
                   key={group.id}
                   type="button"
-                  role="listitem"
                   className={selected ? 'component-tile component-tile-selected' : 'component-tile'}
-                  onClick={() => onSelectItem?.({ kind: 'group', id: group.id })}
+                  onClick={() => onSelectItem?.(selectCanvasItem(state, { kind: 'group', id: group.id }).selected)}
                 >
-                  <span className="component-icon" aria-hidden="true">
-                    {componentIcon('group')}
-                  </span>
+                  <span className="material-symbols-outlined layer-chevron" aria-hidden="true">chevron_right</span>
+                  <span className="component-icon" aria-hidden="true">{componentIcon('group')}</span>
                   <span className="component-copy">
-                    <strong>{group.label?.trim() || 'Group'}</strong>
+                    <strong>{group.label}</strong>
                   </span>
                 </button>
               );
@@ -94,7 +115,6 @@ export function CatalogSidebar({
           </div>
         ) : null}
       </section>
-
       <section className={`sidebar-section catalog-body ${!areComponentsOpen ? 'collapsed' : ''}`}>
         <button
           type="button"
@@ -112,6 +132,9 @@ export function CatalogSidebar({
         </button>
         {areComponentsOpen ? (
           <div className="component-grid" role="list" aria-label="Components">
+            {components.length === 0 ? (
+              <p className="catalog-empty">No matching components.</p>
+            ) : null}
             {components.map((component) => (
               <button
                 key={component.id}
@@ -119,29 +142,13 @@ export function CatalogSidebar({
                 className="component-tile"
                 draggable
                 onDragStart={(event) => {
-                  if (component.provider && component.service) {
-                    event.dataTransfer.setData(
-                      'application/x-cora-icon',
-                      JSON.stringify({ provider: component.provider, service: component.service }),
-                    );
-                  } else {
-                    event.dataTransfer.setData('application/x-cora-component', component.id);
-                  }
+                  event.dataTransfer.setData('application/x-cora-component', component.id);
                   event.dataTransfer.effectAllowed = 'copy';
                 }}
               >
-                <span className="component-icon" aria-hidden="true">
-                  {component.provider && component.service ? (
-                    <img
-                      src={`/icon-packs/${component.provider}/icons/${component.service}.svg`}
-                      alt=""
-                      className="component-icon-img"
-                      loading="lazy"
-                    />
-                  ) : componentIcon(component.id)}
-                </span>
+                <span className="component-icon" aria-hidden="true">{componentIcon(component.id)}</span>
                 <span className="component-copy">
-                  <strong>{component.label}</strong>
+                  <strong>{visibleComponentLabel(component.label)}</strong>
                 </span>
               </button>
             ))}
@@ -152,32 +159,39 @@ export function CatalogSidebar({
   );
 }
 
-function componentIcon(id: string): ReactNode {
-  const icon = componentLibraryIcon(id);
-  if (icon) {
-    return (
-      <img
-        src={`/icon-packs/${icon.provider}/icons/${icon.service}.svg`}
-        alt=""
-        className="component-library-icon-img"
-        loading="lazy"
-      />
-    );
-  }
-
-  return <span className="catalog-icon-shape catalog-icon-box" />;
+function visibleComponentLabel(label: string): string {
+  const labels: Record<string, string> = {
+    BoxNode: 'Process Box',
+    LabelNode: 'Text Label',
+    IconNode: 'Start/End Terminal',
+    LabelIconNode: 'Data Input',
+    DecisionNode: 'Decision Diamond',
+    Group: 'Group',
+  };
+  return labels[label] ?? (label.endsWith('Node') ? label.slice(0, -4) : label);
 }
 
-function componentLibraryIcon(id: string): { provider: string; service: string } | undefined {
-  const icons: Record<string, { provider: string; service: string }> = {
-    box: { provider: 'default', service: 'check-box-outline-blank' },
-    label: { provider: 'default', service: 'title' },
-    icon: { provider: 'default', service: 'category' },
-    labelIcon: { provider: 'default', service: 'label' },
-    website: { provider: 'default', service: 'web' },
-    page: { provider: 'default', service: 'article' },
-    app: { provider: 'default', service: 'apps' },
-    group: { provider: 'default', service: 'workspaces' },
-  };
-  return icons[id];
+function componentIcon(id: string): ReactNode {
+  if (id === 'group') {
+    return <span className="catalog-icon-shape catalog-icon-group" />;
+  }
+  if (id === 'decision') {
+    return <span className="catalog-icon-shape catalog-icon-diamond" />;
+  }
+  if (id === 'labelIcon') {
+    return <span className="catalog-icon-shape catalog-icon-brackets">{'{ }'}</span>;
+  }
+  if (id === 'icon') {
+    return <span className="catalog-icon-shape catalog-icon-circle" />;
+  }
+  if (id === 'website' || id === 'page' || id === 'app') {
+    return <span className="catalog-icon-shape catalog-icon-window" />;
+  }
+  if (id === 'label') {
+    return <span className="catalog-icon-shape catalog-icon-label">T</span>;
+  }
+  if (id === 'issue') {
+    return <span className="catalog-icon-shape catalog-icon-issue">!</span>;
+  }
+  return <span className="catalog-icon-shape catalog-icon-box" />;
 }

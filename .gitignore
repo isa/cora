@@ -81,11 +81,6 @@ out
 # Nuxt.js build / generate output
 .nuxt
 dist
-# Preview workbench build output (dev-only, not published)
-preview-dist
-
-# Local Material Symbols catalog for picking/syncing default icons (not published)
-packages/cora/src/renderer/assets/icons/material-design/
 .output
 
 # Gatsby files

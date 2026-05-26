@@ -83,36 +83,19 @@ describe('preview geometry', () => {
     expect(grown.height).toBeGreaterThan(base.height);
   });
 
-  it('scales icon glyph by preset and reserves space for title and subtitle', () => {
+  it('keeps icon and label-icon size presets square and tight', () => {
     const iconState = addNodeToCanvas(createDefaultWorkbenchState(), 'icon', { x: 0, y: 0 });
     const labelIconState = addNodeToCanvas(createDefaultWorkbenchState(), 'labelIcon', { x: 0, y: 0 });
 
-    const md = previewNodeSize(iconState.nodes[0]!);
-    const sm = previewNodeSize({
+    expect(previewNodeSize(iconState.nodes[0]!)).toEqual({ width: 40, height: 40 });
+    expect(previewNodeSize({
       ...iconState.nodes[0]!,
       props: { ...iconState.nodes[0]!.props, size: 'sm' },
-    });
-    const lg = previewNodeSize({
-      ...iconState.nodes[0]!,
-      props: { ...iconState.nodes[0]!.props, size: 'lg' },
-    });
-
-    expect(md.height).toBeGreaterThan(48);
-    expect(sm.height).toBeLessThan(md.height);
-    expect(lg.height).toBeGreaterThan(md.height);
-    expect(sm.height).toBe(md.height - 24);
-    expect(lg.height).toBe(md.height + 24);
-    expect(
-      previewNodeSize({
-        ...labelIconState.nodes[0]!,
-        props: { ...labelIconState.nodes[0]!.props, size: 'lg' },
-      }).width,
-    ).toBeGreaterThan(
-      previewNodeSize({
-        ...labelIconState.nodes[0]!,
-        props: { ...labelIconState.nodes[0]!.props, size: 'sm' },
-      }).width,
-    );
+    })).toEqual({ width: 28, height: 28 });
+    expect(previewNodeSize({
+      ...labelIconState.nodes[0]!,
+      props: { ...labelIconState.nodes[0]!.props, size: 'lg' },
+    })).toEqual({ width: 56, height: 56 });
   });
 
   it('centers attached labels on their connection path', () => {
@@ -154,22 +137,6 @@ describe('preview geometry', () => {
     expect(box.x + box.width / 2).toBeLessThan(source.x + source.width + 60);
   });
 
-  it('anchors icon-node connections to the glyph instead of the title/subtitle bounds', () => {
-    const state = addNodeToCanvas(
-      addNodeToCanvas(createDefaultWorkbenchState(), 'box', { x: 100, y: 120 }),
-      'icon',
-      { x: 420, y: 120 },
-    );
-    const icon = state.nodes.at(-1)!;
-    const iconBox = computeNodeBox(state, icon.id)!;
-    const points = computeConnectionPoints(state, state.connections[0]!);
-    const target = points.at(-1)!;
-
-    expect(iconBox.height).toBeGreaterThan(48);
-    expect(target.y).toBe(icon.position.y + 24);
-    expect(target.y).toBeLessThan(iconBox.y + iconBox.height / 2);
-  });
-
   it('distributes same-side connection anchors across unique points', () => {
     const connected = addNodeToCanvas(
       addNodeToCanvas(
@@ -182,7 +149,7 @@ describe('preview geometry', () => {
     );
     const state = addNodeToCanvas(
       selectCanvasItem(connected, { kind: 'node', id: connected.nodes[0]!.id }),
-      'icon',
+      'issue',
       { x: 430, y: 220 },
     );
     const first = computeConnectionPoints(state, state.connections[0]!)[0]!;
@@ -205,22 +172,5 @@ describe('preview geometry', () => {
     });
 
     expect(visible.at(-1)).toEqual({ x: 110, y: 20 });
-  });
-
-  it('pulls circle marker endpoints back so the shaft does not show through marker bodies', () => {
-    const points = [
-      { x: 0, y: 20 },
-      { x: 100, y: 20 },
-    ];
-    const visible = applyConnectionMarkerInsets(points, {
-      startMarker: 'circle',
-      endMarker: 'filledCircle',
-      arrowSize: 10,
-    });
-
-    expect(visible[0]!.x).toBeCloseTo(4.35, 2);
-    expect(visible[0]!.y).toBe(20);
-    expect(visible.at(-1)!.x).toBeCloseTo(96.4, 2);
-    expect(visible.at(-1)!.y).toBe(20);
   });
 });

@@ -15,13 +15,15 @@ import type { DiagramNode, MeasuredNode } from './types.js';
 const FONT_SIZE_BY_ROLE = { node: NODE_TITLE_SIZE, edge: EDGE_LABEL_SIZE } as const;
 const NODE_PADDING_X = 14;
 const NODE_PADDING_Y = 8;
+const DECISION_EXTRA_PADDING_Y = 10;
 const ICON_LABEL_EXTRA_WIDTH = 40;
 const COMPONENT_MIN_SIZE = {
-  app: { width: 96, height: 128 },
+  app: { width: 128, height: 68 },
   icon: { width: 48, height: 48 },
+  issue: { width: 128, height: 56 },
   labelIcon: { width: 128, height: 56 },
   page: { width: 144, height: 100 },
-  website: { width: 144, height: 160 },
+  website: { width: 144, height: 68 },
 } as const;
 
 function resolveFontPath(filename: string): string {
@@ -120,8 +122,15 @@ export function measureNodes(nodes: DiagramNode[]): MeasuredNode[] {
 
     const component = node.component ?? 'box';
 
-    if (component === 'labelIcon') {
+    if (component === 'issue' || component === 'labelIcon') {
       measuredWidth += ICON_LABEL_EXTRA_WIDTH;
+    }
+
+    if (component === 'decision') {
+      measuredHeight = height + (NODE_PADDING_Y + DECISION_EXTRA_PADDING_Y) * 2;
+      const side = Math.max(measuredWidth, measuredHeight);
+      measuredWidth = side;
+      measuredHeight = side;
     }
 
     const minSize = COMPONENT_MIN_SIZE[component as keyof typeof COMPONENT_MIN_SIZE];

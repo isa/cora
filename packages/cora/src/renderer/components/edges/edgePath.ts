@@ -23,10 +23,6 @@ const EDGE_CIRCLE_FILL_RADIUS = EDGE_MARKER_SIZE * 0.36;
 const EDGE_CIRCLE_STROKE_WIDTH = 1.5;
 const EDGE_CIRCLE_OUTER_RADIUS = EDGE_CIRCLE_FILL_RADIUS + EDGE_CIRCLE_STROKE_WIDTH / 2;
 const EDGE_FILLED_CIRCLE_RADIUS = EDGE_CIRCLE_FILL_RADIUS;
-const EDGE_DIAMOND_OUTER_RADIUS = EDGE_MARKER_SIZE / 2 + EDGE_CIRCLE_STROKE_WIDTH / 2;
-const EDGE_FILLED_DIAMOND_RADIUS = EDGE_MARKER_SIZE / 2;
-const EDGE_SQUARE_OUTER_RADIUS = EDGE_MARKER_SIZE * 0.36 + EDGE_CIRCLE_STROKE_WIDTH / 2;
-const EDGE_FILLED_SQUARE_RADIUS = EDGE_MARKER_SIZE * 0.36;
 
 type SegmentDecoration =
   | { kind: 'gap'; center: number; halfSpan: number }
@@ -79,22 +75,6 @@ function markerAnchorOffset(marker: LayoutedEdge['startMarker']): number {
     return EDGE_FILLED_CIRCLE_RADIUS;
   }
 
-  if (marker === 'diamond') {
-    return EDGE_DIAMOND_OUTER_RADIUS;
-  }
-
-  if (marker === 'filledDiamond') {
-    return EDGE_FILLED_DIAMOND_RADIUS;
-  }
-
-  if (marker === 'square') {
-    return EDGE_SQUARE_OUTER_RADIUS;
-  }
-
-  if (marker === 'filledSquare') {
-    return EDGE_FILLED_SQUARE_RADIUS;
-  }
-
   return 0;
 }
 
@@ -109,22 +89,6 @@ function markerShaftTrim(marker: LayoutedEdge['startMarker']): number {
 
   if (marker === 'filledCircle') {
     return EDGE_FILLED_CIRCLE_RADIUS;
-  }
-
-  if (marker === 'diamond') {
-    return EDGE_DIAMOND_OUTER_RADIUS;
-  }
-
-  if (marker === 'filledDiamond') {
-    return EDGE_FILLED_DIAMOND_RADIUS;
-  }
-
-  if (marker === 'square') {
-    return EDGE_SQUARE_OUTER_RADIUS;
-  }
-
-  if (marker === 'filledSquare') {
-    return EDGE_FILLED_SQUARE_RADIUS;
   }
 
   return 0;

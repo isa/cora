@@ -9,16 +9,12 @@ diagram:
       label: Load Input
     - id: check
       label: Valid?
-      component: labelIcon
-      provider: default
-      service: help
+      component: decision
     - id: process
       label: Process
     - id: reject
       label: Reject
-      component: icon
-      provider: default
-      service: error
+      component: issue
     - id: end
       label: Done
   edges:

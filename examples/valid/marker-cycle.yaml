@@ -7,17 +7,13 @@ diagram:
       label: Draft
     - id: validate
       label: Validate
-      component: labelIcon
-      provider: default
-      service: rule
+      component: decision
     - id: publish
       label: Publish
       component: app
     - id: revise
       label: Revise
-      component: icon
-      provider: default
-      service: edit
+      component: issue
   edges:
     - from: draft
       to: validate

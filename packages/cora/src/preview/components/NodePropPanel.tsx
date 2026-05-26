@@ -68,19 +68,29 @@ export function NodePropPanel({ state, nodeId, onPropChange }: NodePropPanelProp
   );
 }
 
-const CONTENT_KEYS = ['title', 'subtitle', 'text', 'iconType', 'type', 'icon', 'provider', 'service'];
+export function visibleComponentLabel(label: string): string {
+  const labels: Record<string, string> = {
+    BoxNode: 'Process Box',
+    LabelNode: 'Text Label',
+    IconNode: 'Start/End Terminal',
+    LabelIconNode: 'Data Input',
+    DecisionNode: 'Decision Diamond',
+    Group: 'Group',
+  };
+  return labels[label] ?? (label.endsWith('Node') ? label.slice(0, -4) : label);
+}
+
+const CONTENT_KEYS = ['title', 'subtitle', 'text', 'iconType', 'type', 'icon'];
 const LAYOUT_KEYS = ['size', 'radius', 'borderStyle', 'borderWidth', 'borderColor'];
 const STYLE_KEYS = [
   'backgroundColor',
   'textColor',
   'subtitleColor',
-  'skeletonColor',
   'titleFontSize',
   'subtitleFontSize',
   'shadow',
   'shadowColor',
   'iconColor',
-  'strokeColor',
   'skeletonColorDark',
   'skeletonColorLight',
 ];

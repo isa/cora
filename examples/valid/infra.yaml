@@ -7,8 +7,6 @@ diagram:
     - id: dns
       label: Global DNS
       component: website
-      style:
-        fill: "#16a7e0"
     - id: vpc-east
       label: VPC East
       component: app

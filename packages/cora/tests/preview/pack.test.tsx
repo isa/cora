@@ -9,16 +9,17 @@ describe('built-in preview pack', () => {
     expect(builtInPack.id).toBe('built-ins');
     expect(ids).toEqual(
       expect.arrayContaining([
-        'Box',
-        'Label',
-        'Icon',
-        'Icon Label',
-        'Website',
-        'Page',
-        'App',
+        'BoxNode',
+        'LabelNode',
+        'IconNode',
+        'WebsiteNode',
+        'PageNode',
+        'AppNode',
+        'DecisionNode',
+        'IssueNode',
+        'ShapeNode',
       ]),
     );
-    expect(ids).toHaveLength(7);
     expect(ids).not.toContain('Group');
     expect(ids).not.toContain('Line');
   });

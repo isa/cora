@@ -1,5 +1,0 @@
-dist/commands
-dist/commands/**
-dist/preview-*.js
-preview-dist
-preview-dist/**

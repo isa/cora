@@ -14,7 +14,7 @@ describe('preview visual contract', () => {
 
     expect(markup).toContain('Components');
     expect(markup).toContain('Layers');
-    expect(markup).toContain('Search icons');
+    expect(markup).toContain('Search components...');
     expect(markup).toContain('Design');
     expect(markup).toContain('Inspector');
     expect(markup).toContain('Style');

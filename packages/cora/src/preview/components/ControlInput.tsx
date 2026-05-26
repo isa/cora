@@ -57,29 +57,8 @@ interface ControlInputProps {
 export function ControlInput({ control, value, onChange, showColorSwatches = false }: ControlInputProps) {
   if (control.kind === 'enum') {
     const current = String(value ?? control.options[0]);
-    const display = control.display ?? 'segmented';
-
-    if (display === 'select') {
-      return (
-        <label className={`field compact field-enum field-enum-select field-enum-${String(control.key)}`}>
-          <span>{control.label}</span>
-          <Select
-            value={current}
-            onChange={(event) => onChange(event.currentTarget.value)}
-            aria-label={control.label}
-          >
-            {control.options.map((option) => (
-              <option key={option} value={option}>
-                {enumOptionLabel(option)}
-              </option>
-            ))}
-          </Select>
-        </label>
-      );
-    }
-
     return (
-      <div className={`field compact field-enum field-enum-${String(control.key)}`}>
+      <div className="field compact field-enum">
         <span>{control.label}</span>
         <div className="segmented-control">
           {control.options.map((option) => (
@@ -88,10 +67,8 @@ export function ControlInput({ control, value, onChange, showColorSwatches = fal
               type="button"
               className={`segment-btn ${current === option ? 'active' : ''}`}
               onClick={() => onChange(option)}
-              aria-label={`${control.label}: ${enumOptionLabel(option)}`}
-              title={enumOptionLabel(option)}
             >
-              {enumOptionLabel(option)}
+              {option}
             </button>
           ))}
         </div>
@@ -359,20 +336,4 @@ export function ControlInput({ control, value, onChange, showColorSwatches = fal
       />
     </label>
   );
-}
-
-function enumOptionLabel(option: string): string {
-  const labels: Record<string, string> = {
-    arrow: 'Arrowhead',
-    circle: 'Circle',
-    filledCircle: 'Filled Circle',
-    diamond: 'Diamond',
-    filledDiamond: 'Filled Diamond',
-    square: 'Square',
-    filledSquare: 'Filled Square',
-    none: 'None',
-    autoSide: 'Auto',
-    'auto-side': 'Auto',
-  };
-  return labels[option] ?? option;
 }

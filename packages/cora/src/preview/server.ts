@@ -3,15 +3,7 @@ import { dirname, join, resolve } from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-import {
-  createServer,
-  preview as vitePreview,
-  type InlineConfig,
-  type PreviewServer as VitePreviewServer,
-  type ViteDevServer,
-} from 'vite';
-
-import { iconPackDevPlugin } from './iconPackDevPlugin.js';
+import { createServer, type InlineConfig, type ViteDevServer } from 'vite';
 
 export interface PreviewServerOptions {
   host?: string;
@@ -22,89 +14,36 @@ export interface PreviewServerOptions {
 
 export interface PreviewServer {
   url: string;
-  vite?: ViteDevServer;
+  vite: ViteDevServer;
   close(): Promise<void>;
 }
 
-type PreviewTarget =
-  | { mode: 'dev'; root: string; pkgRoot: string }
-  | { mode: 'dist'; root: string; pkgRoot: string };
-
-function locatePackageRoot(): string {
-  let dir = dirname(fileURLToPath(import.meta.url));
-  for (let depth = 0; depth < 8; depth++) {
-    if (
-      existsSync(join(dir, 'package.json')) &&
-      (existsSync(join(dir, 'src', 'preview', 'index.html')) ||
-        existsSync(join(dir, 'preview-dist', 'index.html')))
-    ) {
-      return dir;
-    }
-    const parent = dirname(dir);
-    if (parent === dir) {
-      break;
-    }
-    dir = parent;
-  }
-  throw new Error(
-    'Could not locate the cora package root. Run from a source checkout or build preview assets with `bun run build`.',
-  );
-}
-
-function resolvePreviewTarget(explicitRoot?: string): PreviewTarget {
-  const pkgRoot = explicitRoot ? resolve(explicitRoot, '../..') : locatePackageRoot();
-  const srcPreview = join(pkgRoot, 'src/preview');
-  const previewDist = join(pkgRoot, 'preview-dist');
-
-  if (explicitRoot) {
-    const root = resolve(explicitRoot);
-    return { mode: 'dev', root, pkgRoot };
-  }
-
-  if (existsSync(join(srcPreview, 'index.html')) && existsSync(join(srcPreview, 'main.tsx'))) {
-    return { mode: 'dev', root: srcPreview, pkgRoot };
-  }
-
-  if (existsSync(join(previewDist, 'index.html'))) {
-    return { mode: 'dist', root: previewDist, pkgRoot };
-  }
-
-  throw new Error(
-    'Preview assets not found. Run `bun run build` in packages/cora (creates preview-dist/) or use a source checkout with src/preview/.',
-  );
+function packageRoot(): string {
+  const here = dirname(fileURLToPath(import.meta.url));
+  const candidates = [
+    resolve(here),
+    resolve(here, 'preview'),
+    resolve(here, '../preview'),
+  ];
+  return candidates.find((candidate) => existsSync(join(candidate, 'index.html'))) ?? candidates[0]!;
 }
 
 export function resolvePreviewRoot(root?: string): string {
-  return resolvePreviewTarget(root).root;
+  return root ? resolve(root) : packageRoot();
 }
 
 export function createPreviewServerConfig(options: PreviewServerOptions = {}): InlineConfig {
-  const target = resolvePreviewTarget(options.root);
   const host = options.host ?? '127.0.0.1';
   const port = options.port ?? 4173;
 
-  if (target.mode === 'dist') {
-    return {
-      root: target.root,
-      configFile: false,
-      preview: {
-        host,
-        port,
-        strictPort: false,
-      },
-    };
-  }
-
   return {
-    root: target.root,
+    root: resolvePreviewRoot(options.root),
     configFile: false,
-    plugins: [iconPackDevPlugin()],
     server: {
       host,
       port,
       strictPort: false,
       fs: {
-        allow: [target.pkgRoot, target.root],
         strict: true,
       },
     },
@@ -129,48 +68,20 @@ export async function openBrowser(url: string): Promise<void> {
   child.unref();
 }
 
-function resolveUrl(host: string, port: number): string {
-  return `http://${host}:${port}/`;
-}
-
-function readListeningPort(
-  httpServer: ViteDevServer['httpServer'] | VitePreviewServer['httpServer'],
-  fallback: number,
-): number {
-  const address = httpServer?.address();
-  return typeof address === 'object' && address !== null ? address.port : fallback;
-}
-
 export async function startPreviewServer(
   options: PreviewServerOptions = {},
 ): Promise<PreviewServer> {
-  const target = resolvePreviewTarget(options.root);
-  const host = options.host ?? '127.0.0.1';
-  const port = options.port ?? 4173;
-
-  if (target.mode === 'dist') {
-    const server = await vitePreview({
-      root: target.root,
-      configFile: false,
-      preview: {
-        host,
-        port,
-        strictPort: false,
-      },
-    });
-
-    return {
-      url: resolveUrl(host, readListeningPort(server.httpServer, port)),
-      close: () => server.close(),
-    };
-  }
-
-  const vite = await createServer(createPreviewServerConfig({ ...options, root: target.root }));
+  const vite = await createServer(createPreviewServerConfig(options));
   await vite.listen();
+
+  const address = vite.httpServer?.address();
+  const host = options.host ?? '127.0.0.1';
+  const port =
+    typeof address === 'object' && address !== null ? address.port : (options.port ?? 4173);
 
   return {
     vite,
-    url: resolveUrl(host, readListeningPort(vite.httpServer, port)),
+    url: `http://${host}:${port}/`,
     close: () => vite.close(),
   };
 }
