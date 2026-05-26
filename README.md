@@ -256,6 +256,8 @@ Nodes may set `provider` and `service` for cloud-provider artwork from separatel
 | `examples/valid/minimal.yaml` | Smallest valid box-arrows diagram |
 | `examples/valid/box-arrows.yaml` | Box-arrows with `direction: LR` and edge label |
 | `examples/valid/flowchart.yaml` | Flowchart with diamond decision node |
+| `examples/valid/markers.yaml` | Box-arrows with open-circle and filled-circle edge markers |
+| `examples/valid/marker-cycle.yaml` | Flowchart loop with mixed arrow, circle, and filled-circle markers |
 | `examples/valid/microservice.yaml` | Large microservice topology with groups and labeled cross-domain edges |
 | `examples/valid/infra.yaml` | Infra diagram with boundary group |
 | `examples/valid/database.yaml` | Database kind with cylinder node |

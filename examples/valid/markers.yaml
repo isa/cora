@@ -1,0 +1,40 @@
+version: 1
+
+diagram:
+  kind: box-arrows
+  direction: LR
+  nodes:
+    - id: intake
+      label: Intake
+      component: page
+    - id: review
+      label: Review
+      component: decision
+    - id: queue
+      label: Queue
+      component: app
+    - id: archive
+      label: Archive
+      component: icon
+      provider: default
+      service: database
+  edges:
+    - from: intake
+      to: review
+      label: submit
+      startMarker: circle
+      endMarker: arrow
+    - from: review
+      to: queue
+      label: accepted
+      startMarker: filledCircle
+      endMarker: arrow
+    - from: review
+      to: archive
+      label: rejected
+      startMarker: circle
+      endMarker: filledCircle
+    - from: queue
+      to: archive
+      label: store
+      endMarker: circle

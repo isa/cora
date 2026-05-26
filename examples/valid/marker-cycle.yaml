@@ -1,0 +1,35 @@
+version: 1
+
+diagram:
+  kind: flowchart
+  nodes:
+    - id: draft
+      label: Draft
+    - id: validate
+      label: Validate
+      component: decision
+    - id: publish
+      label: Publish
+      component: app
+    - id: revise
+      label: Revise
+      component: issue
+  edges:
+    - from: draft
+      to: validate
+      startMarker: filledCircle
+      endMarker: arrow
+    - from: validate
+      to: publish
+      label: pass
+      endMarker: filledCircle
+    - from: validate
+      to: revise
+      label: fail
+      startMarker: circle
+      endMarker: arrow
+    - from: revise
+      to: draft
+      label: retry
+      startMarker: circle
+      endMarker: circle

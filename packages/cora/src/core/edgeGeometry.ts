@@ -96,8 +96,6 @@ export function edgePathMidpoint(points: EdgePoint[]): EdgePosition {
 }
 
 const EDGE_ENDPOINT_CLEARANCE = 2;
-const ARROW_HEAD_SIZE = 5;
-const ARROW_HEAD_BASE_DEPTH = ARROW_HEAD_SIZE * Math.cos(Math.PI / 6);
 
 function offsetToward(from: EdgePoint, to: EdgePoint, distance: number): EdgePoint {
   const length = Math.hypot(to.x - from.x, to.y - from.y);
@@ -112,7 +110,7 @@ function offsetToward(from: EdgePoint, to: EdgePoint, distance: number): EdgePoi
   };
 }
 
-/** Edge polyline trimmed for arrowhead clearance — matches the drawable shaft in Arrow. */
+/** Edge polyline trimmed away from node anchors before markers are applied. */
 export function edgeShaftPoints(points: EdgePoint[]): EdgePoint[] {
   if (points.length < 2) {
     return points;
@@ -124,11 +122,6 @@ export function edgeShaftPoints(points: EdgePoint[]): EdgePoint[] {
     trimmed[trimmed.length - 1]!,
     trimmed[trimmed.length - 2]!,
     EDGE_ENDPOINT_CLEARANCE,
-  );
-  trimmed[trimmed.length - 1] = offsetToward(
-    trimmed[trimmed.length - 1]!,
-    trimmed[trimmed.length - 2]!,
-    ARROW_HEAD_BASE_DEPTH,
   );
 
   return trimmed;

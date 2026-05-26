@@ -19,10 +19,17 @@ export function Arrow({ edge, theme }: EdgeComponentProps) {
     <>
       <Line
         points={points}
-        pathData={pathData}
+        pathData={edgeLinePathData(edge, { trimForMarkers: true })}
         strokeColor={theme.edge.stroke}
         strokeWidth={theme.edge.strokeWidth}
-        endMarker="arrow"
+      />
+      <Line
+        points={points}
+        pathData={pathData}
+        strokeColor="transparent"
+        strokeWidth={0.001}
+        startMarker={edge.startMarker ?? 'none'}
+        endMarker={edge.endMarker ?? 'arrow'}
       />
       {bridgeMaskPathData ? (
         <>

@@ -137,10 +137,19 @@ export function Diagram({ diagram }: DiagramProps) {
           <Line
             key={`${edge.from}-${edge.to}-${edge.label ?? ''}`}
             points={edgeLineMarkerPoints(edge)}
-            pathData={edgeLinePathData(edge)}
+            pathData={edgeLinePathData(edge, { trimForMarkers: true })}
             strokeColor={diagram.theme.edge.stroke}
             strokeWidth={diagram.theme.edge.strokeWidth}
-            endMarker="arrow"
+          />
+        ))}
+        {diagram.edges.map((edge) => (
+          <Line
+            key={`markers-${edge.from}-${edge.to}-${edge.label ?? ''}`}
+            points={edgeLineMarkerPoints(edge)}
+            strokeColor="transparent"
+            strokeWidth={0.001}
+            startMarker={edge.startMarker ?? 'none'}
+            endMarker={edge.endMarker ?? 'arrow'}
           />
         ))}
       </g>

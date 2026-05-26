@@ -42,7 +42,7 @@ export function LineMarkerDefs({
         id={withSuffix(MARKER_ARROW_ID, idSuffix)}
         markerWidth={size}
         markerHeight={size}
-        refX={0}
+        refX={size}
         refY={center}
         orient="auto"
         markerUnits="userSpaceOnUse"

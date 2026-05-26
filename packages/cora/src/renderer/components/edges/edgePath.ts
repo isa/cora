@@ -13,11 +13,16 @@ import {
   MIN_LABELED_EDGE_STUB,
 } from './decorations.js';
 
-const EDGE_ENDPOINT_CLEARANCE = 2;
 const EDGE_ELBOW_RADIUS = 4;
 const EDGE_MARKER_RUNWAY = 24;
 const EDGE_TERMINAL_CORNER_RUNWAY = 6;
 const MIN_VISIBLE_ELBOW_RADIUS = 3;
+const EDGE_ARROW_MARKER_DEPTH = 8;
+const EDGE_MARKER_SIZE = 8;
+const EDGE_CIRCLE_FILL_RADIUS = EDGE_MARKER_SIZE * 0.36;
+const EDGE_CIRCLE_STROKE_WIDTH = 1.5;
+const EDGE_CIRCLE_OUTER_RADIUS = EDGE_CIRCLE_FILL_RADIUS + EDGE_CIRCLE_STROKE_WIDTH / 2;
+const EDGE_FILLED_CIRCLE_RADIUS = EDGE_CIRCLE_FILL_RADIUS;
 
 type SegmentDecoration =
   | { kind: 'gap'; center: number; halfSpan: number }
@@ -58,18 +63,75 @@ function offsetToward(from: EdgePoint, to: EdgePoint, distance: number): EdgePoi
 }
 
 export function edgeLineMarkerPoints(edge: LayoutedEdge): EdgePoint[] {
-  if (edge.points.length < 2) {
-    return edge.points;
+  return edgeLineAnchorPoints(edge);
+}
+
+function markerAnchorOffset(marker: LayoutedEdge['startMarker']): number {
+  if (marker === 'circle') {
+    return EDGE_CIRCLE_OUTER_RADIUS;
   }
 
-  const points = edge.points.map((point) => ({ ...point }));
-  points[0] = offsetToward(points[0]!, points[1]!, EDGE_ENDPOINT_CLEARANCE);
-  points[points.length - 1] = offsetToward(
-    points[points.length - 1]!,
-    points[points.length - 2]!,
-    EDGE_ENDPOINT_CLEARANCE,
+  if (marker === 'filledCircle') {
+    return EDGE_FILLED_CIRCLE_RADIUS;
+  }
+
+  return 0;
+}
+
+function markerShaftTrim(marker: LayoutedEdge['startMarker']): number {
+  if (marker === 'arrow') {
+    return EDGE_ARROW_MARKER_DEPTH;
+  }
+
+  if (marker === 'circle') {
+    return EDGE_CIRCLE_OUTER_RADIUS;
+  }
+
+  if (marker === 'filledCircle') {
+    return EDGE_FILLED_CIRCLE_RADIUS;
+  }
+
+  return 0;
+}
+
+function edgeLineAnchorPoints(edge: LayoutedEdge): EdgePoint[] {
+  const points = edgeShaftPoints(edge.points);
+  if (points.length < 2) {
+    return points;
+  }
+
+  const anchored = points.map((point) => ({ ...point }));
+  const startOffset = markerAnchorOffset(edge.startMarker ?? 'none');
+  const endOffset = markerAnchorOffset(edge.endMarker ?? 'arrow');
+
+  anchored[0] = offsetToward(anchored[0]!, anchored[1]!, startOffset);
+  anchored[anchored.length - 1] = offsetToward(
+    anchored[anchored.length - 1]!,
+    anchored[anchored.length - 2]!,
+    endOffset,
   );
-  return points;
+
+  return anchored;
+}
+
+function edgeLineVisiblePoints(edge: LayoutedEdge): EdgePoint[] {
+  const points = edgeLineAnchorPoints(edge);
+  if (points.length < 2) {
+    return points;
+  }
+
+  const visible = points.map((point) => ({ ...point }));
+  const startTrim = markerShaftTrim(edge.startMarker ?? 'none');
+  const endTrim = markerShaftTrim(edge.endMarker ?? 'arrow');
+
+  visible[0] = offsetToward(visible[0]!, visible[1]!, startTrim);
+  visible[visible.length - 1] = offsetToward(
+    visible[visible.length - 1]!,
+    visible[visible.length - 2]!,
+    endTrim,
+  );
+
+  return visible;
 }
 
 function segmentDecorations(edge: LayoutedEdge, segment: EdgeSegment): SegmentDecoration[] {
@@ -188,8 +250,10 @@ function decorationBounds(
   return { min, max };
 }
 
-export function edgeLinePathData(edge: LayoutedEdge): string {
-  const points = edgeShaftPoints(edge.points);
+export function edgeLinePathData(edge: LayoutedEdge, options: { trimForMarkers?: boolean } = {}): string {
+  const points = options.trimForMarkers
+    ? edgeLineVisiblePoints(edge)
+    : edgeLineAnchorPoints(edge);
   if (points.length === 0) {
     return '';
   }

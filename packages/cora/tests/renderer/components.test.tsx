@@ -22,9 +22,11 @@ import { edgeBridgeMap } from '../../src/core/edgeGeometry.js';
 import { EdgeLabel } from '../../src/renderer/components/edges/EdgeLabel.js';
 import {
   edgeBridgeMaskPathData,
+  edgeLineMarkerPoints,
   edgeLinePathData,
 } from '../../src/renderer/components/edges/edgePath.js';
 import { defaultTheme } from '../../src/renderer/themes/default.js';
+import { Diagram } from '../../src/renderer/Diagram.js';
 
 function TestIcon({ x = 0, y = 0, size, color }: SvgIconProps) {
   return (
@@ -87,9 +89,38 @@ describe('renderer component primitives', () => {
     const markup = renderToStaticMarkup(<LineMarkerDefs color="#123456" />);
 
     expect(markup).toContain('id="cora-marker-arrow"');
-    expect(markup).toContain('refX="0"');
+    expect(markup).toContain('refX="8"');
     expect(markup).toContain('id="cora-marker-circle"');
     expect(markup).toContain('id="cora-marker-filled-circle"');
+  });
+
+  it('renders diagram edge marker choices from the layout IR', () => {
+    const markup = renderToStaticMarkup(
+      <Diagram
+        diagram={{
+          kind: 'box-arrows',
+          nodes: [],
+          edges: [
+            {
+              from: 'a',
+              to: 'b',
+              points: [
+                { x: 0, y: 0 },
+                { x: 40, y: 0 },
+              ],
+              startMarker: 'circle',
+              endMarker: 'filledCircle',
+            },
+          ],
+          width: 40,
+          height: 20,
+          theme: defaultTheme,
+        }}
+      />,
+    );
+
+    expect(markup).toContain('marker-start="url(#cora-marker-circle)"');
+    expect(markup).toContain('marker-end="url(#cora-marker-filled-circle)"');
   });
 });
 
@@ -264,7 +295,7 @@ describe('edge labels', () => {
       },
     });
 
-    expect(pathData).toMatch(/M 6\d(?:\.\d+)? 0/);
+    expect(pathData).toContain('M 71 0');
   });
 
   it('rounds orthogonal edge elbows', () => {
@@ -308,6 +339,67 @@ describe('edge labels', () => {
 
     expect(pathData).toContain('Q 50 0 50 4');
     expect(pathData).toMatch(/L 50 2\d(?:\.\d+)?/);
+  });
+
+  it('keeps arrow marker tips just outside the target anchor', () => {
+    const pathData = edgeLinePathData({
+      from: 'a',
+      to: 'b',
+      points: [
+        { x: 0, y: 0 },
+        { x: 100, y: 0 },
+      ],
+    });
+
+    expect(pathData).toBe('M 2 0 L 98 0');
+  });
+
+  it('backs the visible shaft away from marker bodies', () => {
+    const pathData = edgeLinePathData(
+      {
+        from: 'a',
+        to: 'b',
+        points: [
+          { x: 0, y: 0 },
+          { x: 100, y: 0 },
+        ],
+      },
+      { trimForMarkers: true },
+    );
+
+    expect(pathData).toBe('M 2 0 L 90 0');
+  });
+
+  it('anchors circle marker edges outside node clearance', () => {
+    const markerPoints = edgeLineMarkerPoints({
+      from: 'a',
+      to: 'b',
+      startMarker: 'circle',
+      endMarker: 'filledCircle',
+      points: [
+        { x: 0, y: 0 },
+        { x: 100, y: 0 },
+      ],
+    });
+    const visiblePathData = edgeLinePathData(
+      {
+        from: 'a',
+        to: 'b',
+        startMarker: 'circle',
+        endMarker: 'filledCircle',
+        points: [
+          { x: 0, y: 0 },
+          { x: 100, y: 0 },
+        ],
+      },
+      { trimForMarkers: true },
+    );
+
+    const pathXs = visiblePathData.match(/-?\d+(?:\.\d+)?/g)?.map(Number) ?? [];
+    expect(markerPoints[0]!.x).toBeCloseTo(5.63, 2);
+    expect(markerPoints[1]!.x).toBeCloseTo(95.12, 2);
+    expect(pathXs[0]).toBeCloseTo(9.26, 2);
+    expect(pathXs[2]).toBeCloseTo(92.24, 2);
   });
 
   it('keeps rounded elbows when the terminal segment leaves room for the runway', () => {
