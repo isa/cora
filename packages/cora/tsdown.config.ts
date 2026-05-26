@@ -31,11 +31,20 @@ export default defineConfig([
     dts: true,
   },
   {
+    entry: ['src/cli/commands/preview.ts'],
+    outDir: 'dist/commands',
+    format: ['esm'],
+    fixedExtension: false,
+    dts: false,
+    external: ['vite', /^vite\//],
+  },
+  {
     entry: ['src/cli/index.ts'],
     outDir: 'dist',
     format: ['esm'],
     fixedExtension: false,
     dts: false,
+    external: ['./commands/preview.js', 'vite', /^vite\//],
     banner: {
       js: '#!/usr/bin/env node',
     },

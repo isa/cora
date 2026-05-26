@@ -12,10 +12,17 @@ export type DiagramComponent =
   | 'labelIcon'
   | 'website'
   | 'page'
-  | 'app'
-  | 'decision'
-  | 'issue'
-  | 'shape';
+  | 'app';
+
+export type EdgeMarker =
+  | 'none'
+  | 'arrow'
+  | 'circle'
+  | 'filledCircle'
+  | 'diamond'
+  | 'filledDiamond'
+  | 'square'
+  | 'filledSquare';
 
 export type ErrorCode =
   | 'SCHEMA_VIOLATION'
@@ -53,8 +60,8 @@ export interface DiagramEdge {
   from: string;
   to: string;
   label?: string;
-  startMarker?: 'none' | 'arrow' | 'circle' | 'filledCircle';
-  endMarker?: 'none' | 'arrow' | 'circle' | 'filledCircle';
+  startMarker?: EdgeMarker;
+  endMarker?: EdgeMarker;
 }
 
 export interface DiagramGroup {
@@ -83,6 +90,7 @@ export type {
   ThemeShapeStyle,
   ThemeTokens,
   ResolvedStyle,
+  DiagramGroupStyle,
   MeasuredNode,
   LayoutedNode,
   LayoutedEdge,

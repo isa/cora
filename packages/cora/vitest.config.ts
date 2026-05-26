@@ -5,5 +5,7 @@ export default defineConfig({
     include: ['tests/**/*.test.ts', 'tests/**/*.test.tsx'],
     reporters: 'default',
     testTimeout: 30000,
+    hookTimeout: 180000,
+    fileParallelism: false,
   },
 });

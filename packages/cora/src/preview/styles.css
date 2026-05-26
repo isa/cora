@@ -1028,6 +1028,18 @@ body.dark .component-grid .component-tile:hover .component-icon {
   transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
 }
 
+.component-icon-img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+.component-library-icon-img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
 .component-tile:hover .component-icon {
   border-color: var(--preview-border);
   background: var(--preview-surface);
@@ -1037,9 +1049,9 @@ body.dark .component-grid .component-tile:hover .component-icon {
   display: block;
   width: 18px;
   height: 14px;
-  border: 1.8px solid currentColor;
+  border: 0;
   border-radius: 4px;
-  background: transparent;
+  background: currentColor;
 }
 
 .catalog-icon-diamond {
@@ -1047,33 +1059,87 @@ body.dark .component-grid .component-tile:hover .component-icon {
   height: 16px;
   transform: rotate(45deg);
   border-radius: 3px;
-  border: 1.8px solid currentColor;
-  background: transparent;
+  border: 0;
+  background: currentColor;
 }
 
 .catalog-icon-circle {
   width: 17px;
   height: 17px;
-  border: 2px solid currentColor;
+  border: 0;
   border-radius: 999px;
+  background: currentColor;
+}
+
+.catalog-icon-label-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  width: 22px;
+  height: 14px;
   background: transparent;
 }
 
+.catalog-icon-label-icon-glyph {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border: 0;
+  border-radius: 999px;
+  background: currentColor;
+  box-sizing: border-box;
+}
+
+.catalog-icon-label-icon-lines {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+}
+
+.catalog-icon-label-icon-lines::before,
+.catalog-icon-label-icon-lines::after {
+  content: '';
+  display: block;
+  height: 2px;
+  border-radius: 1px;
+  background: currentColor;
+}
+
 .catalog-icon-window {
+  position: relative;
   width: 18px;
   height: 20px;
   border-radius: 4px;
-  border: 1.8px solid currentColor;
-  background: linear-gradient(var(--preview-border) 0 25%, transparent 25% 100%);
+  border: 0;
+  background: currentColor;
+}
+
+.catalog-icon-window::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  right: 4px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--preview-surface);
 }
 
 .catalog-icon-label {
   display: grid;
   place-items: center;
-  color: currentColor;
-  font-size: 12px;
+  font-size: 0;
   font-weight: 800;
-  background: transparent;
+}
+
+.catalog-icon-label::before {
+  content: 'T';
+  color: var(--preview-surface);
+  font-size: 12px;
+  line-height: 1;
 }
 
 .catalog-icon-issue {
@@ -1089,9 +1155,8 @@ body.dark .component-grid .component-tile:hover .component-icon {
 .catalog-icon-group {
   width: 21px;
   height: 16px;
-  border-color: currentColor;
-  border-style: dashed;
-  background: transparent;
+  border: 0;
+  background: currentColor;
 }
 
 .node-prop-grid {
@@ -1698,6 +1763,7 @@ body.dark .component-grid .component-tile:hover .component-icon {
 }
 
 .preview-theme-selector {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -2180,7 +2246,6 @@ body.dark .component-grid .component-tile:hover .component-icon {
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
 }
 
-
 .selection-outline,
 .preview-node .node-hover-outline,
 .connection-selection {
@@ -2226,6 +2291,89 @@ body.dark .component-grid .component-tile:hover .component-icon {
     inset: var(--preview-topbar-height) 0 0 0;
     min-height: 0;
   }
+}
+
+.icon-search-anchor {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  width: 100%;
+}
+
+.icon-search-dropdown {
+  position: fixed;
+  top: calc(var(--preview-topbar-height) + 8px);
+  left: 12px;
+  right: 12px;
+  z-index: 90;
+  max-height: min(56vh, calc(100vh - var(--preview-topbar-height) - 160px));
+  overflow: auto;
+  padding: 12px;
+  border: 1px solid rgba(195, 198, 215, 0.65);
+  border-radius: 12px;
+  background: var(--preview-surface);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+}
+
+.icon-search-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 10px;
+  align-content: start;
+}
+
+.icon-search-option {
+  display: grid;
+  grid-template-rows: 48px minmax(34px, auto);
+  align-items: center;
+  justify-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 96px;
+  padding: 10px 8px;
+  border: 1px solid rgba(195, 198, 215, 0.52);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--preview-ink);
+  text-align: center;
+  cursor: pointer;
+}
+
+.icon-search-option:hover {
+  background: var(--preview-accent-soft);
+}
+
+.icon-search-option[draggable='true'] {
+  cursor: grab;
+}
+
+.icon-search-option-thumb {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.icon-search-option-copy {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  min-width: 0;
+}
+
+.icon-search-option-copy strong {
+  font-size: 12px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.icon-search-option-copy span {
+  font-size: 10px;
+  color: var(--preview-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Color Picker Popover UI Refinement */
@@ -2526,4 +2674,3 @@ body.dark .component-grid .component-tile:hover .component-icon {
 .color-picker-eyedropper-btn-mini .material-symbols-outlined {
   font-size: 15px;
 }
-

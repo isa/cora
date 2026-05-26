@@ -1,0 +1,13 @@
+[
+  { "id": "devices", "label": "Devices", "keywords": ["phone", "laptop", "tablet", "watch", "tv", "router", "dns", "storage", "memory", "chip", "sensor", "keyboard", "mouse", "headset", "speaker", "battery", "usb", "sim", "android", "nest", "mobile"] },
+  { "id": "network", "label": "Network", "keywords": ["lan", "hub", "wifi", "vpn", "network", "signal", "cell", "tower", "cable", "ethernet", "5g", "lte", "bluetooth"] },
+  { "id": "cloud_infra", "label": "Cloud & infra", "keywords": ["cloud", "database", "server", "deploy", "kubernetes", "docker", "container", "compute", "instance", "bucket", "queue", "cache", "api", "terraform"] },
+  { "id": "security", "label": "Security", "keywords": ["lock", "shield", "key", "password", "privacy", "security", "fingerprint", "vpn_lock", "encrypted", "auth"] },
+  { "id": "alerts", "label": "Alerts", "keywords": ["warning", "error", "info", "report", "bug", "notification", "alert", "priority", "danger"] },
+  { "id": "people", "label": "People", "keywords": ["person", "group", "face", "account", "people", "user", "badge", "supervisor"] },
+  { "id": "actions", "label": "Actions", "keywords": ["add", "edit", "delete", "remove", "settings", "search", "sync", "refresh", "save", "upload", "download", "share", "filter", "sort", "menu", "more"] },
+  { "id": "communication", "label": "Communication", "keywords": ["mail", "chat", "call", "message", "forum", "comment", "sms", "phone", "contact", "inbox", "send"] },
+  { "id": "places", "label": "Places", "keywords": ["home", "business", "map", "location", "place", "pin", "travel", "hotel", "store", "warehouse"] },
+  { "id": "media", "label": "Media", "keywords": ["image", "video", "music", "camera", "photo", "movie", "play", "pause", "volume", "mic"] },
+  { "id": "other", "label": "Other", "keywords": [] }
+]

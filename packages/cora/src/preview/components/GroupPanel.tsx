@@ -1,10 +1,22 @@
 import type { CanvasGroup } from '../state.js';
+import type { ControlDefinition } from '../controls/schema.js';
+import { ControlInput } from './ControlInput.js';
 import { Input } from './ui/index.js';
 
 interface GroupPanelProps {
   group?: CanvasGroup;
-  onGroupChange(patch: Partial<Pick<CanvasGroup, 'label' | 'size'>>): void;
+  onGroupChange(patch: Partial<Pick<CanvasGroup, 'label' | 'size' | 'fillColor' | 'labelColor' | 'labelSize'>>): void;
 }
+
+type GroupStyleControlKey = 'fillColor' | 'labelColor' | 'labelSize';
+
+const groupStyleControls: Array<
+  ControlDefinition<Record<GroupStyleControlKey, unknown>>
+> = [
+  { kind: 'color', key: 'fillColor', label: 'Fill color' },
+  { kind: 'color', key: 'labelColor', label: 'Label color' },
+  { kind: 'number', key: 'labelSize', label: 'Label size', min: 8, max: 32, step: 1 },
+];
 
 export function GroupPanel({ group, onGroupChange }: GroupPanelProps) {
   if (!group) {
@@ -35,6 +47,31 @@ export function GroupPanel({ group, onGroupChange }: GroupPanelProps) {
                 onChange={(event) => onGroupChange({ label: event.currentTarget.value })}
               />
             </label>
+          </div>
+        </details>
+
+        <details open className="control-group-details">
+          <summary className="control-group-summary">
+            <div className="summary-title-row">
+              <span className="material-symbols-outlined group-icon" aria-hidden="true">
+                palette
+              </span>
+              <h3>Style</h3>
+            </div>
+            <span className="material-symbols-outlined chevron-icon" aria-hidden="true">
+              expand_more
+            </span>
+          </summary>
+          <div className="control-group-content">
+            {groupStyleControls.map((control) => (
+              <ControlInput
+                key={control.key}
+                control={control}
+                value={group[control.key]}
+                onChange={(value) => onGroupChange({ [control.key]: value })}
+                showColorSwatches={control.kind === 'color'}
+              />
+            ))}
           </div>
         </details>
 

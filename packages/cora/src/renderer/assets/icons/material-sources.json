@@ -1,0 +1,11 @@
+{
+  "server": "dns.svg",
+  "database": "database.svg",
+  "cloud": "cloud.svg",
+  "network": "lan.svg",
+  "user": "person.svg",
+  "bug": "bug-report.svg",
+  "warning": "warning.svg",
+  "error": "error.svg",
+  "stop": "stop.svg"
+}

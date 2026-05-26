@@ -29,6 +29,7 @@ export interface NumberControl<Props extends Record<string, unknown>> extends Ba
 export interface EnumControl<Props extends Record<string, unknown>> extends BaseControl<Props> {
   kind: 'enum';
   options: string[];
+  display?: 'segmented' | 'select';
 }
 
 export interface SizeControl<Props extends Record<string, unknown>> extends BaseControl<Props> {

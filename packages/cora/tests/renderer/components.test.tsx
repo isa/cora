@@ -4,9 +4,8 @@ import { describe, expect, it } from 'vitest';
 import {
   borderDasharray,
   BoxNode,
-  DecisionNode,
+  Group,
   IconNode,
-  IssueNode,
   LabelNode,
   LabelIconNode,
   Line,
@@ -14,10 +13,11 @@ import {
   linePathData,
   PageNode,
   resolveComponentSize,
-  ShapeNode,
   type SvgIconProps,
+  AppNode,
+  WebsiteNode,
 } from '../../src/renderer/components/index.js';
-import { baselineYForVisualCenter } from '../../src/core/measureText.js';
+import { baselineYForVisualCenter } from '../../src/renderer/typography.js';
 import { edgeBridgeMap } from '../../src/core/edgeGeometry.js';
 import { EdgeLabel } from '../../src/renderer/components/edges/EdgeLabel.js';
 import {
@@ -92,6 +92,10 @@ describe('renderer component primitives', () => {
     expect(markup).toContain('refX="8"');
     expect(markup).toContain('id="cora-marker-circle"');
     expect(markup).toContain('id="cora-marker-filled-circle"');
+    expect(markup).toContain('id="cora-marker-diamond"');
+    expect(markup).toContain('id="cora-marker-filled-diamond"');
+    expect(markup).toContain('id="cora-marker-square"');
+    expect(markup).toContain('id="cora-marker-filled-square"');
   });
 
   it('renders diagram edge marker choices from the layout IR', () => {
@@ -122,22 +126,93 @@ describe('renderer component primitives', () => {
     expect(markup).toContain('marker-start="url(#cora-marker-circle)"');
     expect(markup).toContain('marker-end="url(#cora-marker-filled-circle)"');
   });
+
+  it('renders group fill and label props', () => {
+    const markup = renderToStaticMarkup(
+      <Group
+        group={{ id: 'g1', label: 'Cluster', x: 10, y: 20, width: 120, height: 80 }}
+        theme={defaultTheme}
+        fillColor="#fef3c7"
+        labelColor="#92400e"
+        labelSize={14}
+      />,
+    );
+
+    expect(markup).toContain('fill="#fef3c7"');
+    expect(markup).toContain('fill="#92400e"');
+    expect(markup).toContain('font-size="14"');
+  });
+
+  it('renders group style from diagram layout IR', () => {
+    const markup = renderToStaticMarkup(
+      <Diagram
+        diagram={{
+          kind: 'infra',
+          nodes: [],
+          edges: [],
+          groups: [
+            {
+              id: 'g1',
+              label: 'Styled',
+              x: 8,
+              y: 16,
+              width: 100,
+              height: 60,
+              style: {
+                fillColor: '#dcfce7',
+                labelColor: '#166534',
+                labelSize: 15,
+              },
+            },
+          ],
+          width: 140,
+          height: 100,
+          theme: defaultTheme,
+        }}
+      />,
+    );
+
+    expect(markup).toContain('fill="#dcfce7"');
+    expect(markup).toContain('fill="#166534"');
+    expect(markup).toContain('font-size="15"');
+  });
 });
 
 describe('renderer catalog nodes', () => {
-  it('renders IconNode through the provided icon renderer only', () => {
+  it('renders IconNode with glyph and title below', () => {
     const markup = renderToStaticMarkup(
       <IconNode
         icon={TestIcon}
-        strokeColor="#abcdef"
-        size={{ width: 40, height: 40 }}
-        {...({ text: 'Hidden label' } as Record<string, unknown>)}
+        iconColor="#abcdef"
+        size="md"
+        title="Gateway"
+        subtitle="Cloud API"
       />,
     );
 
     expect(markup).toContain('data-icon="test"');
     expect(markup).toContain('stroke="#abcdef"');
-    expect(markup).not.toContain('Hidden label');
+    expect(markup).toContain('Gateway');
+    expect(markup).toContain('Cloud API');
+  });
+
+  it('renders IconNode frame styling when configured', () => {
+    const markup = renderToStaticMarkup(
+      <IconNode
+        icon={TestIcon}
+        backgroundColor="#ffffff"
+        borderColor="#123456"
+        borderStyle="dashed"
+        borderWidth={2}
+        radius={12}
+      />,
+    );
+
+    expect(markup).toContain('fill="#ffffff"');
+    expect(markup).toContain('stroke="#123456"');
+    expect(markup).toContain('stroke-width="2"');
+    expect(markup).toContain('stroke-dasharray="12 8"');
+    expect(markup).toContain('rx="12"');
   });
 
   it('renders LabelIconNode with icon markup and text', () => {
@@ -198,7 +273,7 @@ describe('renderer catalog nodes', () => {
       <BoxNode text="Shadow" backgroundColor="#EDE9FE" shadow="cast" />,
     );
     const radialMarkup = renderToStaticMarkup(
-      <DecisionNode text="Shadow" backgroundColor="#FED7AA" shadow="radial" />,
+      <BoxNode text="Shadow" backgroundColor="#FED7AA" shadow="radial" />,
     );
 
     expect(castMarkup).toContain('data-shadow="cast"');
@@ -240,38 +315,104 @@ describe('renderer catalog nodes', () => {
     expect(markup).toContain('fill="#eeeeee"');
   });
 
-  it('renders every IssueNode icon variant', () => {
-    for (const icon of ['bug', 'warning', 'error', 'stop'] as const) {
-      const markup = renderToStaticMarkup(<IssueNode icon={icon} text={icon} />);
-      expect(markup).toContain(icon);
-      expect(markup).toContain('<g');
-    }
+  it('renders WebsiteNode as a cleaned browser window with page skeleton', () => {
+    const markup = renderToStaticMarkup(
+      <WebsiteNode
+        title="Docs"
+        backgroundColor="#ffffff"
+        borderColor="#1c1d1a"
+        textColor="#111111"
+      />,
+    );
+
+    expect(markup).toContain('<path');
+    expect(markup).toContain('<circle');
+    expect(markup).toContain('Docs');
+    expect(markup).toContain('fill="#1c1d1a"');
+    expect(markup).not.toContain('<pattern');
+    expect(markup).not.toContain('url(#grid)');
+  });
+
+  it('keeps WebsiteNode skeleton content legible on custom fills', () => {
+    const markup = renderToStaticMarkup(
+      <WebsiteNode
+        title="Website"
+        backgroundColor="#16a7e0"
+      />,
+    );
+
+    expect(markup).toContain('fill="#1c1d1a" opacity="0.52"');
+    expect(markup).toContain('fill="#ffffff"');
+  });
+
+  it('lets WebsiteNode skeleton color be explicitly overridden', () => {
+    const markup = renderToStaticMarkup(
+      <WebsiteNode
+        title="Website"
+        backgroundColor="#16a7e0"
+        skeletonColor="#ff00ff"
+      />,
+    );
+
+    expect(markup).toContain('fill="#ff00ff"');
+    expect(markup).not.toContain('fill="#ff00ff" opacity=');
+  });
+
+  it('renders AppNode as a scaled phone icon with title below the art', () => {
+    const markup = renderToStaticMarkup(
+      <AppNode
+        title="Mobile App"
+        backgroundColor="#d1fae5"
+        borderColor="#10b981"
+        textColor="#111111"
+      />,
+    );
+
+    expect(markup).toContain('M5 23V1h14v22');
+    expect(markup).toContain('Mobile App');
+    expect(markup).toContain('fill="#10b981"');
+    expect(markup).toContain('fill="#d1fae5"');
+  });
+
+  it('maps AppNode backgroundColor and borderColor to screen and chassis', () => {
+    const markup = renderToStaticMarkup(
+      <AppNode
+        title="App"
+        backgroundColor="#ffffff"
+        borderColor="#047857"
+      />,
+    );
+
+    expect(markup).toContain('fill="#047857"');
+    expect(markup).toContain('fill="#ffffff"');
+  });
+
+  it('omits AppNode label area when title and subtitle are empty', () => {
+    const markup = renderToStaticMarkup(
+      <AppNode
+        backgroundColor="#d1fae5"
+        borderColor="#10b981"
+      />,
+    );
+
+    expect(markup).toContain('M5 23V1h14v22');
+    expect(markup).not.toContain('<text');
   });
 
   it('fits constrained catalog labels inside their available width', () => {
     const markup = renderToStaticMarkup(
-      <IssueNode icon="warning" text="Reject" size={{ width: 64, height: 46 }} />,
+      <LabelIconNode icon={TestIcon} title="Reject" size={{ width: 64, height: 46 }} />,
     );
 
     expect(markup).toContain('textLength=');
     expect(markup).toContain('spacingAndGlyphs');
   });
 
-  it('renders DecisionNode geometry and text', () => {
-    const markup = renderToStaticMarkup(<DecisionNode text="Approved?" />);
+  it('renders IconNode with resolved icon component', () => {
+    const markup = renderToStaticMarkup(<IconNode icon={TestIcon} strokeColor="#111" />);
 
-    expect(markup).toContain('<polygon');
-    expect(markup).toContain('Approved?');
-  });
-
-  it('renders ShapeNode children', () => {
-    const markup = renderToStaticMarkup(
-      <ShapeNode>
-        <circle cx="5" cy="5" r="3" data-child="shape" />
-      </ShapeNode>,
-    );
-
-    expect(markup).toContain('data-child="shape"');
+    expect(markup).toContain('<g');
+    expect(markup).toContain('data-icon="test"');
   });
 });
 

@@ -24,6 +24,12 @@ cora render diagram.yaml --charset ascii
 
 Use `cora schema` before adding fields. Do not invent fields outside the schema.
 
+## Built-in icons
+
+For `component: icon` or `component: labelIcon`, use `provider: default` with
+`service` set to one of: `server`, `database`, `cloud`, `network`, `user`,
+`bug`, `warning`, `error`, `stop`. No extension install is required.
+
 ## Canonical Example
 
 ```yaml
@@ -55,7 +61,8 @@ diagram:
 - `SCHEMA_VIOLATION`: run `cora schema`, then fix the rejected field or missing `version: 1`.
 - `MISSING_EDGE_TARGET`: add the missing node id or correct the edge `from` / `to`.
 - `UNKNOWN_SERVICE`: set `provider` with `service`, or remove the service field.
-- `MISSING_EXTENSION`: install the required provider extension when extensions exist, or avoid provider-specific services.
+- `MISSING_EXTENSION`: install the required provider extension when extensions exist, use `provider: default` for built-in icons, or remove `provider`.
+- Built-in icons: `provider: default` + `service: database` (etc.) — see **Built-in icons** above.
 - `LAYOUT_ERROR`: for `layout: preserve`, add `position` to every node or switch to `layout: auto`.
 - `CHROMIUM_NOT_INSTALLED`: pass `--yes`, set `CORA_AUTO_INSTALL=1`, or use the default PDF lane.
 

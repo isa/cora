@@ -1,3 +1,5 @@
+import { getIconPack, listIconPacks, isKnownServiceInPack } from '../renderer/iconPacks/registry.js';
+
 import type { Diagram, DiagramFile, StructuredError } from './types.js';
 
 export const ERROR_CODES = {
@@ -8,12 +10,12 @@ export const ERROR_CODES = {
   PARSE_ERROR: 'PARSE_ERROR',
 } as const;
 
-function isExtensionInstalled(_provider: string): boolean {
-  return false;
+function isExtensionInstalled(provider: string): boolean {
+  return getIconPack(provider) !== undefined;
 }
 
-function isKnownService(_provider: string, _service: string): boolean {
-  return false;
+function isKnownService(provider: string, service: string): boolean {
+  return isKnownServiceInPack(provider, service);
 }
 
 function isDiagramFile(document: unknown): document is DiagramFile {
@@ -25,6 +27,8 @@ function isDiagramFile(document: unknown): document is DiagramFile {
 }
 
 export function runSemanticValidation(diagram: Diagram): StructuredError[] {
+  listIconPacks(true);
+
   const errors: StructuredError[] = [];
   const nodeIds = new Set(diagram.nodes.map((node) => node.id));
 
@@ -65,15 +69,12 @@ export function runSemanticValidation(diagram: Diagram): StructuredError[] {
           message: `Extension for provider "${node.provider}" is not installed`,
           suggestion: `cora ext install ${node.provider}-theme`,
         });
-      } else if (
-        node.service &&
-        !isKnownService(node.provider, node.service)
-      ) {
+      } else if (node.service && !isKnownService(node.provider, node.service)) {
         errors.push({
           code: 'UNKNOWN_SERVICE',
           path: `/diagram/nodes/${index}/service`,
           message: `Service "${node.service}" is not known for provider "${node.provider}"`,
-          suggestion: 'Verify the extension manifest for valid service names',
+          suggestion: 'Run: cora icons search <term> --format json',
         });
       }
     }

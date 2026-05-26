@@ -34,10 +34,7 @@
             "labelIcon",
             "website",
             "page",
-            "app",
-            "decision",
-            "issue",
-            "shape"
+            "app"
           ]
         },
         "position": {
@@ -68,11 +65,11 @@
         "label": { "type": "string" },
         "startMarker": {
           "type": "string",
-          "enum": ["none", "arrow", "circle", "filledCircle"]
+          "enum": ["none", "arrow", "circle", "filledCircle", "diamond", "filledDiamond", "square", "filledSquare"]
         },
         "endMarker": {
           "type": "string",
-          "enum": ["none", "arrow", "circle", "filledCircle"]
+          "enum": ["none", "arrow", "circle", "filledCircle", "diamond", "filledDiamond", "square", "filledSquare"]
         }
       }
     },
@@ -92,7 +89,13 @@
         },
         "style": {
           "type": "object",
-          "additionalProperties": true
+          "additionalProperties": true,
+          "properties": {
+            "fillColor": { "type": "string" },
+            "fill": { "type": "string" },
+            "labelColor": { "type": "string" },
+            "labelSize": { "type": "number" }
+          }
         }
       }
     },

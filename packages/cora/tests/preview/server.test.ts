@@ -16,7 +16,10 @@ describe('preview server config', () => {
     expect(config.server).toMatchObject({
       host: '127.0.0.1',
       port: 4173,
-      fs: { strict: true },
+      fs: {
+        strict: true,
+        allow: expect.arrayContaining(['/tmp/cora-preview-root']),
+      },
     });
   });
 });

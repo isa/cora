@@ -4,18 +4,15 @@ import {
   EdgeLabel,
   Group,
   IconNode,
-  IssueNode,
   LabelIconNode,
   LabelNode,
   Line,
   LineMarkerDefs,
   PageNode,
-  ShapeNode,
   WebsiteNode,
-  WarningIcon,
 } from './components/index.js';
 import { BoxNode } from './components/nodes/BoxNode.js';
-import { DecisionNode } from './components/nodes/DecisionNode.js';
+import { resolveIcon } from './iconPacks/resolveIcon.js';
 import {
   edgeBridgeMaskPathData,
   edgeLineMarkerPoints,
@@ -32,7 +29,7 @@ function renderNode(node: LayoutedNode, diagram: LayoutedDiagram) {
   const component = node.component ?? 'box';
   const catalogProps = nodeCatalogProps(
     node,
-    diagram.theme.shapes[component] ?? diagram.theme.shapes.box!,
+    node.resolvedStyle ?? diagram.theme.shapes[component] ?? diagram.theme.shapes.box!,
     component as DiagramComponent
   );
 
@@ -46,25 +43,26 @@ function renderNode(node: LayoutedNode, diagram: LayoutedDiagram) {
           x={node.x}
           y={node.y}
           size={{ width: node.measuredWidth, height: node.measuredHeight }}
-          strokeColor={catalogProps.textColor}
-          icon={WarningIcon}
+          iconColor={catalogProps.textColor}
+          textColor={catalogProps.textColor}
+          subtitleColor={catalogProps.subtitleColor}
+          titleFontSize={catalogProps.titleFontSize}
+          subtitleFontSize={catalogProps.subtitleFontSize}
+          icon={resolveIcon(node.provider, node.service)}
           title={node.label}
+          subtitle={
+            typeof node.style?.subtitle === 'string' ? node.style.subtitle : undefined
+          }
         />
       );
     case 'labelIcon':
-      return <LabelIconNode key={node.id} {...catalogProps} icon={WarningIcon} />;
+      return <LabelIconNode key={node.id} {...catalogProps} icon={resolveIcon(node.provider, node.service)} />;
     case 'website':
       return <WebsiteNode key={node.id} {...catalogProps} />;
     case 'page':
       return <PageNode key={node.id} {...catalogProps} type="content" />;
     case 'app':
       return <AppNode key={node.id} {...catalogProps} />;
-    case 'decision':
-      return <DecisionNode key={node.id} {...catalogProps} />;
-    case 'issue':
-      return <IssueNode key={node.id} {...catalogProps} icon="warning" />;
-    case 'shape':
-      return <ShapeNode key={node.id} {...catalogProps} />;
     case 'box':
     default:
       return <BoxNode key={node.id} node={node} theme={diagram.theme} />;
@@ -97,6 +95,13 @@ function nodeCatalogProps(
     borderStyle: borderStyleFor(style),
     text: node.label,
     textColor: style.labelFill ?? defaults.textColor,
+    subtitleColor: defaults.subtitleColor,
+    skeletonColor:
+      typeof node.style?.skeletonColor === 'string'
+        ? node.style.skeletonColor
+        : typeof node.style?.subtitleColor === 'string'
+          ? node.style.subtitleColor
+          : undefined,
     radius: defaults.radius,
     titleFontSize: defaults.titleFontSize,
     subtitleFontSize: defaults.subtitleFontSize,

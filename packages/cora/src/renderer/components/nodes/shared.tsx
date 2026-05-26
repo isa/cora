@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-import { baselineYForVisualCenter } from '../../../core/measureText.js';
+import { baselineYForVisualCenter } from '../../typography.js';
 import { LOOK } from '../../themes/lookTokens.js';
 import { NODE_TITLE_SIZE, NODE_SUBTITLE_SIZE } from '../../themes/fontTokens.js';
 import type { ResolvedStyle, ThemeTokens } from '../../../layout-ir.js';
