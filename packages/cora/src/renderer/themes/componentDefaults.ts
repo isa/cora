@@ -65,9 +65,6 @@ export function catalogDefaultProps(component: DiagramComponent): Record<string,
         ...common,
         backgroundColor: LOOK.components.website.fill,
         borderColor: LOOK.components.website.stroke,
-        subtitleColor: TAILWIND.slate[400],
-        skeletonColor: '#b5b5b5',
-        size: { width: 144, height: 160 },
       };
 
     case 'app':
@@ -75,7 +72,6 @@ export function catalogDefaultProps(component: DiagramComponent): Record<string,
         ...common,
         backgroundColor: LOOK.components.app.fill,
         borderColor: LOOK.components.app.stroke,
-        size: { width: 96, height: 128 },
       };
 
     case 'page':
@@ -86,6 +82,29 @@ export function catalogDefaultProps(component: DiagramComponent): Record<string,
         type: 'landing',
         skeletonColorDark: TAILWIND.slate[500],
         skeletonColorLight: TAILWIND.slate[200],
+      };
+
+    case 'decision':
+      return {
+        ...common,
+        backgroundColor: LOOK.components.decision.fill,
+        borderColor: LOOK.components.decision.stroke,
+      };
+
+    case 'issue':
+      return {
+        ...common,
+        backgroundColor: LOOK.components.issue.fill,
+        borderColor: LOOK.components.issue.stroke,
+        icon: 'warning',
+        iconColor: LOOK.components.issue.stroke,
+      };
+
+    case 'shape':
+      return {
+        ...common,
+        backgroundColor: LOOK.components.shape.fill,
+        borderColor: LOOK.components.shape.stroke,
       };
 
     default:

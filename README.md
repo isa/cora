@@ -11,12 +11,11 @@ Open-source diagram tool for AI coding agents and the humans who review their ou
 | 1 — Foundation | Complete | `cora validate`, `cora schema`, v1 JSON Schema, structured errors |
 | 2 — Renderer + SVG | Complete | `cora render` → `.svg` / `.png`, ELK layout, pure SVG renderer, default theme |
 | 3 — PDF Export | Complete | `cora render -o diagram.pdf` |
-| 3.3 — Component Preview Canvas | Complete | Component preview workbench (development checkout) |
-| 3.4 — Text Export + SKILL.md | Complete | `cora render` stdout text, `.txt`, `--charset ascii`, agent skill guide |
-| 3.7 — Package Surface Lockdown | Complete | Built-in `default` icons; preview dev-only; clean npm tarball |
+| 3.3 — Component Preview Canvas | Complete | `cora preview` local component workbench |
+| 3.4 — Text Export + SKILL.md | In progress | `cora render` stdout text, `.txt`, `--charset ascii`, agent skill guide |
 | 4+ | Planned | `cora serve`, extensions (`cora ext`), `cora doctor` |
 
-**Today:** validate any diagram, export schema, and render all five v1 diagram kinds to SVG, PNG, PDF, or simplified graph-like text. Built-in generic icons ship under `provider: default` (no extension install). Provider-specific icons still require extensions.
+**Today:** validate any diagram, export schema, render all five v1 diagram kinds to SVG, PNG, PDF, or simplified graph-like text, and run `cora preview` as a local workbench for built-in renderer components. Provider icons require extensions (not bundled in core).
 
 ## Install
 
@@ -71,29 +70,8 @@ bun run cora render examples/valid/box-arrows.yaml -o /tmp/diagram.txt
 
 # Export JSON Schema
 bun run cora schema --out cora-schema.json
-```
 
-## Built-in icons
-
-Use `provider: default` with `component: icon` or `component: labelIcon`:
-
-```yaml
-nodes:
-  - id: api
-    label: API Server
-    component: icon
-    provider: default
-    service: server
-```
-
-Available services: `server`, `database`, `cloud`, `network`, `user`, `bug`, `warning`, `error`, `stop`.
-
-## Development tools
-
-`cora preview` is for **source checkouts only** (not available after `npm install cora`). It opens a local component workbench:
-
-```bash
-bun run cora preview
+# Open the local component preview workbench
 bun run cora preview --no-open
 ```
 
@@ -199,6 +177,24 @@ Print the v1 diagram JSON Schema (`https://cora.dev/schema/v1/diagram.json`).
 ```bash
 cora schema
 cora schema --out cora-schema.json
+```
+
+### `cora preview`
+
+Start a local browser workbench for built-in renderer components. The preview
+does not take a YAML input file and does not persist YAML or layout changes.
+Selected components are nodes only, with a maximum of one primary and one
+secondary node; lines and groups are relationship context.
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--host <host>` | `127.0.0.1` | Host interface for the local server |
+| `--port <port>` | `4173` | Preferred local port |
+| `--no-open` | off | Do not open the default browser |
+
+```bash
+cora preview
+cora preview --no-open
 ```
 
 ## Diagram format

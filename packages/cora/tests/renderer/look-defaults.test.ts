@@ -45,6 +45,9 @@ describe('Design Tokens Contract', () => {
       'website',
       'page',
       'app',
+      'decision',
+      'issue',
+      'shape',
     ];
     for (const kind of kinds) {
       const props = catalogDefaultProps(kind);

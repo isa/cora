@@ -37,14 +37,6 @@ function weightOf(fontWeight: number): 'regular' | 'semibold' {
   return fontWeight >= 600 ? 'semibold' : 'regular';
 }
 
-function stringProp(value: unknown): string | undefined {
-  return typeof value === 'string' ? value : undefined;
-}
-
-function numberProp(value: unknown): number | undefined {
-  return typeof value === 'number' ? value : undefined;
-}
-
 export function buildTextOverlay(layouted: LayoutedDiagram): TextDraw[] {
   const draws: TextDraw[] = [];
   const nodeTheme = layouted.theme.nodeLabel;
@@ -107,8 +99,8 @@ export function buildTextOverlay(layouted: LayoutedDiagram): TextDraw[] {
       anchor: 'top-left',
       text: group.label,
       weight: weightOf(nodeTheme.fontWeight),
-      size: numberProp(group.style?.labelSize) ?? nodeTheme.fontSize,
-      color: stringProp(group.style?.labelColor) ?? nodeTheme.fill,
+      size: nodeTheme.fontSize,
+      color: nodeTheme.fill,
     });
   }
 

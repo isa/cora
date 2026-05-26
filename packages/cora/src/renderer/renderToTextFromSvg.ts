@@ -40,10 +40,6 @@ interface GlyphSet {
   upArrow: string;
   circle: string;
   filledCircle: string;
-  diamond: string;
-  filledDiamond: string;
-  square: string;
-  filledSquare: string;
   // dashed borders for groups
   dashH: string;
   dashV: string;
@@ -68,10 +64,6 @@ const GLYPHS: Record<TextCharset, GlyphSet> = {
     upArrow: '▲',
     circle: 'O',
     filledCircle: '●',
-    diamond: '◇',
-    filledDiamond: '◆',
-    square: '□',
-    filledSquare: '■',
     dashH: '┄',
     dashV: '┆',
     junctionDown: '┬',
@@ -93,10 +85,6 @@ const GLYPHS: Record<TextCharset, GlyphSet> = {
     upArrow: '^',
     circle: 'O',
     filledCircle: '*',
-    diamond: 'D',
-    filledDiamond: '#',
-    square: 'S',
-    filledSquare: '#',
     dashH: '-',
     dashV: ':',
     junctionDown: '+',
@@ -1296,10 +1284,6 @@ export function renderToTextFromSvg(
       if (endMarker === 'arrow') ch = getArrowChar(prevPt, endPt, g);
       else if (endMarker === 'circle') ch = g.circle;
       else if (endMarker === 'filledCircle') ch = g.filledCircle;
-      else if (endMarker === 'diamond') ch = g.diamond;
-      else if (endMarker === 'filledDiamond') ch = g.filledDiamond;
-      else if (endMarker === 'square') ch = g.square;
-      else if (endMarker === 'filledSquare') ch = g.filledSquare;
       if (ch) {
         const lineCh = getLineCharForDirection(prevPt, endPt, g);
         markerInfo.endPt = {
@@ -1323,10 +1307,6 @@ export function renderToTextFromSvg(
       if (startMarker === 'arrow') ch = getArrowChar(nextPt, startPt, g);
       else if (startMarker === 'circle') ch = g.circle;
       else if (startMarker === 'filledCircle') ch = g.filledCircle;
-      else if (startMarker === 'diamond') ch = g.diamond;
-      else if (startMarker === 'filledDiamond') ch = g.filledDiamond;
-      else if (startMarker === 'square') ch = g.square;
-      else if (startMarker === 'filledSquare') ch = g.filledSquare;
       if (ch) {
         const lineCh = getLineCharForDirection(nextPt, startPt, g);
         markerInfo.startPt = {

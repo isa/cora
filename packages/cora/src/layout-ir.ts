@@ -12,17 +12,10 @@ export type DiagramComponent =
   | 'labelIcon'
   | 'website'
   | 'page'
-  | 'app';
-
-export type EdgeMarker =
-  | 'none'
-  | 'arrow'
-  | 'circle'
-  | 'filledCircle'
-  | 'diamond'
-  | 'filledDiamond'
-  | 'square'
-  | 'filledSquare';
+  | 'app'
+  | 'decision'
+  | 'issue'
+  | 'shape';
 
 export interface ThemeShapeStyle {
   fill: string;
@@ -48,13 +41,6 @@ export interface ThemeTokens {
 }
 
 export interface ResolvedStyle extends ThemeShapeStyle {}
-
-export interface DiagramGroupStyle {
-  fill?: string;
-  fillColor?: string;
-  labelColor?: string;
-  labelSize?: number;
-}
 
 export interface DiagramNode {
   id: string;
@@ -103,8 +89,8 @@ export interface LayoutedEdge {
   labelY?: number;
   labelPlacement?: EdgeLabelPlacement;
   bridges?: EdgeBridge[];
-  startMarker?: EdgeMarker;
-  endMarker?: EdgeMarker;
+  startMarker?: 'none' | 'arrow' | 'circle' | 'filledCircle';
+  endMarker?: 'none' | 'arrow' | 'circle' | 'filledCircle';
 }
 
 export interface LayoutedGroup {
@@ -115,7 +101,6 @@ export interface LayoutedGroup {
   width: number;
   height: number;
   contains?: string[];
-  style?: DiagramGroupStyle;
 }
 
 export interface LayoutedDiagram {

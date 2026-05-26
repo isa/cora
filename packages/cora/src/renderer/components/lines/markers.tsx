@@ -1,20 +1,8 @@
-export type MarkerType =
-  | 'none'
-  | 'arrow'
-  | 'circle'
-  | 'filledCircle'
-  | 'diamond'
-  | 'filledDiamond'
-  | 'square'
-  | 'filledSquare';
+export type MarkerType = 'none' | 'arrow' | 'circle' | 'filledCircle';
 
 export const MARKER_ARROW_ID = 'cora-marker-arrow';
 export const MARKER_CIRCLE_ID = 'cora-marker-circle';
 export const MARKER_FILLED_CIRCLE_ID = 'cora-marker-filled-circle';
-export const MARKER_DIAMOND_ID = 'cora-marker-diamond';
-export const MARKER_FILLED_DIAMOND_ID = 'cora-marker-filled-diamond';
-export const MARKER_SQUARE_ID = 'cora-marker-square';
-export const MARKER_FILLED_SQUARE_ID = 'cora-marker-filled-square';
 
 function withSuffix(id: string, suffix: string | undefined): string {
   return suffix ? `${id}-${suffix}` : id;
@@ -33,22 +21,6 @@ export function markerUrl(marker: MarkerType | undefined, idSuffix?: string): st
     return `url(#${withSuffix(MARKER_FILLED_CIRCLE_ID, idSuffix)})`;
   }
 
-  if (marker === 'diamond') {
-    return `url(#${withSuffix(MARKER_DIAMOND_ID, idSuffix)})`;
-  }
-
-  if (marker === 'filledDiamond') {
-    return `url(#${withSuffix(MARKER_FILLED_DIAMOND_ID, idSuffix)})`;
-  }
-
-  if (marker === 'square') {
-    return `url(#${withSuffix(MARKER_SQUARE_ID, idSuffix)})`;
-  }
-
-  if (marker === 'filledSquare') {
-    return `url(#${withSuffix(MARKER_FILLED_SQUARE_ID, idSuffix)})`;
-  }
-
   return undefined;
 }
 
@@ -64,9 +36,6 @@ export function LineMarkerDefs({
   const size = Math.max(4, markerSize);
   const center = size / 2;
   const circleRadius = Math.max(2, size * 0.36);
-  const circleStrokeWidth = 1.5;
-  const squareSize = Math.max(3, size * 0.72);
-  const squareOffset = (size - squareSize) / 2;
   return (
     <>
       <marker
@@ -75,7 +44,7 @@ export function LineMarkerDefs({
         markerHeight={size}
         refX={size}
         refY={center}
-        orient="auto-start-reverse"
+        orient="auto"
         markerUnits="userSpaceOnUse"
       >
         <path d={`M 0 0 L ${size} ${center} L 0 ${size} z`} fill={color} />
@@ -86,10 +55,10 @@ export function LineMarkerDefs({
         markerHeight={size}
         refX={center}
         refY={center}
-        orient="auto-start-reverse"
+        orient="auto"
         markerUnits="userSpaceOnUse"
       >
-        <circle cx={center} cy={center} r={circleRadius} fill="none" stroke={color} strokeWidth={circleStrokeWidth} />
+        <circle cx={center} cy={center} r={circleRadius} fill="none" stroke={color} strokeWidth="1.5" />
       </marker>
       <marker
         id={withSuffix(MARKER_FILLED_CIRCLE_ID, idSuffix)}
@@ -97,67 +66,10 @@ export function LineMarkerDefs({
         markerHeight={size}
         refX={center}
         refY={center}
-        orient="auto-start-reverse"
+        orient="auto"
         markerUnits="userSpaceOnUse"
       >
         <circle cx={center} cy={center} r={circleRadius} fill={color} />
-      </marker>
-      <marker
-        id={withSuffix(MARKER_DIAMOND_ID, idSuffix)}
-        markerWidth={size}
-        markerHeight={size}
-        refX={center}
-        refY={center}
-        orient="auto-start-reverse"
-        markerUnits="userSpaceOnUse"
-      >
-        <path
-          d={`M ${center} 0 L ${size} ${center} L ${center} ${size} L 0 ${center} Z`}
-          fill="none"
-          stroke={color}
-          strokeWidth={circleStrokeWidth}
-        />
-      </marker>
-      <marker
-        id={withSuffix(MARKER_FILLED_DIAMOND_ID, idSuffix)}
-        markerWidth={size}
-        markerHeight={size}
-        refX={center}
-        refY={center}
-        orient="auto-start-reverse"
-        markerUnits="userSpaceOnUse"
-      >
-        <path d={`M ${center} 0 L ${size} ${center} L ${center} ${size} L 0 ${center} Z`} fill={color} />
-      </marker>
-      <marker
-        id={withSuffix(MARKER_SQUARE_ID, idSuffix)}
-        markerWidth={size}
-        markerHeight={size}
-        refX={center}
-        refY={center}
-        orient="auto-start-reverse"
-        markerUnits="userSpaceOnUse"
-      >
-        <rect
-          x={squareOffset}
-          y={squareOffset}
-          width={squareSize}
-          height={squareSize}
-          fill="none"
-          stroke={color}
-          strokeWidth={circleStrokeWidth}
-        />
-      </marker>
-      <marker
-        id={withSuffix(MARKER_FILLED_SQUARE_ID, idSuffix)}
-        markerWidth={size}
-        markerHeight={size}
-        refX={center}
-        refY={center}
-        orient="auto-start-reverse"
-        markerUnits="userSpaceOnUse"
-      >
-        <rect x={squareOffset} y={squareOffset} width={squareSize} height={squareSize} fill={color} />
       </marker>
     </>
   );

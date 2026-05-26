@@ -3,19 +3,21 @@ import { describe, expect, it } from 'vitest';
 import {
   baseNodeControls,
   connectionControls,
-  iconNodeControls,
+  issueNodeControls,
   labelIconNodeControls,
   labelNodeControls,
-  markerOptions,
   pageNodeControls,
-  websiteNodeControls,
 } from '../../src/preview/controls/defaults.js';
 
 describe('preview controls', () => {
-  it('constrains enum controls for PageNode.type, borderStyle, shadow, lineStyle, startMarker, and endMarker', () => {
+  it('constrains enum controls for PageNode.type, IssueNode.icon, borderStyle, shadow, lineStyle, startMarker, and endMarker', () => {
     expect(pageNodeControls.find((control) => control.label === 'PageNode.type')).toMatchObject({
       kind: 'enum',
       options: ['landing', 'form', 'content', 'profile', 'settings'],
+    });
+    expect(issueNodeControls.find((control) => control.label === 'IssueNode.icon')).toMatchObject({
+      kind: 'enum',
+      options: ['bug', 'warning', 'error', 'stop'],
     });
     expect(baseNodeControls.find((control) => control.key === 'borderStyle')).toMatchObject({
       kind: 'enum',
@@ -31,13 +33,11 @@ describe('preview controls', () => {
     });
     expect(connectionControls.find((control) => control.key === 'startMarker')).toMatchObject({
       kind: 'enum',
-      options: markerOptions,
-      display: 'select',
+      options: ['none', 'arrow', 'circle', 'filledCircle'],
     });
     expect(connectionControls.find((control) => control.key === 'endMarker')).toMatchObject({
       kind: 'enum',
-      options: markerOptions,
-      display: 'select',
+      options: ['none', 'arrow', 'circle', 'filledCircle'],
     });
     expect(connectionControls.find((control) => control.key === 'arrowSize')).toMatchObject({
       kind: 'number',
@@ -68,16 +68,9 @@ describe('preview controls', () => {
     });
     expect(labelNodeControls.some((control) => control.key === 'size')).toBe(false);
     expect(labelNodeControls.some((control) => control.key === 'shadow')).toBe(false);
-    expect(iconNodeControls.some((control) => control.key === 'iconColor')).toBe(true);
-    expect(iconNodeControls.some((control) => control.key === 'title')).toBe(true);
-    expect(iconNodeControls.some((control) => control.key === 'subtitle')).toBe(true);
-    expect(labelIconNodeControls.some((control) => control.key === 'shadow')).toBe(true);
+    expect(labelIconNodeControls.map((control) => control.key)).toEqual(['iconType', 'iconColor', 'backgroundColor', 'size']);
     expect(labelIconNodeControls.find((control) => control.kind === 'size')).toMatchObject({
-      explicit: { width: 128, height: 56 },
-    });
-    expect(websiteNodeControls.find((control) => control.key === 'skeletonColor')).toMatchObject({
-      kind: 'color',
-      label: 'Skeleton',
+      explicit: { width: 40, height: 40 },
     });
   });
 });

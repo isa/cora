@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: ready
-stopped_at: Phase 3.8 complete — ready for Phase 3.9 (Grid) planning
-last_updated: "2026-05-26T17:45:00.000Z"
-last_activity: 2026-05-26 -- Material icon pack + default component surface shipped
+status: planning
+stopped_at: Phase 3.7 planned — 4 plans ready for execution
+last_updated: "2026-05-26T12:49:48.532Z"
+last_activity: 2026-05-24 -- Phase 3.6 completed
 progress:
   total_phases: 14
-  completed_phases: 10
-  total_plans: 37
-  completed_plans: 37
-  percent: 71
+  completed_phases: 9
+  total_plans: 33
+  completed_plans: 33
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-21)
 
 **Core value:** An AI agent can write a YAML diagram, run `cora validate` and `cora render`, and produce a professional-looking architectural diagram without touching a visual editor — while humans can still polish the result when needed.
-**Current focus:** Phase 3.9 — Grid Capability Expansion
+**Current focus:** Phase 3.6 — Default Component Look Lockdown
 
 ## Current Position
 
-Phase: 3.9 of 15 (Grid Capability Expansion)
-Plan: 0 of 0 planned
-Status: Ready to discuss/plan
-Last activity: 2026-05-26 -- Phase 3.8 Material icon pack + default component surface completed
+Phase: 3.7 of 14 (Component/Icon Package Surface Lockdown)
+Plan: 0 of 4 planned
+Status: Ready to execute
+Last activity: 2026-05-24 -- Phase 3.6 completed
 
-Progress: [███████░░░] 71% (10/14 phases complete)
+Progress: [██████░░░░] 64% (9/14 phases complete)
 
 ## Performance Metrics
 
@@ -53,13 +53,13 @@ Progress: [███████░░░] 71% (10/14 phases complete)
 | 3.4 ASCII Export + SKILL.md | 4 | 4 | — |
 | 3.5 Preview Visual Beauty | 4 | 4 | — |
 | 3.6 Default Component Look Lockdown | 4 | 4 | — |
-| 3.7 Component/Icon Package Surface Lockdown | 4 | 4 | — |
+| 3.7 Component/Icon Package Surface Lockdown | 0 | 4 | — |
 | 3.8 Grid Capability Expansion | 0 | 0 | — |
 
 **Recent Trend:**
 
-- Last 5 plans: 3.7-04, 3.7-03, 3.7-02, 3.7-01, 3.6-04
-- Trend: Phase 3.7 package surface lockdown complete. Preview is dev-only; built-in default icons ship under `provider: default`; tarball smoke tests guard the published surface.
+- Last 5 plans: 3.6-04, 3.6-03, 3.6-02, 3.6-01, 3.5-04
+- Trend: Phase 3.6 component look lockdown is complete. Design tokens and defaults are synchronized between renderer and preview with passing look contract/sync tests.
 
 ## Accumulated Context
 
@@ -103,5 +103,5 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-05-26T12:49:48.519Z
-Stopped at: Phase 3.7 complete
-Resume file: none
+Stopped at: Phase 3.7 context gathered
+Resume file: .planning/phases/3.7-component-icon-and-package-surface-lockdown/03.7-CONTEXT.md

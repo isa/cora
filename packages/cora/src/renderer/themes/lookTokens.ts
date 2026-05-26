@@ -45,8 +45,8 @@ export const LOOK = {
       stroke: TAILWIND.emerald[500],
     },
     website: {
-      fill: TAILWIND.white,
-      stroke: '#1c1d1a',
+      fill: TAILWIND.yellow[200],
+      stroke: TAILWIND.yellow[500],
     },
     shape: {
       fill: TAILWIND.teal[200],

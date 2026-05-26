@@ -21,9 +21,6 @@ export interface CanvasGroup {
   label: string;
   position: PreviewPosition;
   size: { width: number; height: number };
-  fillColor: string;
-  labelColor: string;
-  labelSize: number;
 }
 
 export interface CanvasConnection {
@@ -59,33 +56,6 @@ function nextItemId(state: WorkbenchState, prefix: string): string {
   return `${prefix}-${state.nextId}`;
 }
 
-function roundPosition(position: PreviewPosition): PreviewPosition {
-  return {
-    x: Math.round(position.x),
-    y: Math.round(position.y),
-  };
-}
-
-function roundGroupSize(size: CanvasGroup['size']): CanvasGroup['size'] {
-  return {
-    width: Math.round(size.width),
-    height: Math.round(size.height),
-  };
-}
-
-function roundGroupPatch(
-  patch: Partial<Pick<CanvasGroup, 'label' | 'position' | 'size' | 'fillColor' | 'labelColor' | 'labelSize'>>,
-): Partial<Pick<CanvasGroup, 'label' | 'position' | 'size' | 'fillColor' | 'labelColor' | 'labelSize'>> {
-  const rounded = { ...patch };
-  if (patch.position) {
-    rounded.position = roundPosition(patch.position);
-  }
-  if (patch.size) {
-    rounded.size = roundGroupSize(patch.size);
-  }
-  return rounded;
-}
-
 export function createDefaultWorkbenchState(pack = builtInPack): WorkbenchState {
   return {
     pack,
@@ -110,11 +80,8 @@ export function addCatalogItemToCanvas(
         {
           id,
           label: 'Group',
-          position: roundPosition(position),
+          position,
           size: { width: 280, height: 160 },
-          fillColor: 'none',
-          labelColor: '#0f172a',
-          labelSize: 12,
         },
       ],
       selected: { kind: 'group', id },
@@ -162,43 +129,6 @@ export function addCatalogItemToCanvas(
 }
 
 export const addNodeToCanvas = addCatalogItemToCanvas;
-
-export function addIconItemToCanvas(
-  state: WorkbenchState,
-  provider: string,
-  service: string,
-  position: PreviewPosition,
-  options: { componentId?: 'icon' | 'labelIcon'; attachedConnectionId?: string } = {},
-): WorkbenchState {
-  const componentId = options.componentId ?? 'icon';
-  const definition = componentById(state.pack, componentId);
-  const id = nextItemId(state, 'node');
-  const nextNode: CanvasNode = {
-    id,
-    componentId,
-    props: {
-      ...definition.defaultProps,
-      provider,
-      service,
-      title: componentId === 'labelIcon' ? service : 'Icon',
-      subtitle:
-        componentId === 'icon'
-          ? 'Subtitle'
-          : typeof definition.defaultProps.subtitle === 'string'
-            ? definition.defaultProps.subtitle
-            : undefined,
-    },
-    position,
-    attachedConnectionId: options.attachedConnectionId,
-  };
-
-  return {
-    ...state,
-    nodes: [...state.nodes, nextNode],
-    selected: { kind: 'node', id },
-    nextId: state.nextId + 1,
-  };
-}
 
 export function selectCanvasItem(state: WorkbenchState, selected: CanvasSelection): WorkbenchState {
   return { ...state, selected };
@@ -264,13 +194,12 @@ export function updateConnectionProps(
 export function updateGroup(
   state: WorkbenchState,
   groupId: string,
-  patch: Partial<Pick<CanvasGroup, 'label' | 'position' | 'size' | 'fillColor' | 'labelColor' | 'labelSize'>>,
+  patch: Partial<Pick<CanvasGroup, 'label' | 'position' | 'size'>>,
 ): WorkbenchState {
-  const roundedPatch = roundGroupPatch(patch);
   return {
     ...state,
     groups: state.groups.map((group) =>
-      group.id === groupId ? { ...group, ...roundedPatch } : group,
+      group.id === groupId ? { ...group, ...patch } : group,
     ),
   };
 }
