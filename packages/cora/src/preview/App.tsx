@@ -4,6 +4,7 @@ import { CatalogSidebar } from './components/CatalogSidebar.js';
 import { ConnectionPanel } from './components/ConnectionPanel.js';
 import { GroupPanel } from './components/GroupPanel.js';
 import { NodePropPanel, visibleComponentLabel } from './components/NodePropPanel.js';
+import { Select } from './components/ui/select.js';
 import { WorkbenchCanvas } from './components/WorkbenchCanvas.js';
 import type { ConnectionProps } from './controls/defaults.js';
 import {
@@ -36,6 +37,7 @@ export function App() {
   const [isCatalogOpen, setIsCatalogOpen] = useState(true);
   const [isInspectorOpen, setIsInspectorOpen] = useState(true);
   const [componentSearch, setComponentSearch] = useState('');
+  const [activeTheme, setActiveTheme] = useState<'default' | 'monochrome' | 'without-shadow'>('default');
 
   const selectedNode =
     state.selected?.kind === 'node'
@@ -68,11 +70,26 @@ export function App() {
             }}
           />
         </label>
+        <div className="preview-theme-selector">
+          <span className="material-symbols-outlined" aria-hidden="true">
+            palette
+          </span>
+          <Select
+            value={activeTheme}
+            onChange={(event) => setActiveTheme(event.currentTarget.value as any)}
+            aria-label="Theme Selection"
+          >
+            <option value="default">Default Theme</option>
+            <option value="monochrome">Monochrome</option>
+            <option value="without-shadow">No Shadows</option>
+          </Select>
+        </div>
       </header>
       <WorkbenchCanvas
         state={state}
         onStateChange={setState}
         onClear={() => setState((current) => clearCanvas(current))}
+        activeTheme={activeTheme}
       />
       <CatalogSidebar
         state={state}

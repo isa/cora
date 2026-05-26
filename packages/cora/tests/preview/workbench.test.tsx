@@ -16,6 +16,10 @@ describe('preview workbench', () => {
     expect(markup).toContain('Layers');
     expect(markup).toContain('Components');
     expect(markup).toContain('Search components...');
+    expect(markup).toContain('aria-label="Theme Selection"');
+    expect(markup).toContain('Default Theme');
+    expect(markup).toContain('Monochrome');
+    expect(markup).toContain('No Shadows');
     expect(markup).toContain('draggable="true"');
     expect(markup).toContain('component-icon');
     expect(markup).toContain('Group');

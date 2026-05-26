@@ -3,6 +3,10 @@ import { useEffect, useRef, useState, type DragEvent, type PointerEvent } from '
 import { Line, linePathData } from '../../renderer/components/lines/Line.js';
 import { LineMarkerDefs } from '../../renderer/components/lines/markers.js';
 import { previewIcon } from '../pack/builtins.js';
+import { catalogDefaultProps } from '../../renderer/themes/componentDefaults.js';
+import { defaultTheme } from '../../renderer/themes/default.js';
+import { toMonochrome, withoutShadow } from '../../renderer/themes/transforms.js';
+import { connectionDefaults } from '../controls/defaults.js';
 import {
   applyConnectionMarkerInsets,
   computeConnectionCenter,
@@ -21,6 +25,7 @@ import {
   setNodePosition,
   type CanvasSelection,
   type WorkbenchState,
+  type CanvasNode,
 } from '../state.js';
 import { AttachmentOverlay } from './AttachmentOverlay.js';
 
@@ -28,6 +33,7 @@ interface WorkbenchCanvasProps {
   state: WorkbenchState;
   onStateChange(state: WorkbenchState): void;
   onClear?(): void;
+  activeTheme?: 'default' | 'monochrome' | 'without-shadow';
 }
 
 type DragTarget =
@@ -38,7 +44,74 @@ type DragTarget =
 
 const DEFAULT_VIEWPORT = { width: 960, height: 640 };
 
-function renderNode(state: WorkbenchState, nodeId: string) {
+function getEffectiveNodeProps(
+  node: CanvasNode,
+  activeTheme: 'default' | 'monochrome' | 'without-shadow',
+) {
+  const defaultProps = catalogDefaultProps(node.componentId as any) || {};
+
+  // Resolve theme tokens
+  let themeTokens = defaultTheme;
+  if (activeTheme === 'monochrome') {
+    themeTokens = toMonochrome(themeTokens);
+  } else if (activeTheme === 'without-shadow') {
+    themeTokens = withoutShadow(themeTokens);
+  }
+
+  const shapeStyle = themeTokens.shapes[node.componentId] ?? themeTokens.shapes.box!;
+  const effective = { ...node.props };
+
+  const isSameColor = (c1: string, c2: string) => {
+    if (c1 === c2) return true;
+    if (!c1 || !c2) return false;
+    return c1.toLowerCase() === c2.toLowerCase();
+  };
+
+  // Override colors and styles if they match the default lookup
+  if (isSameColor(effective.backgroundColor || '', defaultProps.backgroundColor || '')) {
+    effective.backgroundColor = shapeStyle.fill;
+  }
+
+  if (isSameColor(effective.borderColor || '', defaultProps.borderColor || '')) {
+    effective.borderColor = shapeStyle.stroke;
+  }
+
+  if (effective.borderWidth === defaultProps.borderWidth) {
+    effective.borderWidth = shapeStyle.strokeWidth;
+  }
+
+  if (effective.borderStyle === defaultProps.borderStyle) {
+    if (shapeStyle.strokeDasharray) {
+      effective.borderStyle = 'dashed';
+    } else if (shapeStyle.stroke === 'none') {
+      effective.borderStyle = 'none';
+    } else {
+      effective.borderStyle = 'solid';
+    }
+  }
+
+  if (isSameColor(effective.textColor || '', defaultProps.textColor || '')) {
+    effective.textColor = shapeStyle.labelFill ?? themeTokens.nodeLabel.fill;
+  }
+
+  if (isSameColor(effective.subtitleColor || '', defaultProps.subtitleColor || '')) {
+    effective.subtitleColor = activeTheme === 'monochrome' ? '#000000' : defaultProps.subtitleColor;
+  }
+
+  if (isSameColor(effective.iconColor || '', defaultProps.iconColor || '')) {
+    effective.iconColor = activeTheme === 'monochrome' ? '#000000' : defaultProps.iconColor;
+  }
+
+  if (activeTheme === 'without-shadow') {
+    effective.shadow = 'none';
+  } else if (effective.shadow === defaultProps.shadow) {
+    effective.shadow = shapeStyle.shadow ? 'cast' : 'none';
+  }
+
+  return effective;
+}
+
+function renderNode(state: WorkbenchState, nodeId: string, activeTheme: 'default' | 'monochrome' | 'without-shadow' = 'default') {
   const node = state.nodes.find((item) => item.id === nodeId);
   if (!node) {
     return null;
@@ -53,8 +126,9 @@ function renderNode(state: WorkbenchState, nodeId: string) {
     node.componentId === 'icon' || node.componentId === 'labelIcon'
       ? { icon: previewIcon }
       : {};
+  const effectiveProps = getEffectiveNodeProps(node, activeTheme);
   const props = {
-    ...node.props,
+    ...effectiveProps,
     size: previewNodeSize(node),
     x: box.x,
     y: box.y,
@@ -90,7 +164,7 @@ function renderNode(state: WorkbenchState, nodeId: string) {
   );
 }
 
-export function WorkbenchCanvas({ state, onStateChange, onClear }: WorkbenchCanvasProps) {
+export function WorkbenchCanvas({ state, onStateChange, onClear, activeTheme = 'default' }: WorkbenchCanvasProps) {
   const canvasRegionRef = useRef<HTMLElement | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const panStartRef = useRef<{ clientX: number; clientY: number; pan: { x: number; y: number } } | undefined>(undefined);
@@ -269,7 +343,12 @@ export function WorkbenchCanvas({ state, onStateChange, onClear }: WorkbenchCanv
 
   return (
     <>
-      <section className="canvas-region" aria-label="Canvas" ref={canvasRegionRef}>
+      <section
+        className="canvas-region"
+        aria-label="Canvas"
+        ref={canvasRegionRef}
+        style={activeTheme === 'monochrome' ? { background: '#ffffff' } : undefined}
+      >
         <svg
           ref={svgRef}
           className={[
@@ -301,55 +380,91 @@ export function WorkbenchCanvas({ state, onStateChange, onClear }: WorkbenchCanv
           }}
         >
         <defs>
-          {state.connections.map((connection) => (
-            <LineMarkerDefs
-              key={connection.id}
-              color={connection.props.strokeColor}
-              markerSize={connection.props.arrowSize}
-              idSuffix={connection.id}
-            />
-          ))}
+          {state.connections.map((connection) => {
+            const isSameColor = (c1: string, c2: string) => {
+              if (c1 === c2) return true;
+              if (!c1 || !c2) return false;
+              return c1.toLowerCase() === c2.toLowerCase();
+            };
+            const connectionStrokeColor =
+              activeTheme === 'monochrome' && isSameColor(connection.props.strokeColor, connectionDefaults.strokeColor)
+                ? '#000000'
+                : connection.props.strokeColor;
+            return (
+              <LineMarkerDefs
+                key={connection.id}
+                color={connectionStrokeColor}
+                markerSize={connection.props.arrowSize}
+                idSuffix={connection.id}
+              />
+            );
+          })}
         </defs>
-        {state.groups.map((group) => (
-          <g
-            key={group.id}
-            className={state.selected?.kind === 'group' && state.selected.id === group.id ? 'preview-group selected' : 'preview-group'}
-            onPointerDown={(event) => beginDrag(event, { kind: 'group', id: group.id }, group.position)}
-          >
-            <rect
-              x={group.position.x}
-              y={group.position.y}
-              width={group.size.width}
-              height={group.size.height}
-              rx="8"
-              className="group-box"
-            />
-            <text x={group.position.x + 12} y={group.position.y + 22} className="group-label">
-              {group.label}
-            </text>
-            <rect
-              x={group.position.x + group.size.width - 12}
-              y={group.position.y + group.size.height - 12}
-              width="12"
-              height="12"
-              rx="2"
-              className="group-resize-handle"
-              onPointerDown={(event) => beginGroupResize(event, group.id)}
-            />
-          </g>
-        ))}
+        {state.groups.map((group) => {
+          const isMonochrome = activeTheme === 'monochrome';
+          const groupStyle = isMonochrome ? {
+            fill: 'none',
+            stroke: '#000000',
+            strokeWidth: 0.75,
+            strokeDasharray: '4 4',
+          } : undefined;
+
+          return (
+            <g
+              key={group.id}
+              className={state.selected?.kind === 'group' && state.selected.id === group.id ? 'preview-group selected' : 'preview-group'}
+              onPointerDown={(event) => beginDrag(event, { kind: 'group', id: group.id }, group.position)}
+            >
+              <rect
+                x={group.position.x}
+                y={group.position.y}
+                width={group.size.width}
+                height={group.size.height}
+                rx="8"
+                className="group-box"
+                style={groupStyle}
+              />
+              <text
+                x={group.position.x + 12}
+                y={group.position.y + 22}
+                className="group-label"
+                style={isMonochrome ? { fill: '#000000' } : undefined}
+              >
+                {group.label}
+              </text>
+              <rect
+                x={group.position.x + group.size.width - 12}
+                y={group.position.y + group.size.height - 12}
+                width="12"
+                height="12"
+                rx="2"
+                className="group-resize-handle"
+                onPointerDown={(event) => beginGroupResize(event, group.id)}
+              />
+            </g>
+          );
+        })}
         <AttachmentOverlay slots={slots} boxes={boxes} showLabels={false} />
         {state.connections.map((connection) => {
           const points = computeConnectionPoints(state, connection);
           const visiblePoints = applyConnectionMarkerInsets(points, connection.props);
           const path = linePathData(visiblePoints);
           const selected = state.selected?.kind === 'connection' && state.selected.id === connection.id;
+          const isSameColor = (c1: string, c2: string) => {
+            if (c1 === c2) return true;
+            if (!c1 || !c2) return false;
+            return c1.toLowerCase() === c2.toLowerCase();
+          };
+          const connectionStrokeColor =
+            activeTheme === 'monochrome' && isSameColor(connection.props.strokeColor, connectionDefaults.strokeColor)
+              ? '#000000'
+              : connection.props.strokeColor;
           return (
           <g key={connection.id} className={selected ? 'preview-connection selected' : 'preview-connection'}>
             <Line
               points={visiblePoints}
               lineStyle={connection.props.lineStyle}
-              strokeColor={connection.props.strokeColor}
+              strokeColor={connectionStrokeColor}
               strokeWidth={connection.props.strokeWidth}
               startMarker={connection.props.startMarker}
               endMarker={connection.props.endMarker}
@@ -389,7 +504,7 @@ export function WorkbenchCanvas({ state, onStateChange, onClear }: WorkbenchCanv
                   className="selection-outline"
                 />
               ) : null}
-              {renderNode(state, node.id)}
+              {renderNode(state, node.id, activeTheme)}
             </g>
           );
         })}
