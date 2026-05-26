@@ -1,6 +1,6 @@
+import { resolveIconGlyphSize, resolveIconNodeDimensions } from '../renderer/components/nodes/iconLayout.js';
 import { resolveComponentSize } from '../renderer/components/styles.js';
 import type { ConnectionProps } from './controls/defaults.js';
-import type { SizePreset } from '../renderer/components/types.js';
 import type { CanvasConnection, CanvasNode, WorkbenchState } from './state.js';
 
 export type Side = 'top' | 'right' | 'bottom' | 'left';
@@ -22,14 +22,6 @@ export interface AttachmentSlot {
   y: number;
 }
 
-const ICON_SIZE_PRESETS: Record<SizePreset, number> = {
-  sm: 28,
-  md: 40,
-  lg: 56,
-  xl: 72,
-  xxl: 88,
-};
-
 export function previewNodeSize(node: CanvasNode): { width: number; height: number } {
   const base = resolveComponentSize(node.props.size, { width: 140, height: 56 });
   const title = node.props.title ?? node.props.text ?? '';
@@ -48,8 +40,17 @@ export function previewNodeSize(node: CanvasNode): { width: number; height: numb
       height: Math.max(28, textHeight),
     };
   }
-  if (node.componentId === 'icon' || node.componentId === 'labelIcon') {
-    return previewIconSize(node);
+  if (node.componentId === 'icon') {
+    return resolveIconNodeDimensions(
+      node.props.size ?? 'md',
+      node.props.title ?? node.props.text ?? '',
+      node.props.subtitle ?? '',
+      node.props.titleFontSize ?? 12,
+      node.props.subtitleFontSize ?? 10,
+    );
+  }
+  if (node.componentId === 'labelIcon') {
+    return previewLabelIconSize(node);
   }
 
   return {
@@ -58,16 +59,9 @@ export function previewNodeSize(node: CanvasNode): { width: number; height: numb
   };
 }
 
-function previewIconSize(node: CanvasNode): { width: number; height: number } {
-  if (typeof node.props.size === 'string') {
-    const size = ICON_SIZE_PRESETS[node.props.size] ?? ICON_SIZE_PRESETS.md;
-    return { width: size, height: size };
-  }
-  if (node.props.size && typeof node.props.size === 'object') {
-    const size = Math.max(24, Math.min(node.props.size.width, node.props.size.height));
-    return { width: size, height: size };
-  }
-  return { width: ICON_SIZE_PRESETS.md, height: ICON_SIZE_PRESETS.md };
+function previewLabelIconSize(node: CanvasNode): { width: number; height: number } {
+  const base = resolveComponentSize(node.props.size, { width: 128, height: 56 });
+  return base;
 }
 
 export function computeNodeBox(state: WorkbenchState, nodeId: string): PreviewBox | undefined {
@@ -92,6 +86,23 @@ export function computeNodeBox(state: WorkbenchState, nodeId: string): PreviewBo
     id: node.id,
     ...position,
     ...size,
+  };
+}
+
+function computeConnectionAnchorBox(state: WorkbenchState, nodeId: string): PreviewBox | undefined {
+  const node = state.nodes.find((item) => item.id === nodeId);
+  const box = computeNodeBox(state, nodeId);
+  if (!node || !box || node.componentId !== 'icon') {
+    return box;
+  }
+
+  const glyph = resolveIconGlyphSize(node.props.size ?? 'md');
+  return {
+    id: box.id,
+    x: box.x + (box.width - glyph) / 2,
+    y: box.y,
+    width: glyph,
+    height: glyph,
   };
 }
 
@@ -148,8 +159,8 @@ export function computeConnectionPoints(
   state: WorkbenchState,
   connection: CanvasConnection,
 ): Array<{ x: number; y: number }> {
-  const source = computeNodeBox(state, connection.fromNodeId);
-  const target = computeNodeBox(state, connection.toNodeId);
+  const source = computeConnectionAnchorBox(state, connection.fromNodeId);
+  const target = computeConnectionAnchorBox(state, connection.toNodeId);
   if (!source || !target) {
     return [];
   }
@@ -175,17 +186,41 @@ export function applyConnectionMarkerInsets(
     return points;
   }
   const next = points.map((point) => ({ ...point }));
-  if (props.endMarker === 'arrow') {
+  const endInset = markerInsetDistance(props.endMarker, props.arrowSize);
+  const startInset = markerInsetDistance(props.startMarker, props.arrowSize);
+
+  if (endInset > 0) {
     next[next.length - 1] = offsetPointToward(
       next[next.length - 1]!,
       next[next.length - 2]!,
-      props.arrowSize,
+      endInset,
     );
   }
-  if (props.startMarker === 'arrow') {
-    next[0] = offsetPointToward(next[0]!, next[1]!, props.arrowSize);
+  if (startInset > 0) {
+    next[0] = offsetPointToward(next[0]!, next[1]!, startInset);
   }
   return next;
+}
+
+function markerInsetDistance(
+  marker: ConnectionProps['startMarker'] | ConnectionProps['endMarker'],
+  markerSize: number,
+): number {
+  const size = Math.max(4, markerSize);
+  if (marker === 'arrow') {
+    return size;
+  }
+  if (marker === 'circle' || marker === 'filledCircle') {
+    const radius = Math.max(2, size * 0.36);
+    return radius + (marker === 'circle' ? 0.75 : 0);
+  }
+  if (marker === 'diamond' || marker === 'filledDiamond') {
+    return size / 2 + (marker === 'diamond' ? 0.75 : 0);
+  }
+  if (marker === 'square' || marker === 'filledSquare') {
+    return size * 0.36 + (marker === 'square' ? 0.75 : 0);
+  }
+  return 0;
 }
 
 function offsetPointToward(
@@ -211,8 +246,8 @@ export function computeConnectionAnchorRatios(
   const endpointGroups = new Map<string, Array<{ connectionId: string; role: 'source' | 'target' }>>();
 
   for (const connection of state.connections) {
-    const source = computeNodeBox(state, connection.fromNodeId);
-    const target = computeNodeBox(state, connection.toNodeId);
+    const source = computeConnectionAnchorBox(state, connection.fromNodeId);
+    const target = computeConnectionAnchorBox(state, connection.toNodeId);
     if (!source || !target) {
       continue;
     }
@@ -354,8 +389,8 @@ export function computeAttachmentSlots(
 export function computeSceneAttachmentSlots(state: WorkbenchState): AttachmentSlot[] {
   const groups = new Map<string, { box: PreviewBox; side: Side; count: number }>();
   for (const connection of state.connections) {
-    const source = computeNodeBox(state, connection.fromNodeId);
-    const target = computeNodeBox(state, connection.toNodeId);
+    const source = computeConnectionAnchorBox(state, connection.fromNodeId);
+    const target = computeConnectionAnchorBox(state, connection.toNodeId);
     if (!source || !target) {
       continue;
     }

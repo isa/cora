@@ -5,6 +5,7 @@ export type {
   ComponentSize,
   EdgeComponentProps,
   GroupComponentProps,
+  GroupStyleProps,
   IconBearingProps,
   IssueIconType,
   IssueNodeProps,
@@ -25,13 +26,17 @@ export { LineMarkerDefs, markerUrl } from './lines/markers.js';
 export type { MarkerType } from './lines/markers.js';
 export { lineDasharray } from './lines/styles.js';
 export type { LineStyle } from './lines/styles.js';
+export type { SvgIconComponent, SvgIconProps } from './iconTypes.js';
+export { BugIcon, ErrorIcon, StopIcon, WarningIcon } from './icons.js';
 export {
-  BugIcon,
-  ErrorIcon,
-  StopIcon,
-  WarningIcon,
-} from './icons.js';
-export type { SvgIconComponent, SvgIconProps } from './icons.js';
+  CloudIcon,
+  DatabaseIcon,
+  NetworkIcon,
+  ServerIcon,
+  UserIcon,
+  resolveIcon,
+} from './defaultIcons.js';
+export type { IconCatalogEntry, IconPackManifest } from '../iconPacks/types.js';
 
 export { EdgeLabel } from './edges/EdgeLabel.js';
 export {
@@ -52,6 +57,3 @@ export { LabelIconNode } from './nodes/LabelIconNode.js';
 export { WebsiteNode } from './nodes/WebsiteNode.js';
 export { PageNode } from './nodes/PageNode.js';
 export { AppNode } from './nodes/AppNode.js';
-export { DecisionNode } from './nodes/DecisionNode.js';
-export { IssueNode } from './nodes/IssueNode.js';
-export { ShapeNode } from './nodes/ShapeNode.js';

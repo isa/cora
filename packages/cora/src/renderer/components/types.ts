@@ -20,6 +20,12 @@ export interface GroupComponentProps {
   theme: ThemeTokens;
 }
 
+export interface GroupStyleProps {
+  fillColor?: string;
+  labelColor?: string;
+  labelSize?: number;
+}
+
 export type BorderStyle = 'none' | 'solid' | 'dashed' | 'dotted';
 
 export type NodeShadow = 'none' | 'cast' | 'radial';
@@ -44,6 +50,7 @@ export interface BoxStyleProps {
   text?: string;
   textColor?: string;
   subtitleColor?: string;
+  skeletonColor?: string;
   titleFontSize?: number;
   subtitleFontSize?: number;
   shadow?: NodeShadow;

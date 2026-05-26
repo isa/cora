@@ -61,12 +61,12 @@ test -f "$SMOKE_DIR/install/node_modules/cora/dist/renderer/assets/fonts/NotoSan
 test -d "$SMOKE_DIR/install/node_modules/playwright" \
   || { echo "[smoke] FAIL: playwright runtime dep not installed; no-Chromium assertion is vacuous"; exit 1; }
 
-# Assertion 5: preview browser assets ship and preview help is available without
-# launching a server or browser.
-test -f "$SMOKE_DIR/install/node_modules/cora/dist/preview/index.html" \
-  || { echo "[smoke] FAIL: dist/preview/index.html missing from published package"; exit 1; }
-"$SMOKE_DIR/install/node_modules/.bin/cora" preview --help | grep -q -- "--no-open" \
-  || { echo "[smoke] FAIL: cora preview --help missing --no-open"; exit 1; }
+# Assertion 5: preview assets are NOT shipped (dev-only after Phase 3.7).
+if [ -d "$SMOKE_DIR/install/node_modules/cora/dist/preview" ]; then
+  echo "[smoke] FAIL: dist/preview/ should not exist in published package"
+  exit 1
+fi
+echo "  ✓ preview assets correctly excluded from package"
 
 # Assertion 6: agent skill guide ships with the installed package.
 test -f "$SMOKE_DIR/install/node_modules/cora/SKILL.md" \
@@ -86,4 +86,4 @@ grep -q "## Triggers" "$SMOKE_DIR/install/node_modules/cora/SKILL.md" \
 #   code path, gated behind `--quality=high` + consent.
 #   This script is the load-bearing proof that this remains true.
 
-echo "[smoke] PASS: cora installs cleanly, no Chromium downloaded, fonts, preview assets, and SKILL.md shipped"
+echo "[smoke] PASS: cora installs cleanly, no Chromium downloaded, fonts, preview excluded, and SKILL.md shipped"

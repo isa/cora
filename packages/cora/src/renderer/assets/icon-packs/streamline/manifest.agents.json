@@ -1,0 +1,218 @@
+{
+  "id": "streamline",
+  "version": "0cc093384cd0",
+  "label": "Streamline",
+  "count": 3933,
+  "aliases": {},
+  "categories": [
+    {
+      "id": "devices",
+      "label": "Devices",
+      "description": "Devices",
+      "examples": [
+        "ai-chip-spark",
+        "ai-chip-spark-remix",
+        "ai-chip-spark-solid",
+        "android",
+        "android-remix",
+        "android-solid",
+        "annoncement-megaphone",
+        "announcement-megaphone",
+        "announcement-megaphone-remix",
+        "announcement-megaphone-solid",
+        "battery-alert-1",
+        "battery-alert-1-remix"
+      ]
+    },
+    {
+      "id": "network",
+      "label": "Network",
+      "description": "Network",
+      "examples": [
+        "ai-generate-landscape-image-spark",
+        "ai-generate-landscape-image-spark-remix",
+        "ai-generate-landscape-image-spark-solid",
+        "ai-network-spark",
+        "ai-network-spark-remix",
+        "ai-network-spark-solid",
+        "airplane",
+        "airplane-disabled",
+        "airplane-disabled-remix",
+        "airplane-disabled-solid",
+        "airplane-enabled",
+        "airplane-enabled-remix"
+      ]
+    },
+    {
+      "id": "cloud_infra",
+      "label": "Cloud & infra",
+      "description": "Cloud & infra",
+      "examples": [
+        "ai-cloud-spark",
+        "ai-cloud-spark-remix",
+        "ai-cloud-spark-solid",
+        "capitol",
+        "capitol-remix",
+        "capitol-solid",
+        "cloud",
+        "cloud-add",
+        "cloud-add-remix",
+        "cloud-add-solid",
+        "cloud-block",
+        "cloud-block-remix"
+      ]
+    },
+    {
+      "id": "security",
+      "label": "Security",
+      "description": "Security",
+      "examples": [
+        "airport-security",
+        "airport-security-remix",
+        "airport-security-solid",
+        "alarm-clock",
+        "alarm-clock-remix",
+        "alarm-clock-solid",
+        "block-bell-notification",
+        "block-bell-notification-remix",
+        "block-bell-notification-solid",
+        "browser-block",
+        "browser-block-remix",
+        "browser-block-solid"
+      ]
+    },
+    {
+      "id": "alerts",
+      "label": "Alerts",
+      "description": "Alerts",
+      "examples": [
+        "add-bell-notification",
+        "add-bell-notification-remix",
+        "add-bell-notification-solid",
+        "bug",
+        "bug-antivirus-debugging",
+        "bug-antivirus-debugging-remix",
+        "bug-antivirus-debugging-solid",
+        "bug-remix",
+        "bug-solid",
+        "bug-virus-browser",
+        "bug-virus-browser-remix",
+        "bug-virus-browser-solid"
+      ]
+    },
+    {
+      "id": "people",
+      "label": "People",
+      "description": "People",
+      "examples": [
+        "business-user-curriculum",
+        "business-user-curriculum-remix",
+        "business-user-curriculum-solid",
+        "discount-percent-badge",
+        "discount-percent-badge-remix",
+        "discount-percent-badge-solid",
+        "face-scan-1",
+        "face-scan-1-remix",
+        "face-scan-1-solid",
+        "facebook-1",
+        "facebook-1-remix",
+        "facebook-1-solid"
+      ]
+    },
+    {
+      "id": "actions",
+      "label": "Actions",
+      "description": "Actions",
+      "examples": [
+        "add-1",
+        "add-1-remix",
+        "add-1-solid",
+        "add-circle",
+        "add-circle-remix",
+        "add-circle-solid",
+        "add-layer-2",
+        "add-layer-2-remix",
+        "add-layer-2-solid",
+        "add-square",
+        "add-square-remix",
+        "add-square-solid"
+      ]
+    },
+    {
+      "id": "communication",
+      "label": "Communication",
+      "description": "Communication",
+      "examples": [
+        "ai-email-generator-spark",
+        "ai-email-generator-spark-remix",
+        "ai-email-generator-spark-solid",
+        "call-center-support-service",
+        "call-center-support-service-remix",
+        "call-center-support-service-solid",
+        "call-hang-up",
+        "call-hang-up-remix",
+        "call-hang-up-solid",
+        "chat-bubble-oval",
+        "chat-bubble-oval-remix",
+        "chat-bubble-oval-smiley-1"
+      ]
+    },
+    {
+      "id": "places",
+      "label": "Places",
+      "description": "Places",
+      "examples": [
+        "app-store",
+        "app-store-remix",
+        "app-store-solid",
+        "arrow-roadmap",
+        "arrow-roadmap-solid",
+        "business-card",
+        "business-card-remix",
+        "business-card-solid",
+        "business-handshake",
+        "business-handshake-remix",
+        "business-handshake-solid",
+        "business-idea-money"
+      ]
+    },
+    {
+      "id": "media",
+      "label": "Media",
+      "description": "Media",
+      "examples": [
+        "ai-generate-music-spark",
+        "ai-generate-music-spark-remix",
+        "ai-generate-music-spark-solid",
+        "ai-generate-portrait-image-spark",
+        "ai-generate-portrait-image-spark-remix",
+        "ai-generate-portrait-image-spark-solid",
+        "back-camera-1",
+        "back-camera-1-remix",
+        "back-camera-1-solid",
+        "button-pause-2",
+        "button-pause-2-remix",
+        "button-pause-2-solid"
+      ]
+    },
+    {
+      "id": "other",
+      "label": "Other",
+      "description": "Other",
+      "examples": [
+        "adobe",
+        "adobe-remix",
+        "adobe-solid",
+        "affordable-and-clean-energy",
+        "affordable-and-clean-energy-remix",
+        "affordable-and-clean-energy-solid",
+        "ai-gaming-spark",
+        "ai-gaming-spark-remix",
+        "ai-gaming-spark-solid",
+        "ai-generate-variation-spark",
+        "ai-generate-variation-spark-remix",
+        "ai-generate-variation-spark-solid"
+      ]
+    }
+  ]
+}

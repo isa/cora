@@ -1,13 +1,15 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { CatalogSidebar } from './components/CatalogSidebar.js';
+import { IconSearchDropdown } from './components/IconSearchDropdown.js';
 import { ConnectionPanel } from './components/ConnectionPanel.js';
 import { GroupPanel } from './components/GroupPanel.js';
-import { NodePropPanel, visibleComponentLabel } from './components/NodePropPanel.js';
+import { NodePropPanel } from './components/NodePropPanel.js';
 import { Select } from './components/ui/select.js';
 import { WorkbenchCanvas } from './components/WorkbenchCanvas.js';
 import type { ConnectionProps } from './controls/defaults.js';
 import {
+  addIconItemToCanvas,
   clearCanvas,
   createDefaultWorkbenchState,
   deleteSelected,
@@ -32,12 +34,41 @@ function getContrastColor(hex: string): string {
   return yiq > 180 ? '#854d0e' : hex;
 }
 
+function isEditableTarget(target: EventTarget | null): boolean {
+  return target instanceof HTMLInputElement ||
+    target instanceof HTMLTextAreaElement ||
+    target instanceof HTMLSelectElement ||
+    (target instanceof HTMLElement && target.isContentEditable);
+}
+
 export function App() {
   const [state, setState] = useState(createDefaultWorkbenchState);
   const [isCatalogOpen, setIsCatalogOpen] = useState(true);
   const [isInspectorOpen, setIsInspectorOpen] = useState(true);
-  const [componentSearch, setComponentSearch] = useState('');
+  const [iconSearch, setIconSearch] = useState('');
   const [activeTheme, setActiveTheme] = useState<'default' | 'monochrome' | 'without-shadow'>('default');
+  const iconSearchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (
+        event.key !== '/' ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.altKey ||
+        isEditableTarget(event.target)
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      iconSearchInputRef.current?.focus();
+      iconSearchInputRef.current?.select();
+    };
+
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, []);
 
   const selectedNode =
     state.selected?.kind === 'node'
@@ -56,20 +87,17 @@ export function App() {
   return (
     <div className="preview-app">
       <header className="preview-topbar">
-        <label className="preview-search">
-          <span className="material-symbols-outlined" aria-hidden="true">
-            search
-          </span>
-          <input
-            type="search"
-            value={componentSearch}
-            placeholder="Search components..."
-            onChange={(event) => {
-              setComponentSearch(event.currentTarget.value);
-              setIsCatalogOpen(true);
-            }}
-          />
-        </label>
+        <IconSearchDropdown
+          inputRef={iconSearchInputRef}
+          query={iconSearch}
+          onQueryChange={setIconSearch}
+          onPick={({ provider, service }) => {
+            setState((current) =>
+              addIconItemToCanvas(current, provider, service, { x: 420, y: 280 }),
+            );
+            setIconSearch('');
+          }}
+        />
         <div className="preview-theme-selector">
           <span className="material-symbols-outlined" aria-hidden="true">
             palette
@@ -93,7 +121,6 @@ export function App() {
       />
       <CatalogSidebar
         state={state}
-        searchQuery={componentSearch}
         isOpen={isCatalogOpen}
         onClose={() => setIsCatalogOpen(false)}
         onSelectItem={(selection) => {
@@ -134,7 +161,7 @@ export function App() {
               <div className="inspector-title-row">
                 <h2>
                   {selectedNode
-                    ? visibleComponentLabel(state.pack.components.find((comp) => comp.id === selectedNode.componentId)?.label ?? '')
+                    ? (state.pack.components.find((comp) => comp.id === selectedNode.componentId)?.label ?? selectedNode.componentId)
                     : selectedConnection
                     ? 'Connection'
                     : selectedGroup

@@ -20,8 +20,9 @@
 | 3.4 | ASCII Export + SKILL.md (INSERTED) ✓ | Text-native diagram export and agent skill handoff docs | ASCII-*, AGT-04 |
 | 3.5 | Preview Visual Beauty (INSERTED) ✓ | Visual beauty, polish, and product feel of the preview workbench | BEAUTY-* |
 | 3.6 | Default Component Look Lockdown (INSERTED) | Canonical component styling, colors, fonts, and sensible defaults | LOOK-* |
-| 3.7 | Component/Icon Package Surface Lockdown (INSERTED) | Shipped component/icon set and package contents contract | PACK-* |
-| 3.8 | Grid Capability Expansion (INSERTED) | More capable diagram grid behavior before the interactive canvas | GRID-* |
+| 3.7 | Component/Icon Package Surface Lockdown (INSERTED) ✓ | Shipped component/icon set and package contents contract | PACK-* |
+| 3.8 | Material Icon Pack + Default Component Surface (INSERTED) ✓ | ~4k Material icons, unified preview library, narrowed default components | ICON-* |
+| 3.9 | Grid Capability Expansion (INSERTED) | More capable diagram grid behavior before the interactive canvas | GRID-* |
 | 4 | Interactive Canvas | Human layout polish loop | CLI-06, SRV-* |
 | 5 | Extension System | Provider themes & icons | EXT-* |
 | 6 | Hardening | v1 release readiness | CLI-07, AGT-02 |
@@ -351,14 +352,14 @@ Cross-cutting constraints:
 
 Plans:
 **Wave 1**
-- [ ] 03.6-01-PLAN.md — Shared Tailwind look contract, catalogDefaultProps factory, and defaultTheme rebuild
+- [x] 03.6-01-PLAN.md — Shared Tailwind look contract, catalogDefaultProps factory, and defaultTheme rebuild
 
 **Wave 2 *(blocked on Wave 1 completion)***
-- [ ] 03.6-02-PLAN.md — Renderer YAML path: measurement, catalog props, LayoutBoxNode radius/no-shadow
-- [ ] 03.6-03-PLAN.md — Preview sync: defaults.ts, builtins.tsx, look-sync regression test
+- [x] 03.6-02-PLAN.md — Renderer YAML path: measurement, catalog props, LayoutBoxNode radius/no-shadow
+- [x] 03.6-03-PLAN.md — Preview sync: defaults.ts, builtins.tsx, look-sync regression test
 
 **Wave 3 *(blocked on Waves 1–2 completion)***
-- [ ] 03.6-04-PLAN.md — Golden baseline refresh (D-13), ASCII/PDF gates, AGENTS.md Default Look docs
+- [x] 03.6-04-PLAN.md — Golden baseline refresh (D-13), ASCII/PDF gates, AGENTS.md Default Look docs
 
 Cross-cutting constraints:
 - Single source: `renderer/themes/componentDefaults.ts` feeds theme, renderer, and preview (D-12).
@@ -405,14 +406,14 @@ Cross-cutting constraints:
 
 Plans:
 **Wave 1**
-- [ ] 03.7-01-PLAN.md — Preview CLI exclusion, Vite devDep relocation, build pipeline separation
+- [x] 03.7-01-PLAN.md — Preview CLI exclusion, Vite devDep relocation, build pipeline separation
 
 **Wave 2 *(blocked on Wave 1 completion)***
-- [ ] 03.7-02-PLAN.md — Default SVG icon set, renderer icon resolution, built-in provider validation, preview icon controls
-- [ ] 03.7-03-PLAN.md — Package tarball integrity smoke test and clean-install script updates
+- [x] 03.7-02-PLAN.md — Default SVG icon set, renderer icon resolution, built-in provider validation, preview icon controls
+- [x] 03.7-03-PLAN.md — Package tarball integrity smoke test and clean-install script updates
 
 **Wave 3 *(blocked on Waves 1–2 completion)***
-- [ ] 03.7-04-PLAN.md — AGENTS.md, README.md, SKILL.md docs reconciliation and final verification
+- [x] 03.7-04-PLAN.md — AGENTS.md, README.md, SKILL.md docs reconciliation and final verification
 
 ---
 

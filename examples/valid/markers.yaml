@@ -9,7 +9,7 @@ diagram:
       component: page
     - id: review
       label: Review
-      component: decision
+      component: label
     - id: queue
       label: Queue
       component: app

@@ -22,6 +22,10 @@ interface GlyphSet {
   upArrow: string;
   circle: string;
   filledCircle: string;
+  diamond: string;
+  filledDiamond: string;
+  square: string;
+  filledSquare: string;
   portDown: string;
   portUp: string;
   portRight: string;
@@ -43,6 +47,10 @@ const GLYPHS: Record<TextCharset, GlyphSet> = {
     upArrow: '▲',
     circle: 'O',
     filledCircle: '●',
+    diamond: '◇',
+    filledDiamond: '◆',
+    square: '□',
+    filledSquare: '■',
     portDown: '╷',
     portUp: '╵',
     portRight: '╶',
@@ -62,6 +70,10 @@ const GLYPHS: Record<TextCharset, GlyphSet> = {
     upArrow: '^',
     circle: 'O',
     filledCircle: '*',
+    diamond: 'D',
+    filledDiamond: '#',
+    square: 'S',
+    filledSquare: '#',
     portDown: '|',
     portUp: '|',
     portRight: '-',
@@ -1328,6 +1340,10 @@ export function renderToText(
       if (route.startMarker === 'arrow') ch = getArrowGlyph(dirPt, pt, glyphs);
       else if (route.startMarker === 'circle') ch = glyphs.circle;
       else if (route.startMarker === 'filledCircle') ch = glyphs.filledCircle;
+      else if (route.startMarker === 'diamond') ch = glyphs.diamond;
+      else if (route.startMarker === 'filledDiamond') ch = glyphs.filledDiamond;
+      else if (route.startMarker === 'square') ch = glyphs.square;
+      else if (route.startMarker === 'filledSquare') ch = glyphs.filledSquare;
       if (ch) setForce(grid, pt, ch);
     }
 
@@ -1344,6 +1360,10 @@ export function renderToText(
       if (route.endMarker === 'arrow') ch = getArrowGlyph(dirPt, pt, glyphs);
       else if (route.endMarker === 'circle') ch = glyphs.circle;
       else if (route.endMarker === 'filledCircle') ch = glyphs.filledCircle;
+      else if (route.endMarker === 'diamond') ch = glyphs.diamond;
+      else if (route.endMarker === 'filledDiamond') ch = glyphs.filledDiamond;
+      else if (route.endMarker === 'square') ch = glyphs.square;
+      else if (route.endMarker === 'filledSquare') ch = glyphs.filledSquare;
       if (ch) setForce(grid, pt, ch);
     }
   }

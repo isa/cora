@@ -12,6 +12,7 @@ describe('Preview and Renderer Look Sync', () => {
     'radius',
     'textColor',
     'subtitleColor',
+    'skeletonColor',
     'titleFontSize',
     'subtitleFontSize',
     'shadow',

@@ -19,24 +19,27 @@ bun run cora render diagram.yaml -o diagram.pdf
 bun run cora render diagram.yaml -o diagram.txt
 bun run cora render diagram.yaml
 bun run cora render diagram.yaml --charset ascii
-bun run cora preview
-bun run cora preview --no-open
 bun run cora schema
+cora icons search database --format json
 ```
 
 After `bun link` in `packages/cora`, you can use `cora` directly.
 
-## Preview workbench
+## Development tools
 
-`cora preview` starts a local component workbench for built-in renderer
-components. It does not require a diagram YAML file. Use `cora preview --no-open`
-or `bun run cora preview --no-open` in tests and automation to avoid launching a
-browser.
+`cora preview` is available only in a **source checkout** (when `packages/cora/src`
+exists). It is not registered after `npm install cora` and is not part of the
+published package surface.
 
-Preview selection means nodes only, with at most a primary node and secondary
-node selected at once. Lines/connections and groups are context for inspecting
-relationships and grouped layouts; they are not selected components. Dragging is
-preview-local and does not persist YAML, layout, or source-file changes.
+```bash
+bun run cora preview
+bun run cora preview --no-open
+```
+
+The preview workbench inspects built-in renderer components without diagram YAML.
+Use `--no-open` in tests and automation. Preview selection means nodes only (at
+most one primary and one secondary node). Lines and groups are context only.
+Dragging is preview-local and does not persist YAML or layout.
 
 ## Recommended agent loop
 
@@ -206,23 +209,19 @@ import type {
 import {
   AppNode,
   BoxNode,
-  DecisionNode,
   Group,
   IconNode,
-  IssueNode,
   LabelIconNode,
   LabelNode,
   Line,
   LineMarkerDefs,
   PageNode,
-  ShapeNode,
   WebsiteNode,
 } from 'cora/renderer/components';
 ```
 
 YAML nodes use `component` as the catalog discriminator. Omit it for the default
-`box`, or set one of: `box`, `label`, `icon`, `labelIcon`, `website`, `page`,
-`app`, `decision`, `issue`, `shape`.
+`box`, or set one of: `box`, `label`, `icon`, `labelIcon`, `website`, `page`, `app`.
 
 Box-like renderer props use `BoxStyleProps`: `backgroundColor`, `radius`,
 `borderStyle`, `borderColor`, `borderWidth`, `text`, `textColor`, and `size`.
@@ -233,6 +232,46 @@ Lines use explicit routed points and marker values `none`, `arrow`, `circle`,
 and `filledCircle`. Keep component APIs behind `renderer/components/index.ts`;
 do not re-export them from `packages/cora/src/index.ts`.
 
+## Package exports
+
+| Subpath | Purpose |
+|---------|---------|
+| `cora` | Main library (validate, render, schema) |
+| `cora/core` | Core validation and layout engine |
+| `cora/renderer` | SVG renderer |
+| `cora/renderer/components` | Typed React component catalog for extensions |
+
+## Icon packs
+
+Cora ships a **Material (default)** icon pack (~4k filled icons) under
+`dist/renderer/assets/icon-packs/default/` (built by `bun run build` from gitignored
+Material sources). Extension packs use the same manifest shape under
+`~/.config/cora/extensions/<provider>/`.
+
+| File | Purpose |
+|------|---------|
+| `manifest.json` | Full catalog (validation, preview library, lazy SVG resolve) |
+| `manifest.agents.json` | Slim category index with example slugs for agents |
+
+**Agent workflow:**
+
+1. Read `manifest.agents.json` (or this section) to pick a category and example slug.
+2. Confirm the exact slug: `cora icons search <query> --format json` (searches all installed packs).
+3. Emit YAML with `provider` (pack id) and `service` (canonical slug in that pack).
+
+**YAML aliases (default pack):** `server`→`dns`, `network`→`lan`, `user`→`person`, `bug`→`bug-report`.
+
+```yaml
+nodes:
+  - id: db
+    label: PostgreSQL
+    component: icon
+    provider: default
+    service: database
+```
+
+Use with `component: icon` or `component: labelIcon`. Unknown `service` for an installed pack triggers `UNKNOWN_SERVICE`; missing extension pack triggers `MISSING_EXTENSION`.
+
 ### Default Look
 
 Cora defines a canonical locked default visual language for all built-in components to ensure a professional appearance when styling properties are omitted in YAML:
@@ -240,8 +279,6 @@ Cora defines a canonical locked default visual language for all built-in compone
 - **Palette**: A Tailwind-based neutral base using the `slate` scale for borders, default text, and layout backgrounds, without dynamic runtime Tailwind dependencies. Semantic hues map per component kind:
   - `slate-neutral`: Default box and label nodes
   - `violet`: Icon terminals (accent) and label-icons (violet-200 fill, violet-500 stroke)
-  - `amber`: Decision diamonds
-  - `rose`: Issue nodes
   - `sky`: Page nodes
   - `emerald`: App nodes
   - `yellow`: Website nodes
@@ -252,7 +289,7 @@ Cora defines a canonical locked default visual language for all built-in compone
   - Node subtitles: 10px Regular
   - Standalone labels: 11px SemiBold `slate-800`
   - Edge labels: 10px Regular `slate-600`
-- **Single Source of Truth**: Handled centrally via `catalogDefaultProps()` in `packages/cora/src/renderer/themes/componentDefaults.ts`, shared exactly between both the pure SVG renderer and the preview controls.
+- **Single Source of Truth**: Handled centrally via `catalogDefaultProps()` in `packages/cora/src/renderer/themes/componentDefaults.ts`, shared between the SVG renderer and the development preview workbench (source checkout only).
 - **When to Override**: Default look coordinates can be overridden directly using custom style/layout properties inside the diagram YAML document. Custom extension themes are deferred to Phase 5.
 
 ## Examples

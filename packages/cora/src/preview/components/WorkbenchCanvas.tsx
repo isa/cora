@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, type DragEvent, type PointerEvent } from 'react';
 
 import { Line, linePathData } from '../../renderer/components/lines/Line.js';
-import { LineMarkerDefs } from '../../renderer/components/lines/markers.js';
-import { previewIcon } from '../pack/builtins.js';
+import { LineMarkerDefs, markerUrl } from '../../renderer/components/lines/markers.js';
+import { resolvePreviewIcon } from '../pack/resolvePreviewIcon.js';
 import { catalogDefaultProps } from '../../renderer/themes/componentDefaults.js';
 import { defaultTheme } from '../../renderer/themes/default.js';
 import { toMonochrome, withoutShadow } from '../../renderer/themes/transforms.js';
@@ -17,6 +17,7 @@ import {
 } from '../geometry.js';
 import {
   addCatalogItemToCanvas,
+  addIconItemToCanvas,
   clearSelection,
   deleteSelected,
   selectCanvasItem,
@@ -98,6 +99,10 @@ function getEffectiveNodeProps(
     effective.subtitleColor = activeTheme === 'monochrome' ? '#000000' : defaultProps.subtitleColor;
   }
 
+  if (isSameColor(effective.skeletonColor || '', defaultProps.skeletonColor || '')) {
+    effective.skeletonColor = activeTheme === 'monochrome' ? '#000000' : defaultProps.skeletonColor;
+  }
+
   if (isSameColor(effective.iconColor || '', defaultProps.iconColor || '')) {
     effective.iconColor = activeTheme === 'monochrome' ? '#000000' : defaultProps.iconColor;
   }
@@ -122,11 +127,17 @@ function renderNode(state: WorkbenchState, nodeId: string, activeTheme: 'default
   }
   const definition = state.pack.components.find((component) => component.id === node.componentId)!;
   const Component = definition.component;
+  const effectiveProps = getEffectiveNodeProps(node, activeTheme);
   const iconProps =
     node.componentId === 'icon' || node.componentId === 'labelIcon'
-      ? { icon: previewIcon }
+      ? {
+          icon: resolvePreviewIcon(effectiveProps),
+          iconColor:
+            effectiveProps.iconColor ??
+            effectiveProps.strokeColor ??
+            effectiveProps.backgroundColor,
+        }
       : {};
-  const effectiveProps = getEffectiveNodeProps(node, activeTheme);
   const props = {
     ...effectiveProps,
     size: previewNodeSize(node),
@@ -251,11 +262,31 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, activeTheme = '
 
   const onDrop = (event: DragEvent<SVGSVGElement>) => {
     event.preventDefault();
+    const point = toCanvasPoint(event.clientX, event.clientY);
+    const iconPayload = event.dataTransfer.getData('application/x-cora-icon');
+    if (iconPayload) {
+      try {
+        const { provider, service } = JSON.parse(iconPayload) as { provider: string; service: string };
+        const targetConnection = connectionAtPoint(state, point);
+        onStateChange(
+          addIconItemToCanvas(state, provider, service, {
+            x: Math.max(16, point.x - (targetConnection ? 64 : 36)),
+            y: Math.max(16, point.y - (targetConnection ? 28 : 40)),
+          }, {
+            componentId: targetConnection ? 'labelIcon' : 'icon',
+            attachedConnectionId: targetConnection?.id,
+          }),
+        );
+      } catch {
+        return;
+      }
+      return;
+    }
+
     const componentId = event.dataTransfer.getData('application/x-cora-component');
     if (!componentId) {
       return;
     }
-    const point = toCanvasPoint(event.clientX, event.clientY);
     const dropState =
       (componentId === 'label' || componentId === 'labelIcon') && state.selected?.kind !== 'connection'
         ? selectNearestConnection(state, point)
@@ -407,7 +438,9 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, activeTheme = '
             stroke: '#000000',
             strokeWidth: 0.75,
             strokeDasharray: '4 4',
-          } : undefined;
+          } : {
+            fill: group.fillColor,
+          };
 
           return (
             <g
@@ -428,7 +461,10 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, activeTheme = '
                 x={group.position.x + 12}
                 y={group.position.y + 22}
                 className="group-label"
-                style={isMonochrome ? { fill: '#000000' } : undefined}
+                style={{
+                  fill: isMonochrome ? '#000000' : group.labelColor,
+                  fontSize: group.labelSize,
+                }}
               >
                 {group.label}
               </text>
@@ -447,8 +483,11 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, activeTheme = '
         <AttachmentOverlay slots={slots} boxes={boxes} showLabels={false} />
         {state.connections.map((connection) => {
           const points = computeConnectionPoints(state, connection);
-          const visiblePoints = applyConnectionMarkerInsets(points, connection.props);
-          const path = linePathData(visiblePoints);
+          const shaftPoints = applyConnectionMarkerInsets(points, connection.props);
+          const shaftPath = linePathData(shaftPoints);
+          const hitPath = linePathData(points);
+          const hasMarkers =
+            connection.props.startMarker !== 'none' || connection.props.endMarker !== 'none';
           const selected = state.selected?.kind === 'connection' && state.selected.id === connection.id;
           const isSameColor = (c1: string, c2: string) => {
             if (c1 === c2) return true;
@@ -462,19 +501,29 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, activeTheme = '
           return (
           <g key={connection.id} className={selected ? 'preview-connection selected' : 'preview-connection'}>
             <Line
-              points={visiblePoints}
+              points={shaftPoints}
               lineStyle={connection.props.lineStyle}
               strokeColor={connectionStrokeColor}
               strokeWidth={connection.props.strokeWidth}
-              startMarker={connection.props.startMarker}
-              endMarker={connection.props.endMarker}
-              markerIdSuffix={connection.id}
+              startMarker="none"
+              endMarker="none"
             />
+            {hasMarkers ? (
+              <path
+                d={hitPath}
+                fill="none"
+                stroke="transparent"
+                strokeWidth="0.01"
+                pointerEvents="none"
+                markerStart={markerUrl(connection.props.startMarker, connection.id)}
+                markerEnd={markerUrl(connection.props.endMarker, connection.id)}
+              />
+            ) : null}
             {selected ? (
-              <path d={path} className="connection-selection" />
+              <path d={shaftPath} className="connection-selection" />
             ) : null}
             <path
-              d={path}
+              d={hitPath}
               className="connection-hit"
               onPointerDown={(event) => {
                 event.stopPropagation();
@@ -586,4 +635,55 @@ function selectNearestConnection(state: WorkbenchState, point: { x: number; y: n
   return nearest
     ? selectCanvasItem(state, { kind: 'connection', id: nearest.id })
     : state;
+}
+
+function connectionAtPoint(
+  state: WorkbenchState,
+  point: { x: number; y: number },
+): { id: string; distance: number } | undefined {
+  let nearest: { id: string; distance: number; threshold: number } | undefined;
+
+  for (const connection of state.connections) {
+    const points = computeConnectionPoints(state, connection);
+    if (points.length < 2) {
+      continue;
+    }
+    const distance = distanceToPolyline(point, points);
+    const threshold = Math.max(14, (connection.props.strokeWidth ?? 2) + 10);
+    if ((!nearest || distance < nearest.distance) && distance <= threshold) {
+      nearest = { id: connection.id, distance, threshold };
+    }
+  }
+
+  return nearest ? { id: nearest.id, distance: nearest.distance } : undefined;
+}
+
+function distanceToPolyline(
+  point: { x: number; y: number },
+  points: Array<{ x: number; y: number }>,
+): number {
+  let best = Number.POSITIVE_INFINITY;
+
+  for (let index = 0; index < points.length - 1; index += 1) {
+    best = Math.min(best, distanceToSegment(point, points[index]!, points[index + 1]!));
+  }
+
+  return best;
+}
+
+function distanceToSegment(
+  point: { x: number; y: number },
+  start: { x: number; y: number },
+  end: { x: number; y: number },
+): number {
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  const lengthSquared = dx * dx + dy * dy;
+
+  if (lengthSquared === 0) {
+    return Math.hypot(point.x - start.x, point.y - start.y);
+  }
+
+  const t = Math.max(0, Math.min(1, ((point.x - start.x) * dx + (point.y - start.y) * dy) / lengthSquared));
+  return Math.hypot(point.x - (start.x + t * dx), point.y - (start.y + t * dy));
 }

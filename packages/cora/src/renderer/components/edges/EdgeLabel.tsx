@@ -1,4 +1,4 @@
-import { baselineYForVisualCenter, measureLabel } from '../../../core/measureText.js';
+import { baselineYForVisualCenter, measureLabel } from '../../typography.js';
 import { escapeXml, FONT_FAMILY } from '../../utils.js';
 import type { EdgeComponentProps } from '../types.js';
 import { EDGE_LABEL_PADDING, edgeLabelRenderPosition } from './decorations.js';

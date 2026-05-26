@@ -1,15 +1,10 @@
 import type { ComponentType } from 'react';
-// Source preview uses direct source imports to keep the browser bundle free of
-// server-only renderer helpers; package subpath verification is covered in Plan 04.
-import { ErrorIcon } from '../../renderer/components/icons.js';
 import { AppNode } from '../../renderer/components/nodes/AppNode.js';
 import { BoxNode } from '../../renderer/components/nodes/BoxNode.js';
-import { DecisionNode } from '../../renderer/components/nodes/DecisionNode.js';
-import { IssueNode } from '../../renderer/components/nodes/IssueNode.js';
+import { IconNode } from '../../renderer/components/nodes/IconNode.js';
 import { LabelIconNode } from '../../renderer/components/nodes/LabelIconNode.js';
 import { LabelNode } from '../../renderer/components/nodes/LabelNode.js';
 import { PageNode } from '../../renderer/components/nodes/PageNode.js';
-import { ShapeNode } from '../../renderer/components/nodes/ShapeNode.js';
 import { WebsiteNode } from '../../renderer/components/nodes/WebsiteNode.js';
 import type { PackManifest, PreviewComponentDefinition } from './types.js';
 import {
@@ -18,13 +13,13 @@ import {
   iconNodeControls,
   labelNodeControls,
   labelIconNodeControls,
-  issueNodeControls,
-  issueNodeDefaults,
   pageNodeControls,
   pageNodeDefaults,
+  websiteNodeControls,
   type PreviewNodeProps,
 } from '../controls/defaults.js';
 import { catalogDefaultProps } from '../../renderer/themes/componentDefaults.js';
+import { displayNameForComponent } from './displayNames.js';
 
 const component = (
   id: string,
@@ -48,47 +43,37 @@ export const builtInPack: PackManifest = {
   families: [
     { id: 'basic', label: 'Basic' },
     { id: 'product', label: 'Product' },
-    { id: 'logic', label: 'Logic' },
-    { id: 'status', label: 'Status' },
   ],
   components: [
-    component('box', 'BoxNode', 'basic', BoxNode as ComponentType<PreviewNodeProps>, {
+    component('box', displayNameForComponent('box'), 'basic', BoxNode as ComponentType<PreviewNodeProps>, {
       ...catalogDefaultProps('box'),
-      title: 'BoxNode',
+      title: 'Box',
     }),
-    component('label', 'LabelNode', 'basic', LabelNode as ComponentType<PreviewNodeProps>, {
+    component('label', displayNameForComponent('label'), 'basic', LabelNode as ComponentType<PreviewNodeProps>, {
       ...catalogDefaultProps('label'),
-      title: 'LabelNode',
+      title: 'Label',
     }, labelNodeControls),
-    component('icon', 'IconNode', 'basic', LabelIconNode as unknown as ComponentType<PreviewNodeProps>, {
+    component('icon', displayNameForComponent('icon'), 'basic', IconNode as unknown as ComponentType<PreviewNodeProps>, {
       ...catalogDefaultProps('icon'),
-      title: 'IconNode',
-      iconType: 'ok',
+      title: 'Icon',
+      subtitle: 'Subtitle',
+      provider: 'default',
+      service: 'warning',
     }, iconNodeControls),
-    component('labelIcon', 'LabelIconNode', 'basic', LabelIconNode as unknown as ComponentType<PreviewNodeProps>, {
+    component('labelIcon', displayNameForComponent('labelIcon'), 'basic', LabelIconNode as ComponentType<PreviewNodeProps>, {
       ...catalogDefaultProps('labelIcon'),
-      title: 'LabelIconNode',
-      iconType: 'ok',
+      title: 'Icon Label',
+      provider: 'default',
+      service: 'warning',
     }, labelIconNodeControls),
-    component('website', 'WebsiteNode', 'product', WebsiteNode as ComponentType<PreviewNodeProps>, {
+    component('website', displayNameForComponent('website'), 'product', WebsiteNode as ComponentType<PreviewNodeProps>, {
       ...catalogDefaultProps('website'),
-      title: 'WebsiteNode',
-    }),
-    component('page', 'PageNode', 'product', PageNode as ComponentType<PreviewNodeProps>, pageNodeDefaults, pageNodeControls),
-    component('app', 'AppNode', 'product', AppNode as ComponentType<PreviewNodeProps>, {
+      title: 'Website',
+    }, websiteNodeControls),
+    component('page', displayNameForComponent('page'), 'product', PageNode as ComponentType<PreviewNodeProps>, pageNodeDefaults, pageNodeControls),
+    component('app', displayNameForComponent('app'), 'product', AppNode as ComponentType<PreviewNodeProps>, {
       ...catalogDefaultProps('app'),
-      title: 'AppNode',
-    }),
-    component('decision', 'DecisionNode', 'logic', DecisionNode as ComponentType<PreviewNodeProps>, {
-      ...catalogDefaultProps('decision'),
-      title: 'DecisionNode',
-    }),
-    component('issue', 'IssueNode', 'status', IssueNode as ComponentType<PreviewNodeProps>, issueNodeDefaults, issueNodeControls),
-    component('shape', 'ShapeNode', 'basic', ShapeNode as ComponentType<PreviewNodeProps>, {
-      ...catalogDefaultProps('shape'),
-      title: 'ShapeNode',
+      title: 'App',
     }),
   ],
 };
-
-export const previewIcon = ErrorIcon;
