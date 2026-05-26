@@ -14,6 +14,7 @@ import {
 import {
   addCatalogItemToCanvas,
   clearSelection,
+  deleteSelected,
   selectCanvasItem,
   setGroupPosition,
   setGroupSize,
@@ -133,6 +134,11 @@ export function WorkbenchCanvas({ state, onStateChange, onClear }: WorkbenchCanv
       if (event.code === 'Space' && !isEditable(event.target)) {
         event.preventDefault();
         setIsSpaceDown(true);
+      } else if ((event.key === 'Backspace' || event.key === 'Delete') && !isEditable(event.target)) {
+        if (state.selected) {
+          event.preventDefault();
+          onStateChange(deleteSelected(state));
+        }
       }
     };
     const onKeyUp = (event: KeyboardEvent) => {
@@ -150,7 +156,7 @@ export function WorkbenchCanvas({ state, onStateChange, onClear }: WorkbenchCanv
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
     };
-  }, [dragTarget?.kind]);
+  }, [dragTarget?.kind, state, onStateChange]);
 
   const toCanvasPoint = (clientX: number, clientY: number) => {
     const svg = svgRef.current;
@@ -396,6 +402,17 @@ export function WorkbenchCanvas({ state, onStateChange, onClear }: WorkbenchCanv
       </section>
       <div className="canvas-toolbar">
         <div className="canvas-toolbar-inner">
+          <span className="material-symbols-outlined canvas-tool active" aria-hidden="true">near_me</span>
+          <button
+            type="button"
+            className="preview-btn preview-btn-icon preview-btn-zoom"
+            disabled={state.nodes.length === 0 && state.connections.length === 0 && state.groups.length === 0}
+            aria-label="Clear canvas"
+            onClick={() => onClear?.()}
+          >
+            <span className="material-symbols-outlined preview-btn-icon-glyph" aria-hidden="true">delete_sweep</span>
+          </button>
+          <span className="canvas-toolbar-divider" aria-hidden="true" />
           <button
             type="button"
             className="preview-btn preview-btn-icon preview-btn-zoom"
@@ -412,16 +429,7 @@ export function WorkbenchCanvas({ state, onStateChange, onClear }: WorkbenchCanv
           >
             <span className="material-symbols-outlined preview-btn-icon-glyph" aria-hidden="true">zoom_out</span>
           </button>
-          <span className="canvas-toolbar-divider" aria-hidden="true" />
-          <button
-            type="button"
-            className="preview-btn"
-            disabled={state.nodes.length === 0 && state.connections.length === 0 && state.groups.length === 0}
-            onClick={() => onClear?.()}
-          >
-            <span className="material-symbols-outlined preview-btn-leading-icon" aria-hidden="true">delete_sweep</span>
-            Clear Canvas
-          </button>
+          <span className="canvas-zoom-readout">{Math.round(zoom * 100)}%</span>
         </div>
       </div>
     </>

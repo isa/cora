@@ -34,6 +34,7 @@ export function NodePropPanel({ state, nodeId, onPropChange }: NodePropPanelProp
         {groups.map((group) => {
           let iconName = 'edit';
           if (group.label === 'Style') iconName = 'palette';
+          else if (group.label === 'Layout') iconName = 'grid_view';
 
           return (
             <details key={group.label} open className="control-group-details">
@@ -48,26 +49,17 @@ export function NodePropPanel({ state, nodeId, onPropChange }: NodePropPanelProp
                   expand_more
                 </span>
               </summary>
-              {group.label === 'Content' ? (
-                <ContentGroupBody
-                  controls={group.controls}
-                  node={node}
-                  nodeId={nodeId}
-                  onPropChange={onPropChange}
-                />
-              ) : (
-                <div className="control-group-content">
-                  {group.controls.map((control) => (
-                    <ControlInput
-                      key={control.key}
-                      control={control}
-                      value={node.props[control.key as keyof PreviewNodeProps]}
-                      onChange={(value) => onPropChange(nodeId, control.key, value)}
-                      showColorSwatches={group.label === 'Style' && control.kind === 'color'}
-                    />
-                  ))}
-                </div>
-              )}
+              <div className="control-group-content">
+                {group.controls.map((control) => (
+                  <ControlInput
+                    key={control.key}
+                    control={control}
+                    value={node.props[control.key as keyof PreviewNodeProps]}
+                    onChange={(value) => onPropChange(nodeId, control.key, value)}
+                    showColorSwatches={control.kind === 'color'}
+                  />
+                ))}
+              </div>
             </details>
           );
         })}
@@ -83,106 +75,34 @@ export function visibleComponentLabel(label: string): string {
     IconNode: 'Start/End Terminal',
     LabelIconNode: 'Data Input',
     DecisionNode: 'Decision Diamond',
-    Group: 'Subroutine',
+    Group: 'Group',
   };
   return labels[label] ?? (label.endsWith('Node') ? label.slice(0, -4) : label);
 }
 
-const CONTENT_KEYS = ['title', 'subtitle', 'text', 'iconType', 'type', 'icon', 'size'];
+const CONTENT_KEYS = ['title', 'subtitle', 'text', 'iconType', 'type', 'icon'];
+const LAYOUT_KEYS = ['size', 'radius', 'borderStyle', 'borderWidth', 'borderColor'];
 const STYLE_KEYS = [
   'backgroundColor',
-  'radius',
-  'borderStyle',
-  'borderColor',
-  'borderWidth',
   'textColor',
   'subtitleColor',
   'titleFontSize',
   'subtitleFontSize',
   'shadow',
+  'shadowColor',
   'iconColor',
   'skeletonColorDark',
   'skeletonColorLight',
 ];
 
 function groupControls(controls: Array<ControlDefinition<PreviewNodeProps>>) {
-  const pick = (keys: string[]) => controls.filter((control) => keys.includes(control.key));
+  const pick = (keys: string[]) => {
+    const matched = controls.filter((control) => keys.includes(control.key));
+    return matched.sort((a, b) => keys.indexOf(a.key) - keys.indexOf(b.key));
+  };
   return [
     { label: 'Content', controls: pick(CONTENT_KEYS) },
+    { label: 'Layout', controls: pick(LAYOUT_KEYS) },
     { label: 'Style', controls: pick(STYLE_KEYS) },
   ].filter((group) => group.controls.length > 0);
-}
-
-interface ContentGroupBodyProps {
-  controls: Array<ControlDefinition<PreviewNodeProps>>;
-  node: CanvasNode;
-  nodeId: string;
-  onPropChange(nodeId: string, key: string, value: unknown): void;
-}
-
-function ContentGroupBody({ controls, node, nodeId, onPropChange }: ContentGroupBodyProps) {
-  const controlByKey = new Map(controls.map((control) => [control.key, control]));
-  const hasSubtitle = controlByKey.has('subtitle');
-  const hasSize = controlByKey.has('size');
-  const rendered = new Set<string>();
-  const items: ReactNode[] = [];
-
-  for (const key of CONTENT_KEYS) {
-    if (rendered.has(key)) {
-      continue;
-    }
-
-    const control = controlByKey.get(key as keyof PreviewNodeProps);
-    if (!control) {
-      continue;
-    }
-
-    if (key === 'subtitle' && hasSize) {
-      items.push(
-        <div key="subtitle-size-row" className="content-subtitle-size-row">
-          <ControlInput
-            control={controlByKey.get('subtitle')!}
-            value={node.props.subtitle}
-            onChange={(value) => onPropChange(nodeId, 'subtitle', value)}
-          />
-          <ControlInput
-            control={controlByKey.get('size')!}
-            value={node.props.size}
-            onChange={(value) => onPropChange(nodeId, 'size', value)}
-          />
-        </div>,
-      );
-      rendered.add('subtitle');
-      rendered.add('size');
-      continue;
-    }
-
-    if (key === 'size') {
-      if (hasSize && !hasSubtitle) {
-        items.push(
-          <div key="size-only" className="content-size-only">
-            <ControlInput
-              control={control}
-              value={node.props.size}
-              onChange={(value) => onPropChange(nodeId, 'size', value)}
-            />
-          </div>,
-        );
-        rendered.add('size');
-      }
-      continue;
-    }
-
-    items.push(
-      <ControlInput
-        key={control.key}
-        control={control}
-        value={node.props[control.key as keyof PreviewNodeProps]}
-        onChange={(value) => onPropChange(nodeId, control.key, value)}
-      />,
-    );
-    rendered.add(key);
-  }
-
-  return <div className="control-group-content">{items}</div>;
 }

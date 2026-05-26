@@ -18,6 +18,7 @@ export type PreviewNodeProps = {
   titleFontSize?: number;
   subtitleFontSize?: number;
   shadow?: 'none' | 'cast' | 'radial';
+  shadowColor?: string;
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'xxl' | { width: number; height: number };
   iconColor?: string;
   strokeColor?: string;
@@ -84,6 +85,7 @@ export const baseNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
   { kind: 'number', key: 'titleFontSize', label: 'Title size', min: 8, max: 28, step: 1 },
   { kind: 'number', key: 'subtitleFontSize', label: 'Subtitle size', min: 7, max: 24, step: 1 },
   { kind: 'enum', key: 'shadow', label: 'Shadow', options: ['none', 'cast', 'radial'] },
+  { kind: 'color', key: 'shadowColor', label: 'Shadow color' },
   {
     kind: 'size',
     key: 'size',
@@ -94,7 +96,7 @@ export const baseNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
 ];
 
 export const labelNodeControls: Array<ControlDefinition<PreviewNodeProps>> =
-  baseNodeControls.filter((control) => control.key !== 'size' && control.key !== 'shadow');
+  baseNodeControls.filter((control) => control.key !== 'size' && control.key !== 'shadow' && control.key !== 'shadowColor');
 
 export const iconNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
   { kind: 'enum', key: 'iconType', label: 'Type', options: ['ok', 'nok', 'question-mark'] },

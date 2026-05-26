@@ -19,7 +19,7 @@ export function DecisionNode(props: DecisionNodeProps) {
 
   return (
     <g>
-      <CatalogPolygonShadow points={points} fill={frame.backgroundColor} shadow={frame.shadow} />
+      <CatalogPolygonShadow points={points} fill={frame.backgroundColor} shadow={frame.shadow} shadowColor={frame.shadowColor} />
       <polygon
         points={points}
         fill={frame.backgroundColor}

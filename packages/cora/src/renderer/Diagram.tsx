@@ -100,8 +100,9 @@ function nodeCatalogProps(
     radius: defaults.radius,
     titleFontSize: defaults.titleFontSize,
     subtitleFontSize: defaults.subtitleFontSize,
-    shadow: 'none' as const,
-  } as const;
+    shadow: style.shadow ? ('cast' as const) : ('none' as const),
+    shadowColor: style.shadow,
+  };
 }
 
 export function Diagram({ diagram }: DiagramProps) {

@@ -96,6 +96,7 @@ export function resolvedCatalogFrame(props: CatalogNodeFrameProps) {
     titleFontSize: props.titleFontSize,
     subtitleFontSize: props.subtitleFontSize,
     shadow: props.shadow ?? 'none',
+    shadowColor: props.shadowColor,
   };
 }
 
@@ -120,6 +121,7 @@ function shadowRects({
   radius,
   fill,
   shadow,
+  shadowColor,
 }: {
   x: number;
   y: number;
@@ -128,11 +130,12 @@ function shadowRects({
   radius: number;
   fill: string;
   shadow: NodeShadow;
+  shadowColor?: string;
 }) {
   if (shadow === 'none') {
     return null;
   }
-  const shadowFill = darkerColor(fill);
+  const shadowFill = shadowColor || darkerColor(fill);
 
   if (shadow === 'cast') {
     return (
@@ -180,6 +183,7 @@ export function CatalogShadow({
   radius,
   fill,
   shadow = 'none',
+  shadowColor,
 }: {
   x: number;
   y: number;
@@ -188,23 +192,26 @@ export function CatalogShadow({
   radius: number;
   fill: string;
   shadow?: NodeShadow;
+  shadowColor?: string;
 }) {
-  return shadowRects({ x, y, width, height, radius, fill, shadow });
+  return shadowRects({ x, y, width, height, radius, fill, shadow, shadowColor });
 }
 
 export function CatalogPolygonShadow({
   points,
   fill,
   shadow = 'none',
+  shadowColor,
 }: {
   points: string;
   fill: string;
   shadow?: NodeShadow;
+  shadowColor?: string;
 }) {
   if (shadow === 'none') {
     return null;
   }
-  const shadowFill = darkerColor(fill);
+  const shadowFill = shadowColor || darkerColor(fill);
 
   if (shadow === 'cast') {
     return (
@@ -251,6 +258,7 @@ export function CatalogFrame(props: CatalogNodeFrameProps) {
         radius={frame.radius}
         fill={frame.backgroundColor}
         shadow={frame.shadow}
+        shadowColor={frame.shadowColor}
       />
       <rect
         x={frame.x}

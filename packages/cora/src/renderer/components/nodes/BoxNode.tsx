@@ -28,6 +28,7 @@ export interface CatalogBoxNodeProps {
   titleFontSize?: number;
   subtitleFontSize?: number;
   shadow?: NodeShadow;
+  shadowColor?: string;
   size?: import('../types.js').ComponentSize;
   icon?: SvgIconComponent;
   iconColor?: string;

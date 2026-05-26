@@ -47,6 +47,7 @@ export interface BoxStyleProps {
   titleFontSize?: number;
   subtitleFontSize?: number;
   shadow?: NodeShadow;
+  shadowColor?: string;
   size?: ComponentSize;
 }
 

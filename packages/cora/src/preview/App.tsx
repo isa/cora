@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { CatalogSidebar } from './components/CatalogSidebar.js';
 import { ConnectionPanel } from './components/ConnectionPanel.js';
 import { GroupPanel } from './components/GroupPanel.js';
-import { InspectorFooter } from './components/InspectorFooter.js';
 import { NodePropPanel, visibleComponentLabel } from './components/NodePropPanel.js';
 import { WorkbenchCanvas } from './components/WorkbenchCanvas.js';
 import type { ConnectionProps } from './controls/defaults.js';
@@ -19,23 +18,24 @@ import {
 } from './state.js';
 
 function getContrastColor(hex: string): string {
-  if (!hex || hex.startsWith('var')) return '#6d28d9';
+  if (!hex || hex.startsWith('var')) return '#18181b';
   let color = hex.replace('#', '');
   if (color.length === 3) {
     color = color[0] + color[0] + color[1] + color[1] + color[2] + color[2];
   }
-  if (color.length !== 6) return '#6d28d9';
+  if (color.length !== 6) return '#18181b';
   const r = parseInt(color.substring(0, 2), 16);
   const g = parseInt(color.substring(2, 4), 16);
   const b = parseInt(color.substring(4, 6), 16);
   const yiq = (r * 299 + g * 587 + b * 114) / 1000;
-  return yiq > 180 ? '#6d28d9' : hex;
+  return yiq > 180 ? '#854d0e' : hex;
 }
 
 export function App() {
   const [state, setState] = useState(createDefaultWorkbenchState);
   const [isCatalogOpen, setIsCatalogOpen] = useState(true);
   const [isInspectorOpen, setIsInspectorOpen] = useState(true);
+  const [componentSearch, setComponentSearch] = useState('');
 
   const selectedNode =
     state.selected?.kind === 'node'
@@ -53,6 +53,22 @@ export function App() {
 
   return (
     <div className="preview-app">
+      <header className="preview-topbar">
+        <label className="preview-search">
+          <span className="material-symbols-outlined" aria-hidden="true">
+            search
+          </span>
+          <input
+            type="search"
+            value={componentSearch}
+            placeholder="Search components..."
+            onChange={(event) => {
+              setComponentSearch(event.currentTarget.value);
+              setIsCatalogOpen(true);
+            }}
+          />
+        </label>
+      </header>
       <WorkbenchCanvas
         state={state}
         onStateChange={setState}
@@ -60,6 +76,7 @@ export function App() {
       />
       <CatalogSidebar
         state={state}
+        searchQuery={componentSearch}
         isOpen={isCatalogOpen}
         onClose={() => setIsCatalogOpen(false)}
         onSelectItem={(selection) => {
@@ -71,8 +88,8 @@ export function App() {
       <aside
         className={`inspector-panel ${!isInspectorOpen ? 'collapsed' : ''}`}
         style={{
-          '--inspector-theme-color': selectedNode?.props?.backgroundColor || selectedConnection?.props?.strokeColor || '#6d28d9',
-          '--inspector-accent-color': getContrastColor(selectedNode?.props?.backgroundColor || selectedConnection?.props?.strokeColor || '#6d28d9'),
+          '--inspector-theme-color': selectedNode?.props?.backgroundColor || selectedConnection?.props?.strokeColor || '#18181b',
+          '--inspector-accent-color': getContrastColor(selectedNode?.props?.backgroundColor || selectedConnection?.props?.strokeColor || '#18181b'),
         } as React.CSSProperties}
         aria-label="Inspector"
       >
@@ -96,7 +113,7 @@ export function App() {
                 : '∅'}
             </span>
             <div className="inspector-title-block">
-              <p>Inspector / Attributes</p>
+              <p>Design</p>
               <div className="inspector-title-row">
                 <h2>
                   {selectedNode
@@ -149,12 +166,30 @@ export function App() {
             }
           />
         ) : null}
-        <InspectorFooter
-          canAct={hasSelection}
-          onDuplicate={() => setState((current) => duplicateSelected(current))}
-          onDelete={() => setState((current) => deleteSelected(current))}
-        />
       </aside>
+
+      <div className={`canvas-actions-panel ${hasSelection ? 'visible' : ''} ${!isInspectorOpen ? 'inspector-collapsed' : ''}`}>
+        <button
+          type="button"
+          className="preview-btn preview-btn-icon"
+          disabled={!hasSelection}
+          onClick={() => setState((current) => duplicateSelected(current))}
+          title="Duplicate selected item"
+          aria-label="Duplicate"
+        >
+          <span className="material-symbols-outlined" aria-hidden="true">content_copy</span>
+        </button>
+        <button
+          type="button"
+          className="preview-btn preview-btn-icon preview-btn-danger"
+          disabled={!hasSelection}
+          onClick={() => setState((current) => deleteSelected(current))}
+          title="Delete selected item"
+          aria-label="Delete"
+        >
+          <span className="material-symbols-outlined" aria-hidden="true">delete</span>
+        </button>
+      </div>
 
       <button
         type="button"

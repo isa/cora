@@ -12,10 +12,10 @@ describe('preview visual contract', () => {
   it('renders the agreed workbench composition markers', () => {
     const markup = renderToStaticMarkup(<App />);
 
-    expect(markup).toContain('Cora');
-    expect(markup).toContain('Library / Components');
-    expect(markup).toContain('Diagram Elements');
-    expect(markup).toContain('Inspector / Attributes');
+    expect(markup).toContain('Components');
+    expect(markup).toContain('Layers');
+    expect(markup).toContain('Search components...');
+    expect(markup).toContain('Design');
     expect(markup).toContain('Inspector');
     expect(markup).toContain('Style');
     expect(markup).toContain('canvas-toolbar-inner');
@@ -24,7 +24,7 @@ describe('preview visual contract', () => {
     expect(markup).not.toContain('Create Node');
     expect(markup).toContain('Duplicate');
     expect(markup).toContain('Delete');
-    expect(markup).toContain('Clear Canvas');
+    expect(markup).toContain('aria-label="Clear canvas"');
   });
 
   it('keeps technical labels out of visible primary chrome', () => {
@@ -38,11 +38,12 @@ describe('preview visual contract', () => {
   it('keeps the preview palette and surface tokens local and stable', () => {
     const css = readFileSync(join(packageRoot, 'src/preview/styles.css'), 'utf8');
 
-    expect(css).toContain('--preview-accent: #6d28d9');
-    expect(css).toContain('--preview-bg: #f9f9f9');
+    expect(css).toContain('--preview-accent: #18181b');
+    expect(css).toContain('--preview-purple: #6d28d9');
+    expect(css).toContain('--preview-bg: #f7f9fb');
     expect(css).toContain('--preview-surface: #ffffff');
-    expect(css).toContain('--preview-ink: #1a1c1c');
-    expect(css).toContain('radial-gradient');
+    expect(css).toContain('--preview-ink: #191c1e');
+    expect(css).toContain('linear-gradient');
     expect(css).toContain('prefers-reduced-motion');
   });
 });
