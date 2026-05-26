@@ -401,10 +401,18 @@ Cross-cutting constraints:
 - Avoid making internal renderer implementation details part of the public API by accident
 - Keep AGENTS.md aligned with the real installable package, not development-only conveniences
 
-**Plans:** 0 plans
+**Plans:** 4 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 3.7 to break down)
+**Wave 1**
+- [ ] 03.7-01-PLAN.md — Preview CLI exclusion, Vite devDep relocation, build pipeline separation
+
+**Wave 2 *(blocked on Wave 1 completion)***
+- [ ] 03.7-02-PLAN.md — Default SVG icon set, renderer icon resolution, built-in provider validation, preview icon controls
+- [ ] 03.7-03-PLAN.md — Package tarball integrity smoke test and clean-install script updates
+
+**Wave 3 *(blocked on Waves 1–2 completion)***
+- [ ] 03.7-04-PLAN.md — AGENTS.md, README.md, SKILL.md docs reconciliation and final verification
 
 ---
 
