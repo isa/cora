@@ -514,7 +514,7 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
         const parsed = JSON.parse(iconPayload) as { name: string; fullName: string };
         const isLabelIcon = Boolean(nearestConnection);
         iconProps = {
-          title: parsed.name,
+          title: isLabelIcon ? '' : parsed.name,
           subtitle: '',
           iconName: parsed.fullName,
           size: isLabelIcon ? 'md' : 'lg',

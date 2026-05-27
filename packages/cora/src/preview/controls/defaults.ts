@@ -147,8 +147,6 @@ export const iconNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
   { kind: 'color', key: 'subtitleColor', label: 'Subtitle color' },
   { kind: 'number', key: 'titleFontSize', label: 'Title size', min: 8, max: 28, step: 1 },
   { kind: 'number', key: 'subtitleFontSize', label: 'Subtitle size', min: 7, max: 24, step: 1 },
-  { kind: 'enum', key: 'shadow', label: 'Shadow', options: ['none', 'cast', 'radial'] },
-  { kind: 'color', key: 'shadowColor', label: 'Shadow color' },
 ];
 
 export const labelIconNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [

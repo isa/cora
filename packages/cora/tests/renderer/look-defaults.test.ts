@@ -35,6 +35,7 @@ describe('Design Tokens Contract', () => {
     const label = catalogDefaultProps('label');
     expect(label.titleFontSize).toBe(11);
     expect(label.radius).toBe(12);
+    expect(label).not.toHaveProperty('shadow');
   });
 
   it('uses neutral website defaults', () => {
@@ -52,14 +53,12 @@ describe('Design Tokens Contract', () => {
     expect(labelIcon.borderStyle).toBe('none');
     expect(labelIcon.borderWidth).toBe(0);
     expect(labelIcon.radius).toBe(0);
+    expect(labelIcon).not.toHaveProperty('shadow');
   });
 
-  it('verifies all component kinds return backgroundColor and shadow none', () => {
+  it('verifies shadow defaults only exist for shadow-capable component kinds', () => {
     const kinds: DiagramComponent[] = [
       'box',
-      'label',
-      'icon',
-      'labelIcon',
       'website',
       'page',
       'app',
@@ -71,6 +70,13 @@ describe('Design Tokens Contract', () => {
       const props = catalogDefaultProps(kind);
       expect(props.backgroundColor).toBeDefined();
       expect(props.shadow).toBe('none');
+    }
+
+    for (const kind of ['label', 'icon', 'labelIcon'] satisfies DiagramComponent[]) {
+      const props = catalogDefaultProps(kind);
+      expect(props.backgroundColor).toBeDefined();
+      expect(props).not.toHaveProperty('shadow');
+      expect(props).not.toHaveProperty('shadowColor');
     }
   });
 

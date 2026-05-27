@@ -68,7 +68,7 @@ export const builtInPack: PackManifest = {
     }, iconNodeControls),
     component('labelIcon', displayNameForComponent('labelIcon'), 'basic', LabelIconNode as unknown as ComponentType<PreviewNodeProps>, {
       ...catalogDefaultProps('labelIcon'),
-      title: 'Icon Label',
+      title: '',
       subtitle: '',
       iconName: 'material-symbols:database',
       size: 'md',

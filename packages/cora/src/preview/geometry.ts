@@ -82,7 +82,10 @@ export function computeNodeBox(state: WorkbenchState, nodeId: string): PreviewBo
   const size = previewNodeSize(node);
   const attachedCenter = node.attachedConnectionId
     ? node.componentId === 'labelIcon'
-      ? computeConnectionSourceLabelIconCenter(state, node.attachedConnectionId, size)
+      ? computeConnectionLabelIconCenter(state, node.attachedConnectionId, size, {
+          x: node.position.x + size.width / 2,
+          y: node.position.y + size.height / 2,
+        })
       : computeConnectionCenter(state, node.attachedConnectionId)
     : undefined;
   let position = node.position;
@@ -404,17 +407,29 @@ export function computeConnectionCenter(
   return connection ? connectionCenter(computeConnectionPoints(state, connection)) : undefined;
 }
 
-export function computeConnectionSourceLabelIconCenter(
+export function computeConnectionLabelIconCenter(
   state: WorkbenchState,
   connectionId: string,
   size: { width: number; height: number } = { width: 40, height: 40 },
+  preferredPoint?: { x: number; y: number },
 ): { x: number; y: number } | undefined {
   const connection = state.connections.find((item) => item.id === connectionId);
   if (!connection) {
     return undefined;
   }
   const points = computeConnectionPoints(state, connection);
-  return pointAlongPath(points, Math.max(24, Math.min(size.width, size.height) * 0.85));
+  const distance = Math.max(24, Math.min(size.width, size.height) * 0.85);
+  if (preferredPoint && points.length > 1) {
+    const source = points[0]!;
+    const target = points[points.length - 1]!;
+    const sourceDistance = Math.hypot(preferredPoint.x - source.x, preferredPoint.y - source.y);
+    const targetDistance = Math.hypot(preferredPoint.x - target.x, preferredPoint.y - target.y);
+    return targetDistance < sourceDistance
+      ? pointAlongPath([...points].reverse(), distance)
+      : pointAlongPath(points, distance);
+  }
+
+  return pointAlongPath(points, distance);
 }
 
 function pointAlongPath(

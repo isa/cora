@@ -95,7 +95,7 @@ describe('preview geometry', () => {
     expect(previewNodeSize({
       ...labelIconState.nodes[0]!,
       props: { ...labelIconState.nodes[0]!.props, size: 'lg' },
-    })).toEqual({ width: 80, height: 80 });
+    })).toEqual({ width: 60, height: 60 });
   });
 
   it('centers labelIcon vertical alignment based on the icon itself', () => {
@@ -111,7 +111,7 @@ describe('preview geometry', () => {
     );
     const node = withLabelIcon.nodes.at(-1)!;
     const box = computeNodeBox(withLabelIcon, node.id)!;
-    expect(box.y).toBe(116);
+    expect(box.y).toBe(110);
   });
 
   it('centers attached labels on their connection path', () => {
@@ -133,7 +133,7 @@ describe('preview geometry', () => {
     expect(box.x + box.width / 2).toBeLessThan(450);
   });
 
-  it('places attached label-icon nodes near the source side of the connection', () => {
+  it('places attached label-icon nodes near the source side of the connection when dropped there', () => {
     const connected = addNodeToCanvas(
       addNodeToCanvas(createDefaultWorkbenchState(), 'box', { x: 100, y: 100 }),
       'page',
@@ -151,6 +151,26 @@ describe('preview geometry', () => {
     expect(labelIcon.attachedConnectionId).toBe(connected.connections[0]!.id);
     expect(box.x + box.width / 2).toBeGreaterThan(source.x + source.width);
     expect(box.x + box.width / 2).toBeLessThan(source.x + source.width + 80);
+  });
+
+  it('places attached label-icon nodes near the destination side of the connection when dropped there', () => {
+    const connected = addNodeToCanvas(
+      addNodeToCanvas(createDefaultWorkbenchState(), 'box', { x: 100, y: 100 }),
+      'page',
+      { x: 420, y: 100 },
+    );
+    const target = computeNodeBox(connected, connected.nodes[1]!.id)!;
+    const state = addNodeToCanvas(
+      { ...connected, selected: { kind: 'connection', id: connected.connections[0]!.id } },
+      'labelIcon',
+      { x: target.x - 40, y: target.y + target.height / 2 - 20 },
+    );
+    const labelIcon = state.nodes.at(-1)!;
+    const box = computeNodeBox(state, labelIcon.id)!;
+
+    expect(labelIcon.attachedConnectionId).toBe(connected.connections[0]!.id);
+    expect(box.x + box.width / 2).toBeLessThan(target.x);
+    expect(box.x + box.width / 2).toBeGreaterThan(target.x - 80);
   });
 
   it('distributes same-side connection anchors across unique points', () => {

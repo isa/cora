@@ -45,7 +45,7 @@ export function IconNode({
   const remainingTextHeight = Math.max(textHeight, frame.y + frame.height - textY - 6 * ratio);
 
   return (
-    <CatalogFrame {...props}>
+    <CatalogFrame {...props} shadow={undefined}>
       <CatalogIconSlot
         icon={icon}
         x={frame.x + (frame.width - iconSize) / 2}

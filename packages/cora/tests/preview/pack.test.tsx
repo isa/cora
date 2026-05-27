@@ -27,11 +27,16 @@ describe('built-in preview pack', () => {
 
   it('uses compact text defaults for label nodes', () => {
     const labelNode = builtInPack.components.find((component) => component.id === 'label');
+    const labelIconNode = builtInPack.components.find((component) => component.id === 'labelIcon');
     const websiteNode = builtInPack.components.find((component) => component.id === 'website');
 
     expect(labelNode?.defaultProps).toMatchObject({
       titleFontSize: 11,
       subtitleFontSize: 10,
+    });
+    expect(labelIconNode?.defaultProps).toMatchObject({
+      title: '',
+      subtitle: '',
     });
     expect(websiteNode?.controls.map((control) => control.key)).toContain('skeletonColor');
     expect(websiteNode?.defaultProps).toMatchObject({

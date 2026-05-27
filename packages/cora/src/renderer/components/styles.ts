@@ -42,9 +42,9 @@ export const PAGE_SIZE_PRESETS: Record<SizePreset, ComponentDimensions> = {
 export const LABEL_ICON_SIZE_PRESETS: Record<SizePreset, ComponentDimensions> = {
   sm: { width: 20, height: 20 },
   md: { width: 40, height: 40 },
-  lg: { width: 80, height: 80 },
-  xl: { width: 120, height: 120 },
-  xxl: { width: 160, height: 160 },
+  lg: { width: 60, height: 60 },
+  xl: { width: 80, height: 80 },
+  xxl: { width: 100, height: 100 },
 };
 
 export function resolveLabelIconComponentSize(

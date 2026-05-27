@@ -109,6 +109,7 @@ describe('preview drag canvas state', () => {
     expect(withLabelIcon.connections).toHaveLength(1);
     expect(withLabelIcon.nodes.at(-1)?.componentId).toBe('labelIcon');
     expect(withLabelIcon.nodes.at(-1)?.attachedConnectionId).toBe(connected.connections[0]!.id);
+    expect(withLabelIcon.nodes.at(-1)?.props.title).toBe('');
   });
 
   it('clears selection and resizes groups without replacing canvas content', () => {

@@ -73,6 +73,7 @@ describe('preview controls', () => {
     });
     expect(labelNodeControls.some((control) => control.key === 'size')).toBe(false);
     expect(labelNodeControls.some((control) => control.key === 'shadow')).toBe(false);
+    expect(labelNodeControls.some((control) => control.key === 'shadowColor')).toBe(false);
     expect(iconNodeControls.map((control) => control.key)).toEqual([
       'iconName',
       'iconColor',
@@ -88,8 +89,6 @@ describe('preview controls', () => {
       'subtitleColor',
       'titleFontSize',
       'subtitleFontSize',
-      'shadow',
-      'shadowColor',
     ]);
     expect(labelIconNodeControls.map((control) => control.key)).toEqual(['iconName', 'iconColor', 'title', 'subtitle', 'backgroundColor', 'size']);
     expect(labelIconNodeControls.find((control) => control.key === 'iconName')).toMatchObject({
@@ -97,6 +96,13 @@ describe('preview controls', () => {
     });
     expect(labelIconNodeControls.find((control) => control.kind === 'size')).toMatchObject({
       explicit: { width: 40, height: 40 },
+      presetSizes: {
+        sm: { width: 20, height: 20 },
+        md: { width: 40, height: 40 },
+        lg: { width: 60, height: 60 },
+        xl: { width: 80, height: 80 },
+        xxl: { width: 100, height: 100 },
+      },
     });
     expect(websiteNodeControls.map((control) => control.key)).toContain('skeletonColor');
     expect(websiteNodeControls.find((control) => control.kind === 'size')).toMatchObject({

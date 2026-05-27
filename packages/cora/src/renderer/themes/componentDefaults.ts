@@ -22,6 +22,8 @@ export function catalogDefaultProps(component: DiagramComponent): Record<string,
     shadow: 'none' as const,
     size: 'md' as const,
   };
+  const { shadow, ...commonWithoutShadow } = common;
+  void shadow;
 
   switch (component) {
     case 'box':
@@ -31,7 +33,7 @@ export function catalogDefaultProps(component: DiagramComponent): Record<string,
 
     case 'label':
       return {
-        ...common,
+        ...commonWithoutShadow,
         backgroundColor: 'transparent',
         radius: 12,
         borderStyle: 'none' as const,
@@ -43,7 +45,7 @@ export function catalogDefaultProps(component: DiagramComponent): Record<string,
 
     case 'icon':
       return {
-        ...common,
+        ...commonWithoutShadow,
         backgroundColor: 'transparent',
         radius: 0,
         borderStyle: 'none' as const,
@@ -54,7 +56,7 @@ export function catalogDefaultProps(component: DiagramComponent): Record<string,
 
     case 'labelIcon':
       return {
-        ...common,
+        ...commonWithoutShadow,
         backgroundColor: 'transparent',
         borderStyle: 'none' as const,
         borderColor: 'transparent',

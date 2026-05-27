@@ -256,7 +256,10 @@ describe('renderer catalog nodes', () => {
     expect(radialMarkup).toContain('data-shadow="radial"');
   });
 
-  it('does not render shadows for label or label-icon nodes', () => {
+  it('does not render shadows for icon, label, or label-icon nodes', () => {
+    const iconMarkup = renderToStaticMarkup(
+      <IconNode icon={TestIcon} title="Icon" shadow="cast" />,
+    );
     const labelMarkup = renderToStaticMarkup(
       <LabelNode title="Label" shadow="cast" />,
     );
@@ -264,6 +267,7 @@ describe('renderer catalog nodes', () => {
       <LabelIconNode icon={TestIcon} iconType="ok" shadow="radial" />,
     );
 
+    expect(iconMarkup).not.toContain('data-shadow=');
     expect(labelMarkup).not.toContain('data-shadow=');
     expect(labelIconMarkup).not.toContain('data-shadow=');
   });
