@@ -3,11 +3,14 @@ import { describe, expect, it } from 'vitest';
 import {
   baseNodeControls,
   connectionControls,
+  iconNodeControls,
   issueNodeControls,
   labelIconNodeControls,
   labelNodeControls,
   pageNodeControls,
+  websiteNodeControls,
 } from '../../src/preview/controls/defaults.js';
+import { searchPreviewIcons } from '../../src/preview/iconSearch.js';
 
 describe('preview controls', () => {
   it('constrains enum controls for PageNode.type, IssueNode.icon, borderStyle, shadow, lineStyle, startMarker, and endMarker', () => {
@@ -33,11 +36,13 @@ describe('preview controls', () => {
     });
     expect(connectionControls.find((control) => control.key === 'startMarker')).toMatchObject({
       kind: 'enum',
-      options: ['none', 'arrow', 'circle', 'filledCircle'],
+      options: ['none', 'arrow', 'circle', 'filledCircle', 'diamond', 'filledDiamond', 'square', 'filledSquare'],
+      display: 'select',
     });
     expect(connectionControls.find((control) => control.key === 'endMarker')).toMatchObject({
       kind: 'enum',
-      options: ['none', 'arrow', 'circle', 'filledCircle'],
+      options: ['none', 'arrow', 'circle', 'filledCircle', 'diamond', 'filledDiamond', 'square', 'filledSquare'],
+      display: 'select',
     });
     expect(connectionControls.find((control) => control.key === 'arrowSize')).toMatchObject({
       kind: 'number',
@@ -68,9 +73,52 @@ describe('preview controls', () => {
     });
     expect(labelNodeControls.some((control) => control.key === 'size')).toBe(false);
     expect(labelNodeControls.some((control) => control.key === 'shadow')).toBe(false);
-    expect(labelIconNodeControls.map((control) => control.key)).toEqual(['iconType', 'iconColor', 'backgroundColor', 'size']);
+    expect(iconNodeControls.map((control) => control.key)).toEqual([
+      'iconName',
+      'iconColor',
+      'title',
+      'subtitle',
+      'size',
+      'backgroundColor',
+      'radius',
+      'borderStyle',
+      'borderColor',
+      'borderWidth',
+      'textColor',
+      'subtitleColor',
+      'titleFontSize',
+      'subtitleFontSize',
+      'shadow',
+      'shadowColor',
+    ]);
+    expect(labelIconNodeControls.map((control) => control.key)).toEqual(['iconName', 'iconColor', 'title', 'subtitle', 'backgroundColor', 'size']);
+    expect(labelIconNodeControls.find((control) => control.key === 'iconName')).toMatchObject({
+      kind: 'icon',
+    });
     expect(labelIconNodeControls.find((control) => control.kind === 'size')).toMatchObject({
       explicit: { width: 40, height: 40 },
     });
+    expect(websiteNodeControls.map((control) => control.key)).toContain('skeletonColor');
+    expect(websiteNodeControls.find((control) => control.kind === 'size')).toMatchObject({
+      explicit: { width: 144, height: 160 },
+      presetSizes: {
+        md: { width: 96, height: 107 },
+        lg: { width: 144, height: 160 },
+        xl: { width: 216, height: 240 },
+        xxl: { width: 324, height: 360 },
+      },
+    });
+  });
+
+  it('searches local Iconify index names for icon controls', async () => {
+    await expect(searchPreviewIcons('database', 5).then((icons) => icons.map((icon) => icon.fullName))).resolves.toContain(
+      'material-symbols:database',
+    );
+  });
+
+  it('fuzzy searches local Iconify index names', async () => {
+    const results = await searchPreviewIcons('cld dnld', 12);
+
+    expect(results.map((icon) => icon.fullName)).toContain('material-symbols:cloud-download');
   });
 });

@@ -1,14 +1,16 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { CatalogSidebar } from './components/CatalogSidebar.js';
 import { ConnectionPanel } from './components/ConnectionPanel.js';
 import { GroupPanel } from './components/GroupPanel.js';
+import { IconSearchDropdown } from './components/IconSearchDropdown.js';
 import { NodePropPanel, visibleComponentLabel } from './components/NodePropPanel.js';
 import { Select } from './components/ui/select.js';
 import { WorkbenchCanvas } from './components/WorkbenchCanvas.js';
 import type { ConnectionProps } from './controls/defaults.js';
 import {
   clearCanvas,
+  clearSelection,
   createDefaultWorkbenchState,
   deleteSelected,
   duplicateSelected,
@@ -32,12 +34,56 @@ function getContrastColor(hex: string): string {
   return yiq > 180 ? '#854d0e' : hex;
 }
 
+export function shouldFocusSearchFromShortcut(event: Pick<KeyboardEvent, 'key' | 'metaKey' | 'ctrlKey' | 'altKey' | 'target'>): boolean {
+  if (event.key !== '/' || event.metaKey || event.ctrlKey || event.altKey) {
+    return false;
+  }
+
+  const target = event.target as { tagName?: string; isContentEditable?: boolean } | null;
+  const tagName = target?.tagName?.toLowerCase();
+  return !(tagName === 'input' ||
+    tagName === 'textarea' ||
+    tagName === 'select' ||
+    target?.isContentEditable);
+}
+
 export function App() {
   const [state, setState] = useState(createDefaultWorkbenchState);
   const [isCatalogOpen, setIsCatalogOpen] = useState(true);
   const [isInspectorOpen, setIsInspectorOpen] = useState(true);
   const [componentSearch, setComponentSearch] = useState('');
+  const [isIconSearchLoading, setIsIconSearchLoading] = useState(false);
   const [activeTheme, setActiveTheme] = useState<'default' | 'monochrome' | 'without-shadow'>('default');
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        if (componentSearch.trim()) {
+          event.preventDefault();
+          setComponentSearch('');
+          setIsIconSearchLoading(false);
+          return;
+        }
+        if (state.selected) {
+          event.preventDefault();
+          setState((current) => clearSelection(current));
+          return;
+        }
+      }
+
+      if (!shouldFocusSearchFromShortcut(event)) {
+        return;
+      }
+      event.preventDefault();
+      setIsCatalogOpen(true);
+      searchInputRef.current?.focus();
+      searchInputRef.current?.select();
+    };
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [componentSearch, state.selected]);
 
   const selectedNode =
     state.selected?.kind === 'node'
@@ -61,13 +107,22 @@ export function App() {
             search
           </span>
           <input
+            ref={searchInputRef}
             type="search"
             value={componentSearch}
-            placeholder="Search components..."
+            placeholder="Search components and icons..."
             onChange={(event) => {
-              setComponentSearch(event.currentTarget.value);
+              const nextSearch = event.currentTarget.value;
+              setComponentSearch(nextSearch);
+              setIsIconSearchLoading(nextSearch.trim().length > 0);
               setIsCatalogOpen(true);
             }}
+          />
+          {isIconSearchLoading ? <span className="preview-search-spinner" aria-hidden="true" /> : null}
+          <IconSearchDropdown
+            query={componentSearch}
+            visible={componentSearch.trim().length > 0}
+            onLoadingChange={setIsIconSearchLoading}
           />
         </label>
         <div className="preview-theme-selector">
@@ -89,6 +144,10 @@ export function App() {
         state={state}
         onStateChange={setState}
         onClear={() => setState((current) => clearCanvas(current))}
+        onIconDrop={() => {
+          setComponentSearch('');
+          setIsIconSearchLoading(false);
+        }}
         activeTheme={activeTheme}
       />
       <CatalogSidebar

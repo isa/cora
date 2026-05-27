@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import type { TextareaHTMLAttributes } from 'react';
+import type { ChangeEvent, CSSProperties, TextareaHTMLAttributes } from 'react';
 import type { ControlDefinition } from '../controls/schema.js';
+import type { ComponentDimensions, SizePreset } from '../../renderer/components/types.js';
+import { searchPreviewIcons } from '../iconSearch.js';
 import { Input, Select, Textarea } from './ui/index.js';
 
 function AutoGrowingTextarea({
@@ -47,6 +49,23 @@ const DEFAULT_CUSTOM_COLORS = [
   '#475569', '#334155', '#2563eb', '#3b82f6', '#6366f1', '#06b6d4', '#ec4899', '#22c55e', '#14b8a6', '#f59e0b'
 ];
 
+function isNoColor(value: string): boolean {
+  const normalized = value.trim().toLowerCase();
+  return normalized === 'none' || normalized === 'transparent';
+}
+
+function hexInputFromColor(value: string): string {
+  return /^#[0-9a-f]{3}([0-9a-f]{3})?$/i.test(value) ? value.replace('#', '') : '';
+}
+
+function colorLabel(value: string): string {
+  return isNoColor(value) ? 'No color' : value.toUpperCase();
+}
+
+function colorSwatchStyle(value: string): CSSProperties | undefined {
+  return isNoColor(value) ? undefined : { backgroundColor: value };
+}
+
 interface ControlInputProps {
   control: ControlDefinition;
   value: unknown;
@@ -55,10 +74,102 @@ interface ControlInputProps {
 }
 
 export function ControlInput({ control, value, onChange, showColorSwatches = false }: ControlInputProps) {
+  if (control.kind === 'icon') {
+    const current = String(value ?? '');
+    const [query, setQuery] = useState(current);
+    const [results, setResults] = useState<Awaited<ReturnType<typeof searchPreviewIcons>>>([]);
+
+    useEffect(() => {
+      setQuery(current);
+    }, [current]);
+
+    useEffect(() => {
+      let cancelled = false;
+
+      if (!query.trim() || query === current) {
+        setResults([]);
+        return () => {
+          cancelled = true;
+        };
+      }
+
+      void searchPreviewIcons(query, 12).then((nextResults) => {
+        if (!cancelled) {
+          setResults(nextResults);
+        }
+      });
+
+      return () => {
+        cancelled = true;
+      };
+    }, [query]);
+
+    return (
+      <div className="field compact field-icon-search">
+        <span>{control.label}</span>
+        <Input
+          type="search"
+          value={query}
+          placeholder="material-symbols:database"
+          onChange={(event) => {
+            const next = event.currentTarget.value;
+            setQuery(next);
+            if (next.includes(':')) {
+              onChange(next);
+            }
+          }}
+          onBlur={() => {
+            if (query.trim()) {
+              onChange(query.trim());
+            }
+          }}
+        />
+        {results.length > 0 ? (
+          <div className="icon-search-results" role="listbox">
+            {results.map((result) => (
+              <button
+                key={result.fullName}
+                type="button"
+                className={`icon-search-result ${current === result.fullName ? 'active' : ''}`}
+                onClick={() => {
+                  onChange(result.fullName);
+                  setQuery(result.fullName);
+                }}
+              >
+                {result.name}
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </div>
+    );
+  }
+
   if (control.kind === 'enum') {
     const current = String(value ?? control.options[0]);
+    const display = control.display ?? 'segmented';
+
+    if (display === 'select') {
+      return (
+        <label className={`field compact field-enum field-enum-select field-enum-${String(control.key)}`}>
+          <span>{control.label}</span>
+          <Select
+            value={current}
+            onChange={(event) => onChange(event.currentTarget.value)}
+            aria-label={control.label}
+          >
+            {control.options.map((option) => (
+              <option key={option} value={option}>
+                {enumOptionLabel(option)}
+              </option>
+            ))}
+          </Select>
+        </label>
+      );
+    }
+
     return (
-      <div className="field compact field-enum">
+      <div className={`field compact field-enum field-enum-${String(control.key)}`}>
         <span>{control.label}</span>
         <div className="segmented-control">
           {control.options.map((option) => (
@@ -67,8 +178,10 @@ export function ControlInput({ control, value, onChange, showColorSwatches = fal
               type="button"
               className={`segment-btn ${current === option ? 'active' : ''}`}
               onClick={() => onChange(option)}
+              aria-label={`${control.label}: ${enumOptionLabel(option)}`}
+              title={enumOptionLabel(option)}
             >
-              {option}
+              {enumOptionLabel(option)}
             </button>
           ))}
         </div>
@@ -105,10 +218,10 @@ export function ControlInput({ control, value, onChange, showColorSwatches = fal
       }
     });
 
-    const [hexInputValue, setHexInputValue] = useState(current.replace('#', ''));
+    const [hexInputValue, setHexInputValue] = useState(hexInputFromColor(current));
 
     useEffect(() => {
-      setHexInputValue(current.replace('#', ''));
+      setHexInputValue(hexInputFromColor(current));
     }, [current]);
 
     useEffect(() => {
@@ -126,14 +239,19 @@ export function ControlInput({ control, value, onChange, showColorSwatches = fal
       };
     }, [showPopover]);
 
-    const handleHexInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectColor = (color: string) => {
+      onChange(color);
+      setShowPopover(false);
+    };
+
+    const handleHexInputChange = (event: ChangeEvent<HTMLInputElement>) => {
       let val = event.currentTarget.value.trim();
       setHexInputValue(val);
       if (val.startsWith('#')) {
         val = val.substring(1);
       }
       if (val.length === 3 || val.length === 6) {
-        onChange(`#${val}`);
+        selectColor(`#${val}`);
       }
     };
 
@@ -156,7 +274,7 @@ export function ControlInput({ control, value, onChange, showColorSwatches = fal
         const eyeDropper = new (window as any).EyeDropper();
         const result = await eyeDropper.open();
         if (result && result.sRGBHex) {
-          onChange(result.sRGBHex);
+          selectColor(result.sRGBHex);
         }
       } catch (err) {
         console.error('EyeDropper failed:', err);
@@ -174,10 +292,10 @@ export function ControlInput({ control, value, onChange, showColorSwatches = fal
             aria-label={`Open ${control.label} color picker. Current color is ${current}`}
           >
             <span
-              className="color-picker-trigger-swatch"
-              style={{ backgroundColor: current }}
+              className={`color-picker-trigger-swatch ${isNoColor(current) ? 'color-swatch-none' : ''}`}
+              style={colorSwatchStyle(current)}
             />
-            <span className="color-picker-trigger-hex">{current.toUpperCase()}</span>
+            <span className="color-picker-trigger-hex">{colorLabel(current)}</span>
           </button>
           {eyeDropperSupported && (
             <button
@@ -207,6 +325,18 @@ export function ControlInput({ control, value, onChange, showColorSwatches = fal
                 </div>
 
                 <div className="color-picker-popover-section">
+                  <button
+                    type="button"
+                    className={`color-none-option ${isNoColor(current) ? 'active' : ''}`}
+                    onClick={() => selectColor('none')}
+                    aria-label="Set no color"
+                  >
+                    <span className="color-none-option-swatch color-swatch-none" aria-hidden="true" />
+                    <span>No color</span>
+                  </button>
+                </div>
+
+                <div className="color-picker-popover-section">
                   <div className="color-picker-section-title-row">
                     <span>Theme color</span>
                   </div>
@@ -221,7 +351,7 @@ export function ControlInput({ control, value, onChange, showColorSwatches = fal
                               type="button"
                               className={`color-swatch-mini ${isLight ? 'color-swatch-light' : ''} ${current.toLowerCase() === color.toLowerCase() ? 'active' : ''}`}
                               style={{ backgroundColor: color }}
-                              onClick={() => onChange(color)}
+                              onClick={() => selectColor(color)}
                               aria-label={`Set color to ${color}`}
                             />
                           );
@@ -251,7 +381,7 @@ export function ControlInput({ control, value, onChange, showColorSwatches = fal
                           type="button"
                           className={`color-swatch-circle ${isLight ? 'color-swatch-light' : ''} ${current.toLowerCase() === color.toLowerCase() ? 'active' : ''}`}
                           style={{ backgroundColor: color }}
-                          onClick={() => onChange(color)}
+                          onClick={() => selectColor(color)}
                           aria-label={`Set color to ${color}`}
                         />
                       );
@@ -305,7 +435,9 @@ export function ControlInput({ control, value, onChange, showColorSwatches = fal
   }
 
   if (control.kind === 'size') {
-    const current = typeof value === 'string' ? value : 'lg';
+    const current = typeof value === 'string'
+      ? value
+      : matchingSizePreset(value, control.presetSizes) ?? 'md';
     return (
       <div className="field compact field-size">
         <span>{control.label}</span>
@@ -315,7 +447,7 @@ export function ControlInput({ control, value, onChange, showColorSwatches = fal
               key={preset}
               type="button"
               className={`segment-btn ${current === preset ? 'active' : ''}`}
-              onClick={() => onChange(preset)}
+              onClick={() => onChange(control.presetSizes?.[preset] ?? preset)}
             >
               {preset}
             </button>
@@ -336,4 +468,38 @@ export function ControlInput({ control, value, onChange, showColorSwatches = fal
       />
     </label>
   );
+}
+
+function enumOptionLabel(option: string): string {
+  const labels: Record<string, string> = {
+    arrow: 'Arrowhead',
+    circle: 'Circle',
+    filledCircle: 'Filled Circle',
+    diamond: 'Diamond',
+    filledDiamond: 'Filled Diamond',
+    square: 'Square',
+    filledSquare: 'Filled Square',
+    none: 'None',
+    autoSide: 'Auto',
+    'auto-side': 'Auto',
+  };
+  return labels[option] ?? option;
+}
+
+function matchingSizePreset(
+  value: unknown,
+  presets: Partial<Record<SizePreset, ComponentDimensions>> | undefined,
+): string | undefined {
+  if (!presets || typeof value !== 'object' || value === null) {
+    return undefined;
+  }
+
+  const dimensions = value as { width?: unknown; height?: unknown };
+  if (typeof dimensions.width !== 'number' || typeof dimensions.height !== 'number') {
+    return undefined;
+  }
+
+  return Object.entries(presets).find(([, size]) =>
+    size?.width === dimensions.width && size.height === dimensions.height,
+  )?.[0];
 }

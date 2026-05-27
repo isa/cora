@@ -17,6 +17,16 @@ export type DiagramComponent =
   | 'issue'
   | 'shape';
 
+export type EdgeMarker =
+  | 'none'
+  | 'arrow'
+  | 'circle'
+  | 'filledCircle'
+  | 'diamond'
+  | 'filledDiamond'
+  | 'square'
+  | 'filledSquare';
+
 export interface ThemeShapeStyle {
   fill: string;
   stroke: string;
@@ -42,12 +52,23 @@ export interface ThemeTokens {
 
 export interface ResolvedStyle extends ThemeShapeStyle {}
 
+export interface DiagramGroupStyle {
+  fill?: string;
+  fillColor?: string;
+  backgroundColor?: string;
+  labelColor?: string;
+  labelSize?: number;
+  titleColor?: string;
+  titleSize?: number;
+}
+
 export interface DiagramNode {
   id: string;
   label: string;
   component?: DiagramComponent;
   position?: { x: number; y: number };
   pinned?: boolean;
+  icon?: string;
   provider?: string;
   service?: string;
   style?: Record<string, unknown>;
@@ -89,8 +110,8 @@ export interface LayoutedEdge {
   labelY?: number;
   labelPlacement?: EdgeLabelPlacement;
   bridges?: EdgeBridge[];
-  startMarker?: 'none' | 'arrow' | 'circle' | 'filledCircle';
-  endMarker?: 'none' | 'arrow' | 'circle' | 'filledCircle';
+  startMarker?: EdgeMarker;
+  endMarker?: EdgeMarker;
 }
 
 export interface LayoutedGroup {
@@ -101,6 +122,7 @@ export interface LayoutedGroup {
   width: number;
   height: number;
   contains?: string[];
+  style?: DiagramGroupStyle;
 }
 
 export interface LayoutedDiagram {

@@ -21,6 +21,9 @@ export interface CanvasGroup {
   label: string;
   position: PreviewPosition;
   size: { width: number; height: number };
+  fillColor: string;
+  labelColor: string;
+  labelSize: number;
 }
 
 export interface CanvasConnection {
@@ -56,6 +59,33 @@ function nextItemId(state: WorkbenchState, prefix: string): string {
   return `${prefix}-${state.nextId}`;
 }
 
+function roundPosition(position: PreviewPosition): PreviewPosition {
+  return {
+    x: Math.round(position.x),
+    y: Math.round(position.y),
+  };
+}
+
+function roundGroupSize(size: CanvasGroup['size']): CanvasGroup['size'] {
+  return {
+    width: Math.round(size.width),
+    height: Math.round(size.height),
+  };
+}
+
+type GroupPatch = Partial<Pick<CanvasGroup, 'label' | 'position' | 'size' | 'fillColor' | 'labelColor' | 'labelSize'>>;
+
+function roundGroupPatch(patch: GroupPatch): GroupPatch {
+  const rounded = { ...patch };
+  if (patch.position) {
+    rounded.position = roundPosition(patch.position);
+  }
+  if (patch.size) {
+    rounded.size = roundGroupSize(patch.size);
+  }
+  return rounded;
+}
+
 export function createDefaultWorkbenchState(pack = builtInPack): WorkbenchState {
   return {
     pack,
@@ -70,6 +100,7 @@ export function addCatalogItemToCanvas(
   state: WorkbenchState,
   componentId: string,
   position: PreviewPosition,
+  props: Partial<PreviewNodeProps> = {},
 ): WorkbenchState {
   if (componentId === 'group') {
     const id = nextItemId(state, 'group');
@@ -80,8 +111,11 @@ export function addCatalogItemToCanvas(
         {
           id,
           label: 'Group',
-          position,
+          position: roundPosition(position),
           size: { width: 280, height: 160 },
+          fillColor: 'none',
+          labelColor: '#0f172a',
+          labelSize: 12,
         },
       ],
       selected: { kind: 'group', id },
@@ -99,7 +133,7 @@ export function addCatalogItemToCanvas(
   const nextNode: CanvasNode = {
     id,
     componentId,
-    props: { ...definition.defaultProps },
+    props: { ...definition.defaultProps, ...props },
     position,
     attachedConnectionId,
   };
@@ -194,12 +228,13 @@ export function updateConnectionProps(
 export function updateGroup(
   state: WorkbenchState,
   groupId: string,
-  patch: Partial<Pick<CanvasGroup, 'label' | 'position' | 'size'>>,
+  patch: GroupPatch,
 ): WorkbenchState {
+  const roundedPatch = roundGroupPatch(patch);
   return {
     ...state,
     groups: state.groups.map((group) =>
-      group.id === groupId ? { ...group, ...patch } : group,
+      group.id === groupId ? { ...group, ...roundedPatch } : group,
     ),
   };
 }

@@ -1,6 +1,6 @@
 import type { ComponentDimensions, SizePreset } from '../../renderer/components/types.js';
 
-export type ControlKind = 'text' | 'color' | 'boolean' | 'number' | 'enum' | 'size';
+export type ControlKind = 'text' | 'color' | 'boolean' | 'number' | 'enum' | 'size' | 'icon';
 
 export interface BaseControl<Props extends Record<string, unknown>> {
   key: keyof Props & string;
@@ -9,6 +9,10 @@ export interface BaseControl<Props extends Record<string, unknown>> {
 
 export interface TextControl<Props extends Record<string, unknown>> extends BaseControl<Props> {
   kind: 'text';
+}
+
+export interface IconControl<Props extends Record<string, unknown>> extends BaseControl<Props> {
+  kind: 'icon';
 }
 
 export interface ColorControl<Props extends Record<string, unknown>> extends BaseControl<Props> {
@@ -29,16 +33,19 @@ export interface NumberControl<Props extends Record<string, unknown>> extends Ba
 export interface EnumControl<Props extends Record<string, unknown>> extends BaseControl<Props> {
   kind: 'enum';
   options: string[];
+  display?: 'segmented' | 'select';
 }
 
 export interface SizeControl<Props extends Record<string, unknown>> extends BaseControl<Props> {
   kind: 'size';
   presets: SizePreset[];
   explicit: ComponentDimensions;
+  presetSizes?: Partial<Record<SizePreset, ComponentDimensions>>;
 }
 
 export type ControlDefinition<Props extends Record<string, unknown> = Record<string, unknown>> =
   | TextControl<Props>
+  | IconControl<Props>
   | ColorControl<Props>
   | BooleanControl<Props>
   | NumberControl<Props>
@@ -49,7 +56,7 @@ export function isValidControlValue(
   control: ControlDefinition,
   value: unknown,
 ): boolean {
-  if (control.kind === 'text' || control.kind === 'color') {
+  if (control.kind === 'text' || control.kind === 'color' || control.kind === 'icon') {
     return typeof value === 'string';
   }
   if (control.kind === 'boolean') {

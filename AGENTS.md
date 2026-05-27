@@ -66,8 +66,8 @@ preview-local and does not persist YAML, layout, or source-file changes.
 |------|---------|
 | `SCHEMA_VIOLATION` | Document fails JSON Schema validation |
 | `MISSING_EDGE_TARGET` | Edge `from` or `to` references a node id that does not exist |
-| `UNKNOWN_SERVICE` | Node has `service` without `provider`, or service unknown for provider |
-| `MISSING_EXTENSION` | Node sets `provider` but that extension is not installed |
+| `UNKNOWN_SERVICE` | Node has `service` without `provider`, malformed `icon`, or an unknown icon/service name |
+| `MISSING_EXTENSION` | Node references an icon provider/set that is not installed |
 | `PARSE_ERROR` | YAML/JSON syntax error |
 | `LAYOUT_ERROR` | Layout mode failed (e.g. `layout: preserve` without positions) |
 | `CHROMIUM_NOT_INSTALLED` | `--quality=high` requested but Chromium not installed and no install consent given |
@@ -223,6 +223,10 @@ import {
 YAML nodes use `component` as the catalog discriminator. Omit it for the default
 `box`, or set one of: `box`, `label`, `icon`, `labelIcon`, `website`, `page`,
 `app`, `decision`, `issue`, `shape`.
+
+Icon and label-icon nodes may set `icon` to an offline Iconify id such as
+`material-symbols:database`. The legacy `provider: default` plus `service: database`
+form remains supported as an alias for `material-symbols:database`.
 
 Box-like renderer props use `BoxStyleProps`: `backgroundColor`, `radius`,
 `borderStyle`, `borderColor`, `borderWidth`, `text`, `textColor`, and `size`.

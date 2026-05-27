@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react';
 
 import type { WorkbenchState } from '../state.js';
 import { selectCanvasItem } from '../state.js';
+import { displayNameForComponent, displayNameForComponentLabel } from '../pack/displayNames.js';
 
 export interface CatalogItem {
   id: string;
@@ -20,13 +21,13 @@ interface CatalogSidebarProps {
 export function catalogItems(state: WorkbenchState): CatalogItem[] {
   return [
     ...state.pack.components
-      .filter((component) => component.id !== 'shape')
+      .filter((component) => component.id !== 'icon' && component.id !== 'labelIcon')
       .map((component) => ({
         id: component.id,
-        label: component.label,
+        label: displayNameForComponent(component.id),
         family: state.pack.families.find((item) => item.id === component.family)?.label ?? component.family,
       })),
-    { id: 'group', label: 'Group', family: 'Layout' },
+    { id: 'group', label: displayNameForComponent('group'), family: 'Layout' },
   ];
 }
 
@@ -78,7 +79,7 @@ export function CatalogSidebar({ state, searchQuery = '', onSelectItem, isOpen, 
             ) : null}
             {state.nodes.map((node) => {
               const definition = state.pack.components.find((component) => component.id === node.componentId);
-              const label = visibleComponentLabel(definition?.label ?? node.componentId);
+              const label = displayNameForComponentLabel(definition?.label ?? node.componentId);
               const selected = state.selected?.kind === 'node' && state.selected.id === node.id;
               return (
                 <button
@@ -148,7 +149,7 @@ export function CatalogSidebar({ state, searchQuery = '', onSelectItem, isOpen, 
               >
                 <span className="component-icon" aria-hidden="true">{componentIcon(component.id)}</span>
                 <span className="component-copy">
-                  <strong>{visibleComponentLabel(component.label)}</strong>
+                  <strong>{component.label}</strong>
                 </span>
               </button>
             ))}
@@ -159,39 +160,16 @@ export function CatalogSidebar({ state, searchQuery = '', onSelectItem, isOpen, 
   );
 }
 
-function visibleComponentLabel(label: string): string {
-  const labels: Record<string, string> = {
-    BoxNode: 'Process Box',
-    LabelNode: 'Text Label',
-    IconNode: 'Start/End Terminal',
-    LabelIconNode: 'Data Input',
-    DecisionNode: 'Decision Diamond',
-    Group: 'Group',
-  };
-  return labels[label] ?? (label.endsWith('Node') ? label.slice(0, -4) : label);
-}
-
 function componentIcon(id: string): ReactNode {
-  if (id === 'group') {
-    return <span className="catalog-icon-shape catalog-icon-group" />;
-  }
-  if (id === 'decision') {
-    return <span className="catalog-icon-shape catalog-icon-diamond" />;
-  }
-  if (id === 'labelIcon') {
-    return <span className="catalog-icon-shape catalog-icon-brackets">{'{ }'}</span>;
-  }
-  if (id === 'icon') {
-    return <span className="catalog-icon-shape catalog-icon-circle" />;
-  }
-  if (id === 'website' || id === 'page' || id === 'app') {
-    return <span className="catalog-icon-shape catalog-icon-window" />;
-  }
-  if (id === 'label') {
-    return <span className="catalog-icon-shape catalog-icon-label">T</span>;
-  }
-  if (id === 'issue') {
-    return <span className="catalog-icon-shape catalog-icon-issue">!</span>;
-  }
-  return <span className="catalog-icon-shape catalog-icon-box" />;
+  const icons: Record<string, string> = {
+    app: 'apps',
+    box: 'check_box_outline_blank',
+    group: 'workspaces',
+    icon: 'category',
+    label: 'title',
+    labelIcon: 'label',
+    page: 'description',
+    website: 'web',
+  };
+  return <span className="material-symbols-outlined component-material-icon">{icons[id] ?? 'widgets'}</span>;
 }

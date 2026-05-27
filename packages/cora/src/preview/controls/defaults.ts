@@ -1,6 +1,8 @@
 import type { ControlDefinition } from './schema.js';
+import { APP_SIZE_PRESETS, PAGE_SIZE_PRESETS, WEBSITE_SIZE_PRESETS, LABEL_ICON_SIZE_PRESETS } from '../../renderer/components/styles.js';
 import { catalogDefaultProps } from '../../renderer/themes/componentDefaults.js';
 import { LOOK } from '../../renderer/themes/lookTokens.js';
+import type { MarkerType } from '../../renderer/components/lines/markers.js';
 
 export const sizePresets = ['sm', 'md', 'lg', 'xl', 'xxl'] as const;
 
@@ -15,6 +17,7 @@ export type PreviewNodeProps = {
   borderWidth?: number;
   textColor?: string;
   subtitleColor?: string;
+  skeletonColor?: string;
   titleFontSize?: number;
   subtitleFontSize?: number;
   shadow?: 'none' | 'cast' | 'radial';
@@ -25,6 +28,7 @@ export type PreviewNodeProps = {
   type?: 'landing' | 'form' | 'content' | 'profile' | 'settings';
   skeletonColorDark?: string;
   skeletonColorLight?: string;
+  iconName?: string;
   icon?: 'bug' | 'warning' | 'error' | 'stop';
   iconType?: 'ok' | 'nok' | 'question-mark';
 };
@@ -34,10 +38,21 @@ export type ConnectionProps = {
   strokeColor: string;
   strokeWidth: number;
   arrowSize: number;
-  startMarker: 'none' | 'arrow' | 'circle' | 'filledCircle';
-  endMarker: 'none' | 'arrow' | 'circle' | 'filledCircle';
+  startMarker: MarkerType;
+  endMarker: MarkerType;
   connectionMode: 'auto-side' | 'horizontal' | 'vertical';
 };
+
+export const markerOptions: MarkerType[] = [
+  'none',
+  'arrow',
+  'circle',
+  'filledCircle',
+  'diamond',
+  'filledDiamond',
+  'square',
+  'filledSquare',
+];
 
 export const baseNodeDefaults: PreviewNodeProps = {
   title: 'Component',
@@ -49,6 +64,13 @@ export const pageNodeDefaults: PreviewNodeProps = {
   ...catalogDefaultProps('page'),
   title: 'PageNode.type',
   type: 'landing',
+  size: 'lg',
+};
+
+export const appNodeDefaults: PreviewNodeProps = {
+  ...catalogDefaultProps('app'),
+  title: 'App',
+  size: 'lg',
 };
 
 export const issueNodeDefaults: PreviewNodeProps = {
@@ -99,20 +121,41 @@ export const labelNodeControls: Array<ControlDefinition<PreviewNodeProps>> =
   baseNodeControls.filter((control) => control.key !== 'size' && control.key !== 'shadow' && control.key !== 'shadowColor');
 
 export const iconNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
-  { kind: 'enum', key: 'iconType', label: 'Type', options: ['ok', 'nok', 'question-mark'] },
-  { kind: 'color', key: 'iconColor', label: 'Fill' },
+  { kind: 'icon', key: 'iconName', label: 'Icon' },
+  { kind: 'color', key: 'iconColor', label: 'Icon color' },
+  { kind: 'text', key: 'title', label: 'Title' },
+  { kind: 'text', key: 'subtitle', label: 'Subtitle' },
   {
     kind: 'size',
     key: 'size',
     label: 'Size',
     presets: [...sizePresets],
-    explicit: { width: 40, height: 40 },
+    explicit: { width: 160, height: 128 },
+    presetSizes: APP_SIZE_PRESETS,
   },
+  { kind: 'color', key: 'backgroundColor', label: 'Fill' },
+  { kind: 'number', key: 'radius', label: 'Radius', min: 0, max: 24, step: 1 },
+  {
+    kind: 'enum',
+    key: 'borderStyle',
+    label: 'Border style',
+    options: ['none', 'solid', 'dashed', 'dotted'],
+  },
+  { kind: 'color', key: 'borderColor', label: 'Border' },
+  { kind: 'number', key: 'borderWidth', label: 'Border width', min: 0, max: 8, step: 0.5 },
+  { kind: 'color', key: 'textColor', label: 'Title color' },
+  { kind: 'color', key: 'subtitleColor', label: 'Subtitle color' },
+  { kind: 'number', key: 'titleFontSize', label: 'Title size', min: 8, max: 28, step: 1 },
+  { kind: 'number', key: 'subtitleFontSize', label: 'Subtitle size', min: 7, max: 24, step: 1 },
+  { kind: 'enum', key: 'shadow', label: 'Shadow', options: ['none', 'cast', 'radial'] },
+  { kind: 'color', key: 'shadowColor', label: 'Shadow color' },
 ];
 
 export const labelIconNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
-  { kind: 'enum', key: 'iconType', label: 'Type', options: ['ok', 'nok', 'question-mark'] },
-  { kind: 'color', key: 'iconColor', label: 'Fill' },
+  { kind: 'icon', key: 'iconName', label: 'Icon' },
+  { kind: 'color', key: 'iconColor', label: 'Icon color' },
+  { kind: 'text', key: 'title', label: 'Title' },
+  { kind: 'text', key: 'subtitle', label: 'Subtitle' },
   { kind: 'color', key: 'backgroundColor', label: 'Background' },
   {
     kind: 'size',
@@ -120,14 +163,48 @@ export const labelIconNodeControls: Array<ControlDefinition<PreviewNodeProps>> =
     label: 'Size',
     presets: [...sizePresets],
     explicit: { width: 40, height: 40 },
+    presetSizes: LABEL_ICON_SIZE_PRESETS,
   },
 ];
 
 export const pageNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
-  ...baseNodeControls,
+  ...baseNodeControls.map((control): ControlDefinition<PreviewNodeProps> =>
+    control.kind === 'size'
+      ? {
+          ...control,
+          explicit: PAGE_SIZE_PRESETS.lg,
+          presetSizes: PAGE_SIZE_PRESETS,
+        }
+      : control,
+  ),
   { kind: 'enum', key: 'type', label: 'PageNode.type', options: ['landing', 'form', 'content', 'profile', 'settings'] },
   { kind: 'color', key: 'skeletonColorDark', label: 'Skeleton dark' },
   { kind: 'color', key: 'skeletonColorLight', label: 'Skeleton light' },
+];
+
+export const appNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
+  ...baseNodeControls.map((control): ControlDefinition<PreviewNodeProps> =>
+    control.kind === 'size'
+      ? {
+          ...control,
+          explicit: APP_SIZE_PRESETS.lg,
+          presetSizes: APP_SIZE_PRESETS,
+        }
+      : control,
+  ),
+];
+
+export const websiteNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
+  ...baseNodeControls.map((control): ControlDefinition<PreviewNodeProps> =>
+    control.kind === 'size'
+      ? {
+          ...control,
+          explicit: WEBSITE_SIZE_PRESETS.lg,
+          presetSizes: WEBSITE_SIZE_PRESETS,
+        }
+      : control,
+  ),
+  { kind: 'color', key: 'skeletonColor', label: 'Skeleton' },
 ];
 
 export const issueNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
@@ -141,7 +218,7 @@ export const connectionControls: Array<ControlDefinition<ConnectionProps>> = [
   { kind: 'color', key: 'strokeColor', label: 'Stroke color' },
   { kind: 'number', key: 'strokeWidth', label: 'Stroke width', min: 1, max: 8, step: 1 },
   { kind: 'number', key: 'arrowSize', label: 'Arrow-head size', min: 4, max: 24, step: 1 },
-  { kind: 'enum', key: 'startMarker', label: 'Start marker', options: ['none', 'arrow', 'circle', 'filledCircle'] },
-  { kind: 'enum', key: 'endMarker', label: 'End marker', options: ['none', 'arrow', 'circle', 'filledCircle'] },
+  { kind: 'enum', key: 'startMarker', label: 'Start marker', options: markerOptions, display: 'select' },
+  { kind: 'enum', key: 'endMarker', label: 'End marker', options: markerOptions, display: 'select' },
   { kind: 'enum', key: 'connectionMode', label: 'Connection mode', options: ['auto-side', 'horizontal', 'vertical'] },
 ];

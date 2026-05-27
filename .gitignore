@@ -1,3 +1,6 @@
+debug*
+fix-*
+
 # Logs
 logs
 *.log

@@ -1,4 +1,12 @@
 import type { Diagram, DiagramFile, StructuredError } from './types.js';
+import {
+  DEFAULT_ICON_PREFIX,
+  hasIconReference,
+  iconPrefixForProvider,
+  iconReferenceForNode,
+  iconSetForPrefix,
+  parseIconReference,
+} from './iconify.js';
 
 export const ERROR_CODES = {
   SCHEMA_VIOLATION: 'SCHEMA_VIOLATION',
@@ -7,14 +15,6 @@ export const ERROR_CODES = {
   MISSING_EXTENSION: 'MISSING_EXTENSION',
   PARSE_ERROR: 'PARSE_ERROR',
 } as const;
-
-function isExtensionInstalled(_provider: string): boolean {
-  return false;
-}
-
-function isKnownService(_provider: string, _service: string): boolean {
-  return false;
-}
 
 function isDiagramFile(document: unknown): document is DiagramFile {
   if (typeof document !== 'object' || document === null) {
@@ -48,6 +48,32 @@ export function runSemanticValidation(diagram: Diagram): StructuredError[] {
   });
 
   diagram.nodes.forEach((node, index) => {
+    if (node.icon) {
+      const reference = parseIconReference(node.icon);
+      if (!reference) {
+        errors.push({
+          code: 'UNKNOWN_SERVICE',
+          path: `/diagram/nodes/${index}/icon`,
+          message: `Icon "${node.icon}" must use the "prefix:name" Iconify format`,
+          suggestion: `Use an installed icon set, for example "${DEFAULT_ICON_PREFIX}:database"`,
+        });
+      } else if (!iconSetForPrefix(reference.prefix)) {
+        errors.push({
+          code: 'MISSING_EXTENSION',
+          path: `/diagram/nodes/${index}/icon`,
+          message: `Icon set "${reference.prefix}" is not installed`,
+          suggestion: `Use "${DEFAULT_ICON_PREFIX}:..." or add the matching @iconify-json/${reference.prefix} package`,
+        });
+      } else if (!hasIconReference(node.icon)) {
+        errors.push({
+          code: 'UNKNOWN_SERVICE',
+          path: `/diagram/nodes/${index}/icon`,
+          message: `Icon "${node.icon}" is not available`,
+          suggestion: `Verify the icon name in the "${reference.prefix}" Iconify set`,
+        });
+      }
+    }
+
     if (node.service && !node.provider) {
       errors.push({
         code: 'UNKNOWN_SERVICE',
@@ -58,22 +84,20 @@ export function runSemanticValidation(diagram: Diagram): StructuredError[] {
     }
 
     if (node.provider) {
-      if (!isExtensionInstalled(node.provider)) {
+      const iconPrefix = iconPrefixForProvider(node.provider);
+      if (!iconPrefix || !iconSetForPrefix(iconPrefix)) {
         errors.push({
           code: 'MISSING_EXTENSION',
           path: `/diagram/nodes/${index}/provider`,
-          message: `Extension for provider "${node.provider}" is not installed`,
-          suggestion: `cora ext install ${node.provider}-theme`,
+          message: `Icon set for provider "${node.provider}" is not installed`,
+          suggestion: `Use provider "default" or "${DEFAULT_ICON_PREFIX}", or add the matching @iconify-json package`,
         });
-      } else if (
-        node.service &&
-        !isKnownService(node.provider, node.service)
-      ) {
+      } else if (node.service && !hasIconReference(iconReferenceForNode(node)!)) {
         errors.push({
           code: 'UNKNOWN_SERVICE',
           path: `/diagram/nodes/${index}/service`,
           message: `Service "${node.service}" is not known for provider "${node.provider}"`,
-          suggestion: 'Verify the extension manifest for valid service names',
+          suggestion: `Verify the icon name in the "${iconPrefix}" Iconify set`,
         });
       }
     }

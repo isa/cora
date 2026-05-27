@@ -31,6 +31,7 @@ export function LabelNode(props: LabelNodeProps) {
         subtitleColor={frame.subtitleColor}
         fontSize={frame.titleFontSize}
         subtitleFontSize={frame.subtitleFontSize}
+        fontWeight={frame.subtitle ? 600 : 400}
       />
     </CatalogFrame>
   );

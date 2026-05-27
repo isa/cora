@@ -83,19 +83,35 @@ describe('preview geometry', () => {
     expect(grown.height).toBeGreaterThan(base.height);
   });
 
-  it('keeps icon and label-icon size presets square and tight', () => {
+  it('keeps icon and label-icon size presets proportional and aligned', () => {
     const iconState = addNodeToCanvas(createDefaultWorkbenchState(), 'icon', { x: 0, y: 0 });
     const labelIconState = addNodeToCanvas(createDefaultWorkbenchState(), 'labelIcon', { x: 0, y: 0 });
 
-    expect(previewNodeSize(iconState.nodes[0]!)).toEqual({ width: 40, height: 40 });
+    expect(previewNodeSize(iconState.nodes[0]!)).toEqual({ width: 160, height: 128 });
     expect(previewNodeSize({
       ...iconState.nodes[0]!,
       props: { ...iconState.nodes[0]!.props, size: 'sm' },
-    })).toEqual({ width: 28, height: 28 });
+    })).toEqual({ width: 40, height: 32 });
     expect(previewNodeSize({
       ...labelIconState.nodes[0]!,
       props: { ...labelIconState.nodes[0]!.props, size: 'lg' },
-    })).toEqual({ width: 56, height: 56 });
+    })).toEqual({ width: 80, height: 80 });
+  });
+
+  it('centers labelIcon vertical alignment based on the icon itself', () => {
+    const state = addNodeToCanvas(
+      addNodeToCanvas(createDefaultWorkbenchState(), 'box', { x: 100, y: 100 }),
+      'box',
+      { x: 300, y: 100 },
+    );
+    const withLabelIcon = addNodeToCanvas(
+      { ...state, selected: { kind: 'connection', id: state.connections[0]!.id } },
+      'labelIcon',
+      { x: 0, y: 0 },
+    );
+    const node = withLabelIcon.nodes.at(-1)!;
+    const box = computeNodeBox(withLabelIcon, node.id)!;
+    expect(box.y).toBe(116);
   });
 
   it('centers attached labels on their connection path', () => {
@@ -134,7 +150,7 @@ describe('preview geometry', () => {
 
     expect(labelIcon.attachedConnectionId).toBe(connected.connections[0]!.id);
     expect(box.x + box.width / 2).toBeGreaterThan(source.x + source.width);
-    expect(box.x + box.width / 2).toBeLessThan(source.x + source.width + 60);
+    expect(box.x + box.width / 2).toBeLessThan(source.x + source.width + 80);
   });
 
   it('distributes same-side connection anchors across unique points', () => {
@@ -149,7 +165,7 @@ describe('preview geometry', () => {
     );
     const state = addNodeToCanvas(
       selectCanvasItem(connected, { kind: 'node', id: connected.nodes[0]!.id }),
-      'issue',
+      'app',
       { x: 430, y: 220 },
     );
     const first = computeConnectionPoints(state, state.connections[0]!)[0]!;
@@ -172,5 +188,30 @@ describe('preview geometry', () => {
     });
 
     expect(visible.at(-1)).toEqual({ x: 110, y: 20 });
+  });
+
+  it('pulls marker shafts back by marker shape and size', () => {
+    const points = [
+      { x: 0, y: 20 },
+      { x: 120, y: 20 },
+    ];
+
+    expect(applyConnectionMarkerInsets(points, {
+      startMarker: 'circle',
+      endMarker: 'filledCircle',
+      arrowSize: 10,
+    })).toEqual([
+      { x: 4.35, y: 20 },
+      { x: 116.4, y: 20 },
+    ]);
+
+    expect(applyConnectionMarkerInsets(points, {
+      startMarker: 'diamond',
+      endMarker: 'filledSquare',
+      arrowSize: 12,
+    })).toEqual([
+      { x: 6.75, y: 20 },
+      { x: 115.68, y: 20 },
+    ]);
   });
 });

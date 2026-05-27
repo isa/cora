@@ -31,7 +31,8 @@
     "SKILL.md"
   ],
   "scripts": {
-    "build": "tsdown && vite build src/preview --base ./ --outDir ../../dist/preview --emptyOutDir false && cp -r src/renderer/assets dist/renderer/",
+    "generate:icon-index": "node scripts/generate-icon-index.mjs",
+    "build": "tsdown && vite build src/preview --base ./ --outDir ../../dist/preview --emptyOutDir false && mkdir -p dist/renderer/assets && cp -r src/renderer/assets/fonts dist/renderer/assets/",
     "cora": "node dist/cli.js",
     "dev": "tsdown --watch",
     "prepack": "cp ../../SKILL.md SKILL.md",
@@ -42,6 +43,9 @@
     "postinstall": "node -e \"console.log('cora: Chromium for --quality=high is downloaded on first use; see AGENTS.md')\""
   },
   "dependencies": {
+    "@iconify-json/material-symbols": "^1.2.74",
+    "@iconify/types": "^2.0.0",
+    "@iconify/utils": "^3.1.3",
     "@pdf-lib/fontkit": "^1.1.1",
     "@resvg/resvg-js": "~2.6.2",
     "ajv": "^8.17.1",
@@ -61,6 +65,7 @@
   },
   "devDependencies": {
     "@fontsource/noto-sans": "5.2.5",
+    "@iconify/json": "^2.2.479",
     "@types/node": "^22.15.21",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",

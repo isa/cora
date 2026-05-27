@@ -50,11 +50,21 @@
           }
         },
         "pinned": { "type": "boolean" },
+        "icon": { "type": "string" },
         "provider": { "type": "string" },
         "service": { "type": "string" },
         "style": {
           "type": "object",
-          "additionalProperties": true
+          "additionalProperties": true,
+          "properties": {
+            "fillColor": { "type": "string" },
+            "fill": { "type": "string" },
+            "backgroundColor": { "type": "string" },
+            "labelColor": { "type": "string" },
+            "labelSize": { "type": "number" },
+            "titleColor": { "type": "string" },
+            "titleSize": { "type": "number" }
+          }
         }
       }
     },
@@ -68,11 +78,11 @@
         "label": { "type": "string" },
         "startMarker": {
           "type": "string",
-          "enum": ["none", "arrow", "circle", "filledCircle"]
+          "enum": ["none", "arrow", "circle", "filledCircle", "diamond", "filledDiamond", "square", "filledSquare"]
         },
         "endMarker": {
           "type": "string",
-          "enum": ["none", "arrow", "circle", "filledCircle"]
+          "enum": ["none", "arrow", "circle", "filledCircle", "diamond", "filledDiamond", "square", "filledSquare"]
         }
       }
     },

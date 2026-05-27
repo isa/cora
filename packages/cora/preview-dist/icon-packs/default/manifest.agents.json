@@ -1,0 +1,223 @@
+{
+  "id": "default",
+  "version": "bcc5b33ebf85",
+  "label": "Default (Material + Fluent)",
+  "count": 6833,
+  "aliases": {
+    "server": "dns",
+    "network": "lan",
+    "user": "person",
+    "bug": "bug-report"
+  },
+  "categories": [
+    {
+      "id": "devices",
+      "label": "Devices",
+      "description": "Devices",
+      "examples": [
+        "1x-mobiledata",
+        "1x-mobiledata-badge",
+        "3g-mobiledata",
+        "3g-mobiledata-badge",
+        "4g-mobiledata",
+        "4g-mobiledata-badge",
+        "4g-plus-mobiledata",
+        "5g-mobiledata-badge",
+        "android",
+        "android-calculator",
+        "android-camera",
+        "android-cell-4-bar"
+      ]
+    },
+    {
+      "id": "network",
+      "label": "Network",
+      "description": "Network",
+      "examples": [
+        "5g",
+        "account-balance",
+        "account-balance-wallet",
+        "add-photo-alternate",
+        "airplane",
+        "airplane-landing",
+        "airplane-take-off",
+        "airplane-ticket",
+        "airplanemode-inactive",
+        "alternate-email",
+        "ambulance",
+        "assistant-on-hub"
+      ]
+    },
+    {
+      "id": "cloud_infra",
+      "label": "Cloud & infra",
+      "description": "Cloud & infra",
+      "examples": [
+        "add-to-queue",
+        "api",
+        "bitbucket",
+        "book-database",
+        "bucket-check",
+        "building-cloud",
+        "cached",
+        "cleaning-bucket",
+        "cloud",
+        "cloud-add",
+        "cloud-alert",
+        "cloud-archive"
+      ]
+    },
+    {
+      "id": "security",
+      "label": "Security",
+      "description": "Security",
+      "examples": [
+        "action-key",
+        "app-blocking",
+        "apps-shield",
+        "archive-clock",
+        "arrow-clockwise",
+        "arrow-clockwise-dashes",
+        "arrow-clockwise-dashes-settings",
+        "arrow-counterclockwise",
+        "arrow-counterclockwise-dashes",
+        "arrow-counterclockwise-info",
+        "arrow-rotate-clockwise",
+        "arrow-rotate-counterclockwise"
+      ]
+    },
+    {
+      "id": "alerts",
+      "label": "Alerts",
+      "description": "Alerts",
+      "examples": [
+        "accessibility-error",
+        "add-alert",
+        "alert",
+        "alert-badge",
+        "alert-off",
+        "alert-on",
+        "alert-snooze",
+        "alert-urgent",
+        "amp-error",
+        "book-information",
+        "brightness-alert",
+        "bug"
+      ]
+    },
+    {
+      "id": "people",
+      "label": "People",
+      "description": "People",
+      "examples": [
+        "account-box",
+        "account-child",
+        "account-child-invert",
+        "account-circle",
+        "account-circle-full",
+        "account-circle-off",
+        "account-tree",
+        "ad-group",
+        "ad-group-off",
+        "arrow-forward-down-person",
+        "article-person",
+        "badge"
+      ]
+    },
+    {
+      "id": "actions",
+      "label": "Actions",
+      "description": "Actions",
+      "examples": [
+        "accessibility-more",
+        "accessible-menu",
+        "add",
+        "add-2",
+        "add-a-photo",
+        "add-ad",
+        "add-box",
+        "add-business",
+        "add-call",
+        "add-card",
+        "add-chart",
+        "add-circle"
+      ]
+    },
+    {
+      "id": "communication",
+      "label": "Communication",
+      "description": "Communication",
+      "examples": [
+        "all-inbox",
+        "attach-email",
+        "book-contacts",
+        "business-messages",
+        "calendar-chat",
+        "calendar-mail",
+        "call",
+        "call-checkmark",
+        "call-chevron-down",
+        "call-connecting",
+        "call-dismiss",
+        "call-end"
+      ]
+    },
+    {
+      "id": "places",
+      "label": "Places",
+      "description": "Places",
+      "examples": [
+        "app-store",
+        "background-replace",
+        "broadcast-on-home",
+        "building-home",
+        "bus-map-pin",
+        "bus-map-pin-2",
+        "business-center",
+        "camping",
+        "card-travel",
+        "chair-fireplace",
+        "chrome-restore",
+        "data-treemap"
+      ]
+    },
+    {
+      "id": "media",
+      "label": "Media",
+      "description": "Media",
+      "examples": [
+        "adaptive-audio-mic",
+        "adaptive-audio-mic-off",
+        "airplay",
+        "alarm-pause",
+        "animated-images",
+        "astrophotography-auto",
+        "astrophotography-off",
+        "audio-video-receiver",
+        "auto-read-pause",
+        "auto-read-play",
+        "auto-videocam",
+        "autopause"
+      ]
+    },
+    {
+      "id": "other",
+      "label": "Other",
+      "description": "Other",
+      "examples": [
+        "10k",
+        "10mp",
+        "11mp",
+        "123",
+        "12mp",
+        "13mp",
+        "14mp",
+        "15mp",
+        "16mp",
+        "17mp",
+        "18-up-rating",
+        "18mp"
+      ]
+    }
+  ]
+}

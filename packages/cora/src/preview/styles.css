@@ -344,8 +344,8 @@ textarea {
 /* Sidebar Toggle Trigger (Floating Corner Buttons) */
 .sidebar-toggle-trigger {
   position: fixed;
-  top: 16px;
-  z-index: 30;
+  top: calc(var(--preview-topbar-height) + 12px);
+  z-index: 90;
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -593,7 +593,7 @@ textarea {
 }
 
 .canvas-actions-panel.inspector-collapsed {
-  right: 16px;
+  right: 72px;
 }
 
 .canvas-actions-panel .preview-btn {
@@ -1028,6 +1028,12 @@ body.dark .component-grid .component-tile:hover .component-icon {
   transition: background 140ms ease, color 140ms ease, border-color 140ms ease;
 }
 
+.component-material-icon {
+  color: currentColor;
+  font-size: 20px;
+  line-height: 1;
+}
+
 .component-tile:hover .component-icon {
   border-color: var(--preview-border);
   background: var(--preview-surface);
@@ -1092,6 +1098,40 @@ body.dark .component-grid .component-tile:hover .component-icon {
   border-color: currentColor;
   border-style: dashed;
   background: transparent;
+}
+
+.field-icon-search {
+  gap: 8px;
+}
+
+.icon-search-results {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  max-height: 168px;
+  overflow: auto;
+}
+
+.icon-search-result {
+  border: 1px solid var(--preview-border);
+  border-radius: 6px;
+  background: var(--preview-surface);
+  color: var(--preview-ink);
+  font: inherit;
+  font-size: 11px;
+  line-height: 1.2;
+  min-height: 28px;
+  padding: 5px 7px;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.icon-search-result:hover,
+.icon-search-result.active {
+  border-color: var(--preview-accent);
+  background: var(--preview-accent-soft);
 }
 
 .node-prop-grid {
@@ -1427,6 +1467,17 @@ body.dark .component-grid .component-tile:hover .component-icon {
   transition: stroke 140ms ease, opacity 140ms ease;
 }
 
+.node-hit-target {
+  fill: transparent;
+  stroke: none;
+  cursor: grab;
+  pointer-events: all;
+}
+
+.node-hit-target ~ * {
+  pointer-events: none;
+}
+
 .connection-label-mask {
   fill: #FFFFFF;
   stroke: none;
@@ -1675,6 +1726,7 @@ body.dark .component-grid .component-tile:hover .component-icon {
 }
 
 .preview-search {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1690,11 +1742,127 @@ body.dark .component-grid .component-tile:hover .component-icon {
 .preview-search input {
   width: 100%;
   min-width: 0;
+  padding-right: 40px;
   border: 0;
   outline: 0;
   background: transparent;
   color: var(--preview-ink);
   font-size: 13px;
+}
+
+.preview-search-spinner {
+  position: absolute;
+  right: 16px;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--preview-border);
+  border-top-color: var(--preview-ink);
+  border-radius: 999px;
+  animation: global-icon-spin 0.8s linear infinite;
+}
+
+.global-icon-search-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 80;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  gap: 8px;
+  max-height: min(440px, calc(100vh - 96px));
+  overflow: auto;
+  padding: 8px;
+  border: 1px solid var(--preview-border);
+  border-radius: 8px;
+  background: var(--preview-surface);
+  box-shadow: var(--preview-shadow);
+}
+
+.global-icon-search-result {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  align-items: center;
+  justify-items: center;
+  gap: 7px;
+  aspect-ratio: 1;
+  min-width: 0;
+  min-height: 148px;
+  padding: 12px 10px 10px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--preview-ink);
+  text-align: center;
+  cursor: grab;
+}
+
+.global-icon-search-result:hover {
+  border-color: var(--preview-border);
+  background: var(--preview-accent-soft);
+}
+
+.global-icon-search-result:active {
+  cursor: grabbing;
+}
+
+.global-icon-preview {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  color: var(--preview-ink);
+}
+
+.global-icon-spinner {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  border: 2px solid var(--preview-border);
+  border-top-color: var(--preview-ink);
+  border-radius: 999px;
+  opacity: 0;
+  animation: global-icon-spin 0.8s linear infinite;
+}
+
+.global-icon-preview.loading .global-icon-spinner {
+  opacity: 1;
+}
+
+.global-icon-preview.loading svg {
+  opacity: 0.18;
+}
+
+@keyframes global-icon-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.global-icon-copy {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  gap: 2px;
+}
+
+.global-icon-copy strong,
+.global-icon-copy span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.global-icon-copy strong {
+  color: var(--preview-ink);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.global-icon-copy span {
+  color: var(--preview-muted);
+  font-size: 9px;
 }
 
 .preview-theme-selector {
@@ -2264,6 +2432,13 @@ body.dark .component-grid .component-tile:hover .component-icon {
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
 }
 
+.color-swatch-none {
+  background:
+    linear-gradient(135deg, transparent 0 44%, #ef4444 45% 55%, transparent 56% 100%),
+    conic-gradient(#e2e8f0 0 25%, #ffffff 0 50%, #e2e8f0 0 75%, #ffffff 0) 0 0 / 8px 8px;
+  box-shadow: inset 0 0 0 1px rgba(100, 116, 139, 0.45);
+}
+
 .color-picker-trigger-hex {
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 11px;
@@ -2361,6 +2536,39 @@ body.dark .component-grid .component-tile:hover .component-icon {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+.color-none-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 30px;
+  padding: 6px 8px;
+  border: 1px solid rgba(207, 196, 197, 0.45);
+  border-radius: 8px;
+  background: var(--preview-surface);
+  color: var(--preview-ink);
+  cursor: pointer;
+  font-family: "Hanken Grotesk", Manrope, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: left;
+  transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease;
+}
+
+.color-none-option:hover,
+.color-none-option.active {
+  border-color: var(--inspector-accent-color, var(--preview-accent));
+  background: var(--preview-surface-low);
+  box-shadow: 0 0 0 1px var(--preview-surface), 0 0 0 2.5px rgba(133, 77, 14, 0.16);
+}
+
+.color-none-option-swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  flex-shrink: 0;
 }
 
 .color-picker-section-title-row {
@@ -2526,4 +2734,3 @@ body.dark .component-grid .component-tile:hover .component-icon {
 .color-picker-eyedropper-btn-mini .material-symbols-outlined {
   font-size: 15px;
 }
-

@@ -11,6 +11,7 @@ import type {
   Diagram,
   DiagramEdge,
   DiagramGroup,
+  DiagramGroupStyle,
   LayoutedDiagram,
   LayoutedEdge,
   LayoutedGroup,
@@ -416,6 +417,7 @@ function buildGroupsFromElk(
       width: elkGroup?.width ?? 0,
       height: elkGroup?.height ?? 0,
       contains: group.contains,
+      style: group.style as DiagramGroupStyle | undefined,
     };
   });
 }
@@ -456,6 +458,7 @@ function layoutPreserve(
     width: 0,
     height: 0,
     contains: group.contains,
+    style: group.style as DiagramGroupStyle | undefined,
   }));
 
   offsetDiagram(nodes, groups, edges);

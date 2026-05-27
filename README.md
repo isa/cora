@@ -15,7 +15,7 @@ Open-source diagram tool for AI coding agents and the humans who review their ou
 | 3.4 — Text Export + SKILL.md | In progress | `cora render` stdout text, `.txt`, `--charset ascii`, agent skill guide |
 | 4+ | Planned | `cora serve`, extensions (`cora ext`), `cora doctor` |
 
-**Today:** validate any diagram, export schema, render all five v1 diagram kinds to SVG, PNG, PDF, or simplified graph-like text, and run `cora preview` as a local workbench for built-in renderer components. Provider icons require extensions (not bundled in core).
+**Today:** validate any diagram, export schema, render all five v1 diagram kinds to SVG, PNG, PDF, or simplified graph-like text, and run `cora preview` as a local workbench for built-in renderer components. Icon nodes support bundled offline Iconify Material Symbols.
 
 ## Install
 
@@ -245,9 +245,18 @@ Run `cora schema` for the authoritative field list — do not add properties out
 | `preserve` | Use YAML `position` on every node; errors if any node lacks coordinates |
 | `hybrid` | ELK lays out unpinned nodes; nodes with `pinned: true` and `position` stay fixed |
 
-### Extensions (provider icons)
+### Icons
 
-Nodes may set `provider` and `service` for cloud-provider artwork from separately installed extensions. Missing extensions fail validation with `MISSING_EXTENSION` and install guidance — core does not silently fall back.
+Nodes may set `icon` to an Iconify id. Cora currently ships the offline `material-symbols` set, so diagrams render deterministically without API calls:
+
+```yaml
+- id: archive
+  label: Archive
+  component: icon
+  icon: material-symbols:database
+```
+
+The older `provider: default` + `service: database` form remains supported as an alias for `material-symbols:database`. Unknown icon sets fail with `MISSING_EXTENSION`; unknown icon names fail with `UNKNOWN_SERVICE`.
 
 ## Examples
 
@@ -285,8 +294,8 @@ Nodes may set `provider` and `service` for cloud-provider artwork from separatel
 |------|---------|
 | `SCHEMA_VIOLATION` | Document fails JSON Schema validation |
 | `MISSING_EDGE_TARGET` | Edge `from` or `to` references a missing node id |
-| `UNKNOWN_SERVICE` | `service` without `provider`, or unknown service for provider |
-| `MISSING_EXTENSION` | `provider` set but extension not installed |
+| `UNKNOWN_SERVICE` | `service` without `provider`, malformed icon id, or unknown icon/service name |
+| `MISSING_EXTENSION` | Requested icon provider/set is not installed |
 | `PARSE_ERROR` | YAML/JSON syntax error |
 | `LAYOUT_ERROR` | Layout failed (e.g. `layout: preserve` without positions on all nodes) |
 
@@ -320,7 +329,7 @@ YAML/JSON
 
 **Stack:** Node.js 22+, Bun, TypeScript 5, Turborepo, ELK 0.11, React 19, `@resvg/resvg-js`, bundled Noto Sans for consistent headless metrics.
 
-**Planned:** `web` (interactive `cora serve`), PDF export, `cora-extensions` registry for provider themes.
+**Planned:** `web` (interactive `cora serve`), `cora ext`, and `cora doctor`.
 
 ## Development
 

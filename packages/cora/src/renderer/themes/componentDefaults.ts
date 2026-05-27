@@ -33,7 +33,7 @@ export function catalogDefaultProps(component: DiagramComponent): Record<string,
       return {
         ...common,
         backgroundColor: 'transparent',
-        radius: 0,
+        radius: 12,
         borderStyle: 'none' as const,
         borderColor: 'transparent',
         borderWidth: 0,
@@ -55,9 +55,13 @@ export function catalogDefaultProps(component: DiagramComponent): Record<string,
     case 'labelIcon':
       return {
         ...common,
-        backgroundColor: LOOK.components.labelIcon.fill,
-        borderColor: LOOK.components.labelIcon.stroke,
+        backgroundColor: 'transparent',
+        borderStyle: 'none' as const,
+        borderColor: 'transparent',
+        borderWidth: 0,
+        radius: 0,
         iconColor: LOOK.components.labelIcon.iconColor,
+        size: 'md' as const,
       };
 
     case 'website':
@@ -65,6 +69,7 @@ export function catalogDefaultProps(component: DiagramComponent): Record<string,
         ...common,
         backgroundColor: LOOK.components.website.fill,
         borderColor: LOOK.components.website.stroke,
+        skeletonColor: LOOK.components.website.skeleton,
       };
 
     case 'app':

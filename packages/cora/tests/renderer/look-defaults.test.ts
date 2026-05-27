@@ -34,6 +34,24 @@ describe('Design Tokens Contract', () => {
   it('verifies catalogDefaultProps("label") attributes', () => {
     const label = catalogDefaultProps('label');
     expect(label.titleFontSize).toBe(11);
+    expect(label.radius).toBe(12);
+  });
+
+  it('uses neutral website defaults', () => {
+    const website = catalogDefaultProps('website');
+    expect(website.backgroundColor).toBe(TAILWIND.white);
+    expect(website.borderColor).toBe(TAILWIND.slate[700]);
+    expect(website.skeletonColor).toBe(TAILWIND.slate[200]);
+    expect(defaultTheme.shapes.website?.fill).toBe(TAILWIND.white);
+    expect(defaultTheme.shapes.website?.stroke).toBe(TAILWIND.slate[700]);
+  });
+
+  it('uses neutral labelIcon defaults', () => {
+    const labelIcon = catalogDefaultProps('labelIcon');
+    expect(labelIcon.backgroundColor).toBe('transparent');
+    expect(labelIcon.borderStyle).toBe('none');
+    expect(labelIcon.borderWidth).toBe(0);
+    expect(labelIcon.radius).toBe(0);
   });
 
   it('verifies all component kinds return backgroundColor and shadow none', () => {

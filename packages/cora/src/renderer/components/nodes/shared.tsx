@@ -290,6 +290,7 @@ export function CatalogText({
   subtitleFontSize,
   paddingX = 4,
   minFontSize = 9,
+  fontWeight = 600,
 }: {
   x: number;
   y: number;
@@ -303,6 +304,7 @@ export function CatalogText({
   subtitleFontSize?: number;
   paddingX?: number;
   minFontSize?: number;
+  fontWeight?: number | string;
 }) {
   if (!text && !subtitle) return null;
 
@@ -329,7 +331,7 @@ export function CatalogText({
       textAnchor="middle"
       fontFamily={FONT_FAMILY}
       fontSize={fittedFontSize}
-      fontWeight={600}
+      fontWeight={fontWeight}
       fill={color}
       textLength={stillTooWide ? maxTextWidth : undefined}
       lengthAdjust={stillTooWide ? 'spacingAndGlyphs' : undefined}

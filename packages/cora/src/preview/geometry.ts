@@ -1,4 +1,14 @@
-import { resolveComponentSize } from '../renderer/components/styles.js';
+import {
+  resolveComponentSize,
+  resolveWebsiteComponentSize,
+  resolveAppComponentSize,
+  resolvePageComponentSize,
+  resolveLabelIconComponentSize,
+  APP_SIZE_PRESETS,
+  PAGE_SIZE_PRESETS,
+  WEBSITE_SIZE_PRESETS,
+  LABEL_ICON_SIZE_PRESETS,
+} from '../renderer/components/styles.js';
 import type { ConnectionProps } from './controls/defaults.js';
 import type { SizePreset } from '../renderer/components/types.js';
 import type { CanvasConnection, CanvasNode, WorkbenchState } from './state.js';
@@ -22,16 +32,15 @@ export interface AttachmentSlot {
   y: number;
 }
 
-const ICON_SIZE_PRESETS: Record<SizePreset, number> = {
-  sm: 28,
-  md: 40,
-  lg: 56,
-  xl: 72,
-  xxl: 88,
-};
 
 export function previewNodeSize(node: CanvasNode): { width: number; height: number } {
-  const base = resolveComponentSize(node.props.size, { width: 140, height: 56 });
+  const base = node.componentId === 'app'
+    ? resolveAppComponentSize(node.props.size, APP_SIZE_PRESETS.lg)
+    : node.componentId === 'page'
+      ? resolvePageComponentSize(node.props.size, PAGE_SIZE_PRESETS.lg)
+      : node.componentId === 'website'
+        ? resolveWebsiteComponentSize(node.props.size, WEBSITE_SIZE_PRESETS.lg)
+        : resolveComponentSize(node.props.size, { width: 140, height: 56 });
   const title = node.props.title ?? node.props.text ?? '';
   const subtitle = node.props.subtitle ?? '';
   const lines = title.split(/\r?\n/);
@@ -59,15 +68,10 @@ export function previewNodeSize(node: CanvasNode): { width: number; height: numb
 }
 
 function previewIconSize(node: CanvasNode): { width: number; height: number } {
-  if (typeof node.props.size === 'string') {
-    const size = ICON_SIZE_PRESETS[node.props.size] ?? ICON_SIZE_PRESETS.md;
-    return { width: size, height: size };
+  if (node.componentId === 'icon') {
+    return resolveAppComponentSize(node.props.size, { width: 160, height: 128 });
   }
-  if (node.props.size && typeof node.props.size === 'object') {
-    const size = Math.max(24, Math.min(node.props.size.width, node.props.size.height));
-    return { width: size, height: size };
-  }
-  return { width: ICON_SIZE_PRESETS.md, height: ICON_SIZE_PRESETS.md };
+  return resolveLabelIconComponentSize(node.props.size, { width: 40, height: 40 });
 }
 
 export function computeNodeBox(state: WorkbenchState, nodeId: string): PreviewBox | undefined {
@@ -81,18 +85,95 @@ export function computeNodeBox(state: WorkbenchState, nodeId: string): PreviewBo
       ? computeConnectionSourceLabelIconCenter(state, node.attachedConnectionId, size)
       : computeConnectionCenter(state, node.attachedConnectionId)
     : undefined;
-  const position = attachedCenter
-    ? {
+  let position = node.position;
+  if (attachedCenter) {
+    if (node.componentId === 'labelIcon') {
+      const ratio = size.width / 40;
+      const hasText = Boolean((node.props.title ?? node.props.text) || node.props.subtitle);
+      const iconSize = node.props.iconType ? Math.min(size.width, size.height) * 0.62 : 24 * ratio;
+      const iconYOffset = node.props.iconType
+        ? (size.height - iconSize) / 2
+        : hasText
+        ? 2 * ratio
+        : (size.height - iconSize) / 2;
+      const iconCenterYOffset = iconYOffset + iconSize / 2;
+      position = {
+        x: attachedCenter.x - size.width / 2,
+        y: attachedCenter.y - iconCenterYOffset,
+      };
+    } else {
+      position = {
         x: attachedCenter.x - size.width / 2,
         y: attachedCenter.y - size.height / 2,
-      }
-    : node.position;
+      };
+    }
+  }
 
   return {
     id: node.id,
     ...position,
     ...size,
   };
+}
+
+function iconVisualBox(state: WorkbenchState, nodeId: string): PreviewBox | undefined {
+  const node = state.nodes.find((item) => item.id === nodeId);
+  const box = computeNodeBox(state, nodeId);
+  if (!node || !box) {
+    return box;
+  }
+
+  // IconNode: horizontally narrowed to the icon artwork; vertically extends
+  // to the full node bottom so that bottom-exiting lines clear title/subtitle.
+  if (node.componentId === 'icon') {
+    const ratio = box.width / 160;
+    const iconSize = 87 * ratio;
+    const hasText = Boolean((node.props.title ?? node.props.text) || node.props.subtitle);
+    const iconY = box.y + (hasText ? 9 * ratio : (box.height - iconSize) / 2);
+    const bottomEdge = box.y + box.height;
+
+    return {
+      id: box.id,
+      x: box.x + (box.width - iconSize) / 2,
+      y: iconY,
+      width: iconSize,
+      height: bottomEdge - iconY,
+    };
+  }
+
+  // AppNode: horizontally narrowed to the phone artwork; vertically extends
+  // to the full node bottom so that bottom-exiting lines clear title/subtitle.
+  if (node.componentId === 'app') {
+    const ratio = box.width / 160;
+    const ARTBOARD = 24;
+    const scale = 3.875 * ratio;
+    const artSize = ARTBOARD * scale;
+
+    const hasLabel = Boolean((node.props.title ?? node.props.text) || node.props.subtitle);
+    const titleFontSize = (node.props.titleFontSize ?? 12) * ratio;
+    const subtitleFontSize = (node.props.subtitleFontSize ?? Math.max(8, (node.props.titleFontSize ?? 12) - 2)) * ratio;
+    const titleLines = (node.props.title ?? node.props.text) ? String(node.props.title ?? node.props.text).split(/\r?\n/) : [];
+    const subtitleLines = node.props.subtitle ? String(node.props.subtitle).split(/\r?\n/) : [];
+    const textHeight = hasLabel
+      ? titleLines.length * titleFontSize * 1.25 +
+        (subtitleLines.length > 0 ? 3 * ratio + subtitleLines.length * subtitleFontSize * 1.25 : 0)
+      : 0;
+    const labelGap = (hasLabel ? 8 : 0) * ratio;
+    const topPadding = (hasLabel ? 6 : 0) * ratio;
+    const bottomPadding = (hasLabel ? 6 : 0) * ratio;
+    const offsetY = box.y + topPadding + (box.height - artSize - textHeight - labelGap - topPadding - bottomPadding) / 2;
+    const bottomEdge = box.y + box.height;
+
+    return {
+      id: box.id,
+      x: box.x + (box.width - artSize) / 2,
+      y: offsetY,
+      width: artSize,
+      height: bottomEdge - offsetY,
+    };
+  }
+
+  return box;
 }
 
 export function chooseConnectionSides(source: PreviewBox, target: PreviewBox): { sourceSide: Side; targetSide: Side } {
@@ -148,8 +229,8 @@ export function computeConnectionPoints(
   state: WorkbenchState,
   connection: CanvasConnection,
 ): Array<{ x: number; y: number }> {
-  const source = computeNodeBox(state, connection.fromNodeId);
-  const target = computeNodeBox(state, connection.toNodeId);
+  const source = iconVisualBox(state, connection.fromNodeId);
+  const target = iconVisualBox(state, connection.toNodeId);
   if (!source || !target) {
     return [];
   }
@@ -175,17 +256,49 @@ export function applyConnectionMarkerInsets(
     return points;
   }
   const next = points.map((point) => ({ ...point }));
-  if (props.endMarker === 'arrow') {
+  const endInset = previewMarkerInset(props.endMarker, props.arrowSize);
+  const startInset = previewMarkerInset(props.startMarker, props.arrowSize);
+  if (endInset > 0) {
     next[next.length - 1] = offsetPointToward(
       next[next.length - 1]!,
       next[next.length - 2]!,
-      props.arrowSize,
+      endInset,
     );
   }
-  if (props.startMarker === 'arrow') {
-    next[0] = offsetPointToward(next[0]!, next[1]!, props.arrowSize);
+  if (startInset > 0) {
+    next[0] = offsetPointToward(next[0]!, next[1]!, startInset);
   }
   return next;
+}
+
+function previewMarkerInset(marker: ConnectionProps['startMarker'], markerSize: number): number {
+  const size = Math.max(4, markerSize);
+  const circleRadius = Math.max(2, size * 0.36);
+  const markerStrokeWidth = 1.5;
+  const squareSize = Math.max(3, size * 0.72);
+
+  if (marker === 'arrow') {
+    return size;
+  }
+  if (marker === 'circle') {
+    return circleRadius + markerStrokeWidth / 2;
+  }
+  if (marker === 'filledCircle') {
+    return circleRadius;
+  }
+  if (marker === 'diamond') {
+    return size / 2 + markerStrokeWidth / 2;
+  }
+  if (marker === 'filledDiamond') {
+    return size / 2;
+  }
+  if (marker === 'square') {
+    return squareSize / 2 + markerStrokeWidth / 2;
+  }
+  if (marker === 'filledSquare') {
+    return squareSize / 2;
+  }
+  return 0;
 }
 
 function offsetPointToward(
@@ -211,8 +324,8 @@ export function computeConnectionAnchorRatios(
   const endpointGroups = new Map<string, Array<{ connectionId: string; role: 'source' | 'target' }>>();
 
   for (const connection of state.connections) {
-    const source = computeNodeBox(state, connection.fromNodeId);
-    const target = computeNodeBox(state, connection.toNodeId);
+    const source = iconVisualBox(state, connection.fromNodeId);
+    const target = iconVisualBox(state, connection.toNodeId);
     if (!source || !target) {
       continue;
     }
@@ -294,7 +407,7 @@ export function computeConnectionCenter(
 export function computeConnectionSourceLabelIconCenter(
   state: WorkbenchState,
   connectionId: string,
-  size: { width: number; height: number } = { width: ICON_SIZE_PRESETS.md, height: ICON_SIZE_PRESETS.md },
+  size: { width: number; height: number } = { width: 40, height: 40 },
 ): { x: number; y: number } | undefined {
   const connection = state.connections.find((item) => item.id === connectionId);
   if (!connection) {
@@ -354,8 +467,8 @@ export function computeAttachmentSlots(
 export function computeSceneAttachmentSlots(state: WorkbenchState): AttachmentSlot[] {
   const groups = new Map<string, { box: PreviewBox; side: Side; count: number }>();
   for (const connection of state.connections) {
-    const source = computeNodeBox(state, connection.fromNodeId);
-    const target = computeNodeBox(state, connection.toNodeId);
+    const source = iconVisualBox(state, connection.fromNodeId);
+    const target = iconVisualBox(state, connection.toNodeId);
     if (!source || !target) {
       continue;
     }

@@ -16,8 +16,7 @@ diagram:
     - id: archive
       label: Archive
       component: icon
-      provider: default
-      service: database
+      icon: material-symbols:database
   edges:
     - from: intake
       to: review

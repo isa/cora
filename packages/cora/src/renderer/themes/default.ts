@@ -26,9 +26,9 @@ export const defaultTheme: ThemeTokens = {
       strokeWidth: 0,
     },
     labelIcon: {
-      fill: LOOK.components.labelIcon.fill,
-      stroke: LOOK.components.labelIcon.stroke,
-      strokeWidth: 1,
+      fill: 'none',
+      stroke: 'none',
+      strokeWidth: 0,
     },
     website: {
       fill: LOOK.components.website.fill,

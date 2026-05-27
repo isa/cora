@@ -23,6 +23,7 @@ import {
 } from './components/edges/edgePath.js';
 import { computeViewBox } from './viewBox.js';
 import { catalogDefaultProps } from './themes/componentDefaults.js';
+import { iconifyIconForNode } from './iconify.js';
 
 export interface DiagramProps {
   diagram: LayoutedDiagram;
@@ -30,6 +31,7 @@ export interface DiagramProps {
 
 function renderNode(node: LayoutedNode, diagram: LayoutedDiagram) {
   const component = node.component ?? 'box';
+  const icon = iconifyIconForNode(node) ?? WarningIcon;
   const catalogProps = nodeCatalogProps(
     node,
     diagram.theme.shapes[component] ?? diagram.theme.shapes.box!,
@@ -47,12 +49,12 @@ function renderNode(node: LayoutedNode, diagram: LayoutedDiagram) {
           y={node.y}
           size={{ width: node.measuredWidth, height: node.measuredHeight }}
           strokeColor={catalogProps.textColor}
-          icon={WarningIcon}
+          icon={icon}
           title={node.label}
         />
       );
     case 'labelIcon':
-      return <LabelIconNode key={node.id} {...catalogProps} icon={WarningIcon} />;
+      return <LabelIconNode key={node.id} {...catalogProps} icon={icon} />;
     case 'website':
       return <WebsiteNode key={node.id} {...catalogProps} />;
     case 'page':
@@ -100,6 +102,7 @@ function nodeCatalogProps(
     radius: defaults.radius,
     titleFontSize: defaults.titleFontSize,
     subtitleFontSize: defaults.subtitleFontSize,
+    skeletonColor: defaults.skeletonColor,
     shadow: style.shadow ? ('cast' as const) : ('none' as const),
     shadowColor: style.shadow,
   };

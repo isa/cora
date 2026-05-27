@@ -18,6 +18,12 @@ export {
   isNoBorder,
   resolveComponentSize,
   SIZE_PRESETS,
+  APP_SIZE_PRESETS,
+  PAGE_SIZE_PRESETS,
+  LABEL_ICON_SIZE_PRESETS,
+  resolveAppComponentSize,
+  resolvePageComponentSize,
+  resolveLabelIconComponentSize,
 } from './styles.js';
 export { Line, linePathData } from './lines/Line.js';
 export type { LineProps } from './lines/Line.js';

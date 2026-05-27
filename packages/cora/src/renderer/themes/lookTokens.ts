@@ -37,16 +37,17 @@ export const LOOK = {
       stroke: TAILWIND.rose[500],
     },
     page: {
-      fill: TAILWIND.sky[200],
+      fill: TAILWIND.white,
       stroke: TAILWIND.sky[500],
     },
     app: {
-      fill: TAILWIND.emerald[200],
-      stroke: TAILWIND.emerald[500],
+      fill: TAILWIND.white,
+      stroke: '#000000',
     },
     website: {
-      fill: TAILWIND.yellow[200],
-      stroke: TAILWIND.yellow[500],
+      fill: TAILWIND.white,
+      stroke: TAILWIND.slate[700],
+      skeleton: TAILWIND.slate[200],
     },
     shape: {
       fill: TAILWIND.teal[200],

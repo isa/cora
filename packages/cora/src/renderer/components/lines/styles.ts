@@ -9,11 +9,11 @@ export function lineDasharray(
   const width = strokeWidth ?? DEFAULT_STROKE_WIDTH;
 
   if (lineStyle === 'dashed') {
-    return `${width * 6} ${width * 4}`;
+    return `${width * 3} ${width * 1}`;
   }
 
   if (lineStyle === 'dotted') {
-    return `${width} ${width * 4}`;
+    return `${width * 0.5} ${width * 1}`;
   }
 
   return undefined;

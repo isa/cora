@@ -18,12 +18,12 @@ const NODE_PADDING_Y = 8;
 const DECISION_EXTRA_PADDING_Y = 10;
 const ICON_LABEL_EXTRA_WIDTH = 40;
 const COMPONENT_MIN_SIZE = {
-  app: { width: 128, height: 68 },
+  app: { width: 80, height: 64 },
   icon: { width: 48, height: 48 },
   issue: { width: 128, height: 56 },
   labelIcon: { width: 128, height: 56 },
-  page: { width: 144, height: 100 },
-  website: { width: 144, height: 68 },
+  page: { width: 96, height: 128 },
+  website: { width: 64, height: 71 },
 } as const;
 
 function resolveFontPath(filename: string): string {

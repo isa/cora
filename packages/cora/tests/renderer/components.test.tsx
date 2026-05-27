@@ -7,6 +7,7 @@ import {
   DecisionNode,
   IconNode,
   IssueNode,
+  Group,
   LabelNode,
   LabelIconNode,
   Line,
@@ -16,6 +17,7 @@ import {
   resolveComponentSize,
   ShapeNode,
   type SvgIconProps,
+  WebsiteNode,
 } from '../../src/renderer/components/index.js';
 import { baselineYForVisualCenter } from '../../src/core/measureText.js';
 import { edgeBridgeMap } from '../../src/core/edgeGeometry.js';
@@ -27,6 +29,7 @@ import {
 } from '../../src/renderer/components/edges/edgePath.js';
 import { defaultTheme } from '../../src/renderer/themes/default.js';
 import { Diagram } from '../../src/renderer/Diagram.js';
+import { iconifyIcon } from '../../src/renderer/iconify.js';
 
 function TestIcon({ x = 0, y = 0, size, color }: SvgIconProps) {
   return (
@@ -51,8 +54,8 @@ describe('renderer component primitives', () => {
   it('maps border styles to SVG dash arrays', () => {
     expect(borderDasharray('none', 2)).toBeUndefined();
     expect(borderDasharray('solid', 2)).toBeUndefined();
-    expect(borderDasharray('dashed', 2)).toBe('12 8');
-    expect(borderDasharray('dotted', 2)).toBe('2 8');
+    expect(borderDasharray('dashed', 2)).toBe('6 2');
+    expect(borderDasharray('dotted', 2)).toBe('1 2');
   });
 
   it('renders line points with marker attributes', () => {
@@ -92,6 +95,11 @@ describe('renderer component primitives', () => {
     expect(markup).toContain('refX="8"');
     expect(markup).toContain('id="cora-marker-circle"');
     expect(markup).toContain('id="cora-marker-filled-circle"');
+    expect(markup).toContain('id="cora-marker-diamond"');
+    expect(markup).toContain('id="cora-marker-filled-diamond"');
+    expect(markup).toContain('id="cora-marker-square"');
+    expect(markup).toContain('id="cora-marker-filled-square"');
+    expect(markup).toContain('orient="auto-start-reverse"');
   });
 
   it('renders diagram edge marker choices from the layout IR', () => {
@@ -108,8 +116,8 @@ describe('renderer component primitives', () => {
                 { x: 0, y: 0 },
                 { x: 40, y: 0 },
               ],
-              startMarker: 'circle',
-              endMarker: 'filledCircle',
+              startMarker: 'diamond',
+              endMarker: 'filledSquare',
             },
           ],
           width: 40,
@@ -119,13 +127,38 @@ describe('renderer component primitives', () => {
       />,
     );
 
-    expect(markup).toContain('marker-start="url(#cora-marker-circle)"');
-    expect(markup).toContain('marker-end="url(#cora-marker-filled-circle)"');
+    expect(markup).toContain('marker-start="url(#cora-marker-diamond)"');
+    expect(markup).toContain('marker-end="url(#cora-marker-filled-square)"');
   });
 });
 
 describe('renderer catalog nodes', () => {
-  it('renders IconNode through the provided icon renderer only', () => {
+  it('renders Group with style overrides', () => {
+    const markup = renderToStaticMarkup(
+      <Group
+        group={{
+          id: 'group-a',
+          label: 'Styled Group',
+          x: 10,
+          y: 20,
+          width: 200,
+          height: 120,
+          style: {
+            backgroundColor: '#f8fafc',
+            titleColor: '#334155',
+            titleSize: 18,
+          },
+        }}
+        theme={defaultTheme}
+      />,
+    );
+
+    expect(markup).toContain('fill="#f8fafc"');
+    expect(markup).toContain('fill="#334155"');
+    expect(markup).toContain('font-size="18"');
+  });
+
+  it('renders IconNode through the provided icon renderer with attached text', () => {
     const markup = renderToStaticMarkup(
       <IconNode
         icon={TestIcon}
@@ -137,7 +170,25 @@ describe('renderer catalog nodes', () => {
 
     expect(markup).toContain('data-icon="test"');
     expect(markup).toContain('stroke="#abcdef"');
-    expect(markup).not.toContain('Hidden label');
+    expect(markup).toContain('Hidden label');
+  });
+
+  it('renders Iconify icons through the existing SVG icon slot contract', () => {
+    const DatabaseIcon = iconifyIcon('material-symbols:database');
+    expect(DatabaseIcon).toBeDefined();
+
+    const markup = renderToStaticMarkup(
+      <IconNode
+        icon={DatabaseIcon!}
+        strokeColor="#475569"
+        size={{ width: 40, height: 40 }}
+        title="Database"
+      />,
+    );
+
+    expect(markup).toContain('viewBox="0 0 24 24"');
+    expect(markup).toContain('currentColor');
+    expect(markup).toContain('Database');
   });
 
   it('renders LabelIconNode with icon markup and text', () => {
@@ -226,18 +277,37 @@ describe('renderer catalog nodes', () => {
     expect(markup).toContain('font-size="10"');
   });
 
-  it('renders PageNode skeleton colors for landing pages', () => {
+  it('renders LabelNode and LabelIconNode as bold only when subtitle is present', () => {
+    const boldLabel = renderToStaticMarkup(<LabelNode title="Primary" subtitle="Secondary" />);
+    const regularLabel = renderToStaticMarkup(<LabelNode title="Primary" />);
+    expect(boldLabel).toContain('font-weight="600"');
+    expect(regularLabel).toContain('font-weight="400"');
+
+    const boldLabelIcon = renderToStaticMarkup(<LabelIconNode icon={TestIcon} text="Primary" subtitle="Secondary" />);
+    const regularLabelIcon = renderToStaticMarkup(<LabelIconNode icon={TestIcon} text="Primary" />);
+    expect(boldLabelIcon).toContain('font-weight="600"');
+    expect(regularLabelIcon).toContain('font-weight="400"');
+  });
+
+  it('renders PageNode with custom icon color', () => {
     const markup = renderToStaticMarkup(
       <PageNode
         type="landing"
-        skeletonColorDark="#111111"
-        skeletonColorLight="#eeeeee"
+        iconColor="#112233"
         text="Home"
       />,
     );
 
-    expect(markup).toContain('fill="#111111"');
-    expect(markup).toContain('fill="#eeeeee"');
+    expect(markup).toContain('fill="#112233"');
+    expect(markup).toContain('Home');
+  });
+
+  it('renders WebsiteNode with neutral default colors', () => {
+    const markup = renderToStaticMarkup(<WebsiteNode />);
+
+    expect(markup).toContain('fill="#ffffff"');
+    expect(markup).toContain('stroke="#334155"');
+    expect(markup).toContain('fill="#e2e8f0"');
   });
 
   it('renders every IssueNode icon variant', () => {
@@ -399,6 +469,38 @@ describe('edge labels', () => {
     expect(markerPoints[0]!.x).toBeCloseTo(5.63, 2);
     expect(markerPoints[1]!.x).toBeCloseTo(95.12, 2);
     expect(pathXs[0]).toBeCloseTo(9.26, 2);
+    expect(pathXs[2]).toBeCloseTo(92.24, 2);
+  });
+
+  it('anchors diamond and square marker edges outside node clearance', () => {
+    const markerPoints = edgeLineMarkerPoints({
+      from: 'a',
+      to: 'b',
+      startMarker: 'diamond',
+      endMarker: 'filledSquare',
+      points: [
+        { x: 0, y: 0 },
+        { x: 100, y: 0 },
+      ],
+    });
+    const visiblePathData = edgeLinePathData(
+      {
+        from: 'a',
+        to: 'b',
+        startMarker: 'diamond',
+        endMarker: 'filledSquare',
+        points: [
+          { x: 0, y: 0 },
+          { x: 100, y: 0 },
+        ],
+      },
+      { trimForMarkers: true },
+    );
+
+    const pathXs = visiblePathData.match(/-?\d+(?:\.\d+)?/g)?.map(Number) ?? [];
+    expect(markerPoints[0]!.x).toBeCloseTo(6.75, 2);
+    expect(markerPoints[1]!.x).toBeCloseTo(95.12, 2);
+    expect(pathXs[0]).toBeCloseTo(11.5, 2);
     expect(pathXs[2]).toBeCloseTo(92.24, 2);
   });
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { builtInPack } from '../../src/preview/pack/builtins.js';
+import { TAILWIND } from '../../src/renderer/themes/tailwindPalette.js';
 
 describe('built-in preview pack', () => {
   it('lists all selectable built-ins without Group or Line as nodes', () => {
@@ -9,27 +10,35 @@ describe('built-in preview pack', () => {
     expect(builtInPack.id).toBe('built-ins');
     expect(ids).toEqual(
       expect.arrayContaining([
-        'BoxNode',
-        'LabelNode',
-        'IconNode',
-        'WebsiteNode',
-        'PageNode',
-        'AppNode',
-        'DecisionNode',
-        'IssueNode',
-        'ShapeNode',
+        'Box',
+        'Label',
+        'Icon',
+        'Website',
+        'Document',
+        'App',
       ]),
     );
+    expect(ids).not.toContain('DecisionNode');
+    expect(ids).not.toContain('IssueNode');
+    expect(ids).not.toContain('ShapeNode');
     expect(ids).not.toContain('Group');
     expect(ids).not.toContain('Line');
   });
 
   it('uses compact text defaults for label nodes', () => {
     const labelNode = builtInPack.components.find((component) => component.id === 'label');
+    const websiteNode = builtInPack.components.find((component) => component.id === 'website');
 
     expect(labelNode?.defaultProps).toMatchObject({
       titleFontSize: 11,
       subtitleFontSize: 10,
+    });
+    expect(websiteNode?.controls.map((control) => control.key)).toContain('skeletonColor');
+    expect(websiteNode?.defaultProps).toMatchObject({
+      backgroundColor: TAILWIND.white,
+      borderColor: TAILWIND.slate[700],
+      skeletonColor: TAILWIND.slate[200],
+      size: { width: 144, height: 160 },
     });
   });
 });

@@ -1,3 +1,5 @@
+import type { DiagramGroupStyle, EdgeMarker } from '../layout-ir.js';
+
 export type DiagramKind =
   | 'box-arrows'
   | 'flowchart'
@@ -44,6 +46,7 @@ export interface DiagramNode {
   component?: DiagramComponent;
   position?: { x: number; y: number };
   pinned?: boolean;
+  icon?: string;
   provider?: string;
   service?: string;
   style?: Record<string, unknown>;
@@ -53,15 +56,15 @@ export interface DiagramEdge {
   from: string;
   to: string;
   label?: string;
-  startMarker?: 'none' | 'arrow' | 'circle' | 'filledCircle';
-  endMarker?: 'none' | 'arrow' | 'circle' | 'filledCircle';
+  startMarker?: EdgeMarker;
+  endMarker?: EdgeMarker;
 }
 
 export interface DiagramGroup {
   id: string;
   label: string;
   contains?: string[];
-  style?: Record<string, unknown>;
+  style?: DiagramGroupStyle;
 }
 
 export interface Diagram {
@@ -83,6 +86,8 @@ export type {
   ThemeShapeStyle,
   ThemeTokens,
   ResolvedStyle,
+  DiagramGroupStyle,
+  EdgeMarker,
   MeasuredNode,
   LayoutedNode,
   LayoutedEdge,

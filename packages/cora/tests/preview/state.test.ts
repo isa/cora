@@ -6,9 +6,11 @@ import {
   createDefaultWorkbenchState,
   selectCanvasItem,
   setGroupSize,
+  updateGroup,
   updateConnectionProps,
   updateNodeProps,
 } from '../../src/preview/state.js';
+import { previewNodeSize } from '../../src/preview/geometry.js';
 
 describe('preview drag canvas state', () => {
   it('starts with an empty canvas and no selected lines or groups', () => {
@@ -29,11 +31,11 @@ describe('preview drag canvas state', () => {
         'page',
         { x: 200, y: 20 },
       ),
-      'issue',
+      'app',
       { x: 360, y: 20 },
     );
 
-    expect(state.nodes.map((node) => node.componentId)).toEqual(['box', 'page', 'issue']);
+    expect(state.nodes.map((node) => node.componentId)).toEqual(['box', 'page', 'app']);
     expect(state.connections).toHaveLength(2);
     expect(state.selected).toEqual({ kind: 'node', id: 'node-4' });
   });
@@ -42,7 +44,7 @@ describe('preview drag canvas state', () => {
     const state = updateNodeProps(
       addNodeToCanvas(
         addNodeToCanvas(createDefaultWorkbenchState(), 'box', { x: 10, y: 20 }),
-        'issue',
+        'app',
         { x: 220, y: 20 },
       ),
       'node-1',
@@ -54,6 +56,32 @@ describe('preview drag canvas state', () => {
     expect(reset.nodes.at(-1)?.componentId).toBe('page');
     expect(reset.nodes.at(-1)?.props.title).not.toBe('Changed');
     expect(reset.nodes.at(-1)?.position).toEqual({ x: 300, y: 120 });
+  });
+
+  it('applies catalog prop overrides when adding searched icons', () => {
+    const state = addNodeToCanvas(
+      createDefaultWorkbenchState(),
+      'icon',
+      { x: 10, y: 20 },
+      { title: 'cloud', iconName: 'material-symbols:cloud' },
+    );
+
+    expect(state.nodes[0]?.componentId).toBe('icon');
+    expect(state.nodes[0]?.props.title).toBe('cloud');
+    expect(state.nodes[0]?.props.iconName).toBe('material-symbols:cloud');
+  });
+
+  it('uses the compact remapped website component size scale', () => {
+    const state = addNodeToCanvas(createDefaultWorkbenchState(), 'website', { x: 10, y: 20 });
+    const small = updateNodeProps(state, state.nodes[0]!.id, 'size', 'sm');
+    const medium = updateNodeProps(small, state.nodes[0]!.id, 'size', 'md');
+    const large = updateNodeProps(medium, state.nodes[0]!.id, 'size', 'lg');
+
+    expect(state.nodes[0]?.props.size).toEqual({ width: 144, height: 160 });
+    expect(previewNodeSize(state.nodes[0]!)).toEqual({ width: 144, height: 160 });
+    expect(previewNodeSize(small.nodes[0]!)).toEqual({ width: 64, height: 71 });
+    expect(previewNodeSize(medium.nodes[0]!)).toEqual({ width: 96, height: 107 });
+    expect(previewNodeSize(large.nodes[0]!)).toEqual({ width: 144, height: 160 });
   });
 
   it('attaches label components to the selected connection without creating a node connection', () => {
@@ -84,11 +112,27 @@ describe('preview drag canvas state', () => {
   });
 
   it('clears selection and resizes groups without replacing canvas content', () => {
-    const withGroup = addNodeToCanvas(createDefaultWorkbenchState(), 'group', { x: 20, y: 30 });
-    const resized = setGroupSize(withGroup, withGroup.groups[0]!.id, { width: 320, height: 220 });
+    const withGroup = addNodeToCanvas(createDefaultWorkbenchState(), 'group', { x: 20.4, y: 30.6 });
+    const styled = updateGroup(withGroup, withGroup.groups[0]!.id, {
+      fillColor: '#f8fafc',
+      labelColor: '#334155',
+      labelSize: 16,
+    });
+    const resized = setGroupSize(styled, styled.groups[0]!.id, { width: 320.4, height: 220.6 });
     const deselected = clearSelection(resized);
 
-    expect(resized.groups[0]?.size).toEqual({ width: 320, height: 220 });
+    expect(withGroup.groups[0]).toMatchObject({
+      fillColor: 'none',
+      labelColor: '#0f172a',
+      labelSize: 12,
+      position: { x: 20, y: 31 },
+    });
+    expect(resized.groups[0]).toMatchObject({
+      fillColor: '#f8fafc',
+      labelColor: '#334155',
+      labelSize: 16,
+      size: { width: 320, height: 221 },
+    });
     expect(deselected.groups).toHaveLength(1);
     expect(deselected.selected).toBeUndefined();
   });

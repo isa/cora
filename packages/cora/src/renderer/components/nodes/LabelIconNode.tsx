@@ -1,6 +1,7 @@
 import type { SvgIconComponent } from '../icons.js';
 import type { BoxStyleProps } from '../types.js';
 import { CatalogFrame, CatalogIconSlot, CatalogText, resolvedCatalogFrame } from './shared.js';
+import { resolveLabelIconComponentSize } from '../styles.js';
 
 export interface LabelIconNodeProps extends BoxStyleProps {
   x?: number;
@@ -52,12 +53,19 @@ function StatusIcon({
 }
 
 export function LabelIconNode(props: LabelIconNodeProps) {
-  const frame = resolvedCatalogFrame(props);
-  const iconSize = props.iconType ? Math.min(frame.width, frame.height) * 0.62 : Math.min(22, frame.height * 0.45);
+  const resolvedSize = resolveLabelIconComponentSize(props.size, { width: 40, height: 40 });
+  const frame = resolvedCatalogFrame({
+    ...props,
+    size: resolvedSize,
+  });
+  const ratio = frame.width / 40;
+  const iconSize = props.iconType ? Math.min(frame.width, frame.height) * 0.62 : 24 * ratio;
   const iconColor = props.iconColor ?? frame.textColor;
   const filledBackground = props.backgroundColor && props.backgroundColor !== 'transparent'
     ? props.backgroundColor
     : undefined;
+  const titleFontSize = (frame.titleFontSize ?? 11) * ratio;
+  const subtitleFontSize = (frame.subtitleFontSize ?? Math.max(8, (frame.titleFontSize ?? 11) - 2)) * ratio;
 
   if (props.iconType) {
     return (
@@ -81,30 +89,51 @@ export function LabelIconNode(props: LabelIconNodeProps) {
     );
   }
 
-  const iconX = frame.x + 12;
-  const labelX = frame.x + iconSize + 18;
+  const hasText = Boolean(frame.text || frame.subtitle);
+  const titleLines = frame.text ? String(frame.text).split(/\r?\n/) : [];
+  const subtitleLines = frame.subtitle ? String(frame.subtitle).split(/\r?\n/) : [];
+  const textHeight = hasText
+    ? titleLines.length * titleFontSize * 1.25 +
+      (subtitleLines.length > 0 ? 3 * ratio + subtitleLines.length * subtitleFontSize * 1.25 : 0)
+    : 0;
+  const iconGap = (hasText ? 4 : 0) * ratio;
+  const iconY = frame.y + (hasText ? 2 * ratio : (frame.height - iconSize) / 2);
+  const textY = iconY + iconSize + iconGap;
+  const remainingTextHeight = Math.max(textHeight, frame.y + frame.height - textY);
+
+  const textWidth = Math.max(120, frame.width * 2.5);
+  const textX = frame.x + frame.width / 2 - textWidth / 2;
 
   return (
     <CatalogFrame {...props} shadow={undefined}>
+      <circle
+        cx={frame.x + frame.width / 2}
+        cy={iconY + iconSize / 2}
+        r={iconSize / 2}
+        fill="#FFFFFF"
+      />
       <CatalogIconSlot
         icon={props.icon}
-        x={iconX}
-        y={frame.y + (frame.height - iconSize) / 2}
+        x={frame.x + (frame.width - iconSize) / 2}
+        y={iconY}
         size={iconSize}
         color={iconColor}
       />
-      <CatalogText
-        x={labelX}
-        y={frame.y}
-        width={frame.width - iconSize - 24}
-        height={frame.height}
-        text={frame.text}
-        subtitle={frame.subtitle}
-        color={frame.textColor}
-        subtitleColor={frame.subtitleColor}
-        fontSize={frame.titleFontSize}
-        subtitleFontSize={frame.subtitleFontSize}
-      />
+      {hasText ? (
+        <CatalogText
+          x={textX}
+          y={textY}
+          width={textWidth}
+          height={remainingTextHeight}
+          text={frame.text}
+          subtitle={frame.subtitle}
+          color={frame.textColor}
+          subtitleColor={frame.subtitleColor}
+          fontSize={titleFontSize}
+          subtitleFontSize={subtitleFontSize}
+          fontWeight={frame.subtitle ? 600 : 400}
+        />
+      ) : null}
     </CatalogFrame>
   );
 }

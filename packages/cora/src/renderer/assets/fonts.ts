@@ -30,6 +30,8 @@ export function resolveFontPath(filename: string): string {
     // dev fallback when the module is loaded with a different base:
     // src/renderer/<...>/assets/fonts/<filename> from dist/renderer/foo.
     join(base, '../src/renderer/assets/fonts', filename),
+    // dist fallback when bundled in other entry points (e.g. dist/core/index.js)
+    join(base, '../renderer/assets/fonts', filename),
   ];
 
   for (const candidate of candidates) {

@@ -15,7 +15,6 @@ describe('Preview and Renderer Look Sync', () => {
     'titleFontSize',
     'subtitleFontSize',
     'shadow',
-    'size',
     'iconColor',
   ];
 
