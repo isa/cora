@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   borderDasharray,
+  AppNode,
   BoxNode,
   DocumentNode,
   IconNode,
@@ -253,10 +254,21 @@ describe('renderer catalog nodes', () => {
     expect(radialMarkup).toContain('data-shadow="radial"');
   });
 
-  it('does not render shadows for icon, label, or label-icon nodes', () => {
-    const iconMarkup = renderToStaticMarkup(
-      <IconNode icon={TestIcon} title="Icon" shadow="cast" />,
+  it('renders icon shadows through the catalog shadow helper', () => {
+    const castMarkup = renderToStaticMarkup(
+      <IconNode icon={TestIcon} title="Icon" shadow="cast" iconColor="#8b5cf6" />,
     );
+    const radialMarkup = renderToStaticMarkup(
+      <IconNode icon={TestIcon} title="Icon" shadow="radial" iconColor="#8b5cf6" />,
+    );
+
+    expect(castMarkup).toContain('data-shadow="cast"');
+    expect(castMarkup).toContain('opacity="0.28"');
+    expect(castMarkup).toContain('fill="#7a7a7a"');
+    expect(radialMarkup).toContain('data-shadow="radial"');
+  });
+
+  it('does not render shadows for label or label-icon nodes', () => {
     const labelMarkup = renderToStaticMarkup(
       <LabelNode title="Label" shadow="cast" />,
     );
@@ -264,7 +276,6 @@ describe('renderer catalog nodes', () => {
       <LabelIconNode icon={TestIcon} iconType="ok" shadow="radial" />,
     );
 
-    expect(iconMarkup).not.toContain('data-shadow=');
     expect(labelMarkup).not.toContain('data-shadow=');
     expect(labelIconMarkup).not.toContain('data-shadow=');
   });
@@ -303,6 +314,17 @@ describe('renderer catalog nodes', () => {
     expect(markup).toContain('stroke="#112233"');
     expect(markup).not.toContain('<rect');
     expect(markup).toContain('Proposal');
+  });
+
+  it('renders product node shadows with the shared cast footprint', () => {
+    const documentMarkup = renderToStaticMarkup(<DocumentNode shadow="cast" />);
+    const appMarkup = renderToStaticMarkup(<AppNode shadow="cast" />);
+    const websiteMarkup = renderToStaticMarkup(<WebsiteNode shadow="cast" />);
+
+    for (const markup of [documentMarkup, appMarkup, websiteMarkup]) {
+      expect(markup).toContain('data-shadow="cast"');
+      expect(markup).toContain('opacity="0.28"');
+    }
   });
 
   it('renders WebsiteNode with neutral default colors', () => {

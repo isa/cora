@@ -49,11 +49,11 @@ export function AppNode(props: AppNodeProps) {
   return (
     <g>
       <CatalogShadow
-        x={offsetX + 6 * scale}
-        y={offsetY + 1.5 * scale}
-        width={12 * scale}
-        height={21 * scale}
-        radius={2.25 * scale}
+        x={offsetX + 5.25 * scale}
+        y={offsetY + 0.75 * scale}
+        width={13.5 * scale}
+        height={22.5 * scale}
+        radius={3 * scale}
         fill={screenFill}
         shadow={frame.shadow}
         shadowColor={frame.shadowColor}
@@ -84,4 +84,3 @@ export function AppNode(props: AppNodeProps) {
     </g>
   );
 }
-

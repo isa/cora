@@ -1,6 +1,6 @@
 import type { DocumentNodeProps as BaseDocumentNodeProps } from '../types.js';
 import { resolveDocumentComponentSize } from '../styles.js';
-import { CatalogText, resolvedCatalogFrame } from './shared.js';
+import { CatalogShadow, CatalogText, resolvedCatalogFrame } from './shared.js';
 
 export interface DocumentNodeProps extends BaseDocumentNodeProps {
   x?: number;
@@ -44,6 +44,16 @@ export function DocumentNode(props: DocumentNodeProps) {
 
   return (
     <g>
+      <CatalogShadow
+        x={offsetX + 4 * scale}
+        y={offsetY + 2 * scale}
+        width={16 * scale}
+        height={20 * scale}
+        radius={3 * scale}
+        fill={pageFill}
+        shadow={frame.shadow}
+        shadowColor={frame.shadowColor}
+      />
       <g transform={`translate(${offsetX}, ${offsetY}) scale(${scale})`}>
         <path
           fill={pageFill}

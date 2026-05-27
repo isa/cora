@@ -82,7 +82,7 @@ export function catalogDefaultProps(component: DiagramComponent): Record<string,
 
     case 'document':
       return {
-        ...commonWithoutShadow,
+        ...common,
         backgroundColor: LOOK.components.document.fill,
         borderColor: LOOK.components.document.stroke,
         iconColor: LOOK.components.document.stroke,

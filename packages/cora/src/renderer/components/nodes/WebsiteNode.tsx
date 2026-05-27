@@ -111,11 +111,11 @@ export function WebsiteNode(props: WebsiteNodeProps) {
   return (
     <g>
       <CatalogShadow
-        x={sx(100)}
-        y={sy(150)}
-        width={600 * scale}
-        height={560 * scale}
-        radius={20 * scale}
+        x={sx(100) - 6.5 * scale}
+        y={sy(150) - 6.5 * scale}
+        width={613 * scale}
+        height={573 * scale}
+        radius={26.5 * scale}
         fill={pageFill}
         shadow={frame.shadow}
         shadowColor={frame.shadowColor}

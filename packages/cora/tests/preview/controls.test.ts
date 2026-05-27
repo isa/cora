@@ -114,6 +114,8 @@ describe('preview controls', () => {
     expect(documentNodeControls.map((control) => control.key)).not.toContain('borderStyle');
     expect(documentNodeControls.map((control) => control.key)).not.toContain('borderColor');
     expect(documentNodeControls.map((control) => control.key)).not.toContain('borderWidth');
+    expect(documentNodeControls.map((control) => control.key)).toContain('shadow');
+    expect(documentNodeControls.map((control) => control.key)).toContain('shadowColor');
     expect(documentNodeControls.map((control) => control.key)).toContain('iconColor');
   });
 

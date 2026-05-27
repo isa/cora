@@ -147,8 +147,6 @@ export const labelIconNodeControls: Array<ControlDefinition<PreviewNodeProps>> =
 export const documentNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
   ...baseNodeControls
     .filter((control) =>
-      control.key !== 'shadow' &&
-      control.key !== 'shadowColor' &&
       control.key !== 'borderStyle' &&
       control.key !== 'borderColor' &&
       control.key !== 'borderWidth'
