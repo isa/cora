@@ -179,6 +179,36 @@ function iconVisualBox(state: WorkbenchState, nodeId: string): PreviewBox | unde
   return box;
 }
 
+function iconArtworkBox(state: WorkbenchState, nodeId: string): PreviewBox | undefined {
+  const node = state.nodes.find((item) => item.id === nodeId);
+  const box = computeNodeBox(state, nodeId);
+  if (!node || !box || node.componentId !== 'icon') {
+    return box;
+  }
+
+  const ratio = box.width / 160;
+  const iconSize = 87 * ratio;
+  const hasText = Boolean((node.props.title ?? node.props.text) || node.props.subtitle);
+  const iconY = box.y + (hasText ? 9 * ratio : (box.height - iconSize) / 2);
+
+  return {
+    id: box.id,
+    x: box.x + (box.width - iconSize) / 2,
+    y: iconY,
+    width: iconSize,
+    height: iconSize,
+  };
+}
+
+function connectionAnchorBox(state: WorkbenchState, nodeId: string, side: Side): PreviewBox | undefined {
+  const node = state.nodes.find((item) => item.id === nodeId);
+  if (node?.componentId === 'icon' && (side === 'left' || side === 'right')) {
+    return iconArtworkBox(state, nodeId);
+  }
+
+  return iconVisualBox(state, nodeId);
+}
+
 export function chooseConnectionSides(source: PreviewBox, target: PreviewBox): { sourceSide: Side; targetSide: Side } {
   const sx = source.x + source.width / 2;
   const sy = source.y + source.height / 2;
@@ -239,8 +269,10 @@ export function computeConnectionPoints(
   }
   const { sourceSide, targetSide } = chooseConnectionSides(source, target);
   const ratios = computeConnectionAnchorRatios(state, connection.id);
-  const start = sidePoint(source, sourceSide, ratios.sourceRatio);
-  const end = sidePoint(target, targetSide, ratios.targetRatio);
+  const sourceAnchorBox = connectionAnchorBox(state, connection.fromNodeId, sourceSide) ?? source;
+  const targetAnchorBox = connectionAnchorBox(state, connection.toNodeId, targetSide) ?? target;
+  const start = sidePoint(sourceAnchorBox, sourceSide, ratios.sourceRatio);
+  const end = sidePoint(targetAnchorBox, targetSide, ratios.targetRatio);
   const midX = (start.x + end.x) / 2;
   const midY = (start.y + end.y) / 2;
 
@@ -324,7 +356,7 @@ export function computeConnectionAnchorRatios(
   state: WorkbenchState,
   connectionId: string,
 ): { sourceRatio: number; targetRatio: number } {
-  const endpointGroups = new Map<string, Array<{ connectionId: string; role: 'source' | 'target' }>>();
+  const endpointGroups = new Map<string, Array<{ connectionId: string; role: 'source' | 'target'; sortCoord: number }>>();
 
   for (const connection of state.connections) {
     const source = iconVisualBox(state, connection.fromNodeId);
@@ -333,15 +365,27 @@ export function computeConnectionAnchorRatios(
       continue;
     }
     const { sourceSide, targetSide } = chooseConnectionSides(source, target);
+    const sourceAnchorBox = connectionAnchorBox(state, connection.fromNodeId, sourceSide) ?? source;
+    const targetAnchorBox = connectionAnchorBox(state, connection.toNodeId, targetSide) ?? target;
+    const sourceSortCoord = sourceSide === 'left' || sourceSide === 'right'
+      ? target.y + target.height / 2
+      : target.x + target.width / 2;
+    const targetSortCoord = targetSide === 'left' || targetSide === 'right'
+      ? source.y + source.height / 2
+      : source.x + source.width / 2;
     const endpoints = [
-      { nodeId: connection.fromNodeId, side: sourceSide, role: 'source' as const },
-      { nodeId: connection.toNodeId, side: targetSide, role: 'target' as const },
+      { nodeId: sourceAnchorBox.id, side: sourceSide, role: 'source' as const, sortCoord: sourceSortCoord },
+      { nodeId: targetAnchorBox.id, side: targetSide, role: 'target' as const, sortCoord: targetSortCoord },
     ];
 
     for (const endpoint of endpoints) {
       const key = `${endpoint.nodeId}:${endpoint.side}`;
       const group = endpointGroups.get(key) ?? [];
-      group.push({ connectionId: connection.id, role: endpoint.role });
+      group.push({
+        connectionId: connection.id,
+        role: endpoint.role,
+        sortCoord: endpoint.sortCoord,
+      });
       endpointGroups.set(key, group);
     }
   }
@@ -349,7 +393,11 @@ export function computeConnectionAnchorRatios(
   let sourceRatio = 0.5;
   let targetRatio = 0.5;
   for (const group of endpointGroups.values()) {
-    group.sort((a, b) => a.connectionId.localeCompare(b.connectionId) || a.role.localeCompare(b.role));
+    group.sort((a, b) =>
+      a.sortCoord - b.sortCoord ||
+      a.connectionId.localeCompare(b.connectionId) ||
+      a.role.localeCompare(b.role)
+    );
     group.forEach((endpoint, index) => {
       if (endpoint.connectionId !== connectionId) {
         return;
@@ -489,8 +537,8 @@ export function computeSceneAttachmentSlots(state: WorkbenchState): AttachmentSl
     }
     const { sourceSide, targetSide } = chooseConnectionSides(source, target);
     for (const endpoint of [
-      { box: source, side: sourceSide },
-      { box: target, side: targetSide },
+      { box: connectionAnchorBox(state, connection.fromNodeId, sourceSide) ?? source, side: sourceSide },
+      { box: connectionAnchorBox(state, connection.toNodeId, targetSide) ?? target, side: targetSide },
     ]) {
       const key = `${endpoint.box.id}:${endpoint.side}`;
       const existing = groups.get(key);

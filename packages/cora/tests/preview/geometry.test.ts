@@ -7,6 +7,7 @@ import {
   computeAttachmentSlots,
   computeNodeBox,
   computeConnectionPoints,
+  computeSceneAttachmentSlots,
   previewNodeSize,
 } from '../../src/preview/geometry.js';
 import { addNodeToCanvas, createDefaultWorkbenchState, selectCanvasItem } from '../../src/preview/state.js';
@@ -193,6 +194,63 @@ describe('preview geometry', () => {
 
     expect(first.x).toBe(second.x);
     expect(first.y).not.toBe(second.y);
+  });
+
+  it('distributes icon node side anchors across the icon artwork, centered as the count changes', () => {
+    const withIcon = addNodeToCanvas(createDefaultWorkbenchState(), 'icon', { x: 100, y: 100 });
+    const twoConnections = addNodeToCanvas(
+      selectCanvasItem(
+        addNodeToCanvas(
+          selectCanvasItem(withIcon, { kind: 'node', id: withIcon.nodes[0]!.id }),
+          'box',
+          { x: 360, y: 80 },
+        ),
+        { kind: 'node', id: withIcon.nodes[0]!.id },
+      ),
+      'box',
+      { x: 360, y: 220 },
+    );
+    const twoStarts = twoConnections.connections.map((connection) =>
+      computeConnectionPoints(twoConnections, connection)[0]!,
+    );
+
+    expect(twoStarts.map((point) => point.x)).toEqual([223.5, 223.5]);
+    expect(twoStarts.map((point) => point.y)).toEqual([138, 167]);
+    expect((twoStarts[0]!.y + twoStarts[1]!.y) / 2).toBe(152.5);
+
+    const threeConnections = addNodeToCanvas(
+      selectCanvasItem(twoConnections, { kind: 'node', id: withIcon.nodes[0]!.id }),
+      'box',
+      { x: 360, y: 150 },
+    );
+    const threeStarts = threeConnections.connections.map((connection) =>
+      computeConnectionPoints(threeConnections, connection)[0]!,
+    );
+
+    expect(threeStarts.map((point) => point.y).sort((a, b) => a - b)).toEqual([130.75, 152.5, 174.25]);
+    expect(threeStarts[0]!.y).toBeLessThan(threeStarts[2]!.y);
+    expect(threeStarts[2]!.y).toBeLessThan(threeStarts[1]!.y);
+  });
+
+  it('shows icon node attachment slots on the icon artwork side', () => {
+    const withIcon = addNodeToCanvas(createDefaultWorkbenchState(), 'icon', { x: 100, y: 100 });
+    const state = addNodeToCanvas(
+      selectCanvasItem(
+        addNodeToCanvas(
+          selectCanvasItem(withIcon, { kind: 'node', id: withIcon.nodes[0]!.id }),
+          'box',
+          { x: 360, y: 80 },
+        ),
+        { kind: 'node', id: withIcon.nodes[0]!.id },
+      ),
+      'box',
+      { x: 360, y: 220 },
+    );
+
+    const iconSlots = computeSceneAttachmentSlots(state)
+      .filter((slot) => slot.nodeId === withIcon.nodes[0]!.id && slot.side === 'right');
+
+    expect(iconSlots.map((slot) => slot.y)).toEqual([138, 167]);
   });
 
   it('pulls arrow marker endpoints back so the arrow can reach the node border', () => {
