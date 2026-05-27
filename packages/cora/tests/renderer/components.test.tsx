@@ -4,18 +4,15 @@ import { describe, expect, it } from 'vitest';
 import {
   borderDasharray,
   BoxNode,
-  DecisionNode,
+  DocumentNode,
   IconNode,
-  IssueNode,
   Group,
   LabelNode,
   LabelIconNode,
   Line,
   LineMarkerDefs,
   linePathData,
-  PageNode,
   resolveComponentSize,
-  ShapeNode,
   type SvgIconProps,
   WebsiteNode,
 } from '../../src/renderer/components/index.js';
@@ -249,7 +246,7 @@ describe('renderer catalog nodes', () => {
       <BoxNode text="Shadow" backgroundColor="#EDE9FE" shadow="cast" />,
     );
     const radialMarkup = renderToStaticMarkup(
-      <DecisionNode text="Shadow" backgroundColor="#FED7AA" shadow="radial" />,
+      <BoxNode text="Shadow" backgroundColor="#FED7AA" shadow="radial" />,
     );
 
     expect(castMarkup).toContain('data-shadow="cast"');
@@ -293,17 +290,19 @@ describe('renderer catalog nodes', () => {
     expect(regularLabelIcon).toContain('font-weight="400"');
   });
 
-  it('renders PageNode with custom icon color', () => {
+  it('renders DocumentNode with glyph fill and border-colored contour', () => {
     const markup = renderToStaticMarkup(
-      <PageNode
-        type="landing"
+      <DocumentNode
+        backgroundColor="#ffffff"
         iconColor="#112233"
-        text="Home"
+        text="Proposal"
       />,
     );
 
-    expect(markup).toContain('fill="#112233"');
-    expect(markup).toContain('Home');
+    expect(markup).toContain('fill="#ffffff"');
+    expect(markup).toContain('stroke="#112233"');
+    expect(markup).not.toContain('<rect');
+    expect(markup).toContain('Proposal');
   });
 
   it('renders WebsiteNode with neutral default colors', () => {
@@ -314,38 +313,13 @@ describe('renderer catalog nodes', () => {
     expect(markup).toContain('fill="#e2e8f0"');
   });
 
-  it('renders every IssueNode icon variant', () => {
-    for (const icon of ['bug', 'warning', 'error', 'stop'] as const) {
-      const markup = renderToStaticMarkup(<IssueNode icon={icon} text={icon} />);
-      expect(markup).toContain(icon);
-      expect(markup).toContain('<g');
-    }
-  });
-
   it('fits constrained catalog labels inside their available width', () => {
     const markup = renderToStaticMarkup(
-      <IssueNode icon="warning" text="Reject" size={{ width: 64, height: 46 }} />,
+      <BoxNode text="Reject this oversized label" size={{ width: 64, height: 46 }} />,
     );
 
     expect(markup).toContain('textLength=');
     expect(markup).toContain('spacingAndGlyphs');
-  });
-
-  it('renders DecisionNode geometry and text', () => {
-    const markup = renderToStaticMarkup(<DecisionNode text="Approved?" />);
-
-    expect(markup).toContain('<polygon');
-    expect(markup).toContain('Approved?');
-  });
-
-  it('renders ShapeNode children', () => {
-    const markup = renderToStaticMarkup(
-      <ShapeNode>
-        <circle cx="5" cy="5" r="3" data-child="shape" />
-      </ShapeNode>,
-    );
-
-    expect(markup).toContain('data-child="shape"');
   });
 });
 

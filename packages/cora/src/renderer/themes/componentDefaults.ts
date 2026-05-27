@@ -1,6 +1,5 @@
 import type { DiagramComponent } from '../../layout-ir.js';
 import { LOOK } from './lookTokens.js';
-import { TAILWIND } from './tailwindPalette.js';
 import {
   NODE_TITLE_SIZE,
   NODE_SUBTITLE_SIZE,
@@ -81,37 +80,12 @@ export function catalogDefaultProps(component: DiagramComponent): Record<string,
         borderColor: LOOK.components.app.stroke,
       };
 
-    case 'page':
+    case 'document':
       return {
-        ...common,
-        backgroundColor: LOOK.components.page.fill,
-        borderColor: LOOK.components.page.stroke,
-        type: 'landing',
-        skeletonColorDark: TAILWIND.slate[500],
-        skeletonColorLight: TAILWIND.slate[200],
-      };
-
-    case 'decision':
-      return {
-        ...common,
-        backgroundColor: LOOK.components.decision.fill,
-        borderColor: LOOK.components.decision.stroke,
-      };
-
-    case 'issue':
-      return {
-        ...common,
-        backgroundColor: LOOK.components.issue.fill,
-        borderColor: LOOK.components.issue.stroke,
-        icon: 'warning',
-        iconColor: LOOK.components.issue.stroke,
-      };
-
-    case 'shape':
-      return {
-        ...common,
-        backgroundColor: LOOK.components.shape.fill,
-        borderColor: LOOK.components.shape.stroke,
+        ...commonWithoutShadow,
+        backgroundColor: LOOK.components.document.fill,
+        borderColor: LOOK.components.document.stroke,
+        iconColor: LOOK.components.document.stroke,
       };
 
     default:

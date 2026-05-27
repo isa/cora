@@ -1,4 +1,5 @@
 import { icons as materialSymbolsIcons } from '@iconify-json/material-symbols';
+import { icons as basilIcons } from '@iconify-json/basil';
 import type { IconifyIcon, IconifyJSON } from '@iconify/types';
 import { getIconData } from '@iconify/utils/lib/icon-set/get-icon';
 
@@ -7,6 +8,7 @@ import type { DiagramNode } from './types.js';
 export const DEFAULT_ICON_PREFIX = 'material-symbols';
 
 const ICON_SETS: Record<string, IconifyJSON> = {
+  basil: basilIcons,
   [DEFAULT_ICON_PREFIX]: materialSymbolsIcons,
   default: materialSymbolsIcons,
 };

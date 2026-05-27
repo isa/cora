@@ -43,6 +43,7 @@
     "postinstall": "node -e \"console.log('cora: Chromium for --quality=high is downloaded on first use; see AGENTS.md')\""
   },
   "dependencies": {
+    "@iconify-json/basil": "^1.2.4",
     "@iconify-json/material-symbols": "^1.2.74",
     "@iconify/types": "^2.0.0",
     "@iconify/utils": "^3.1.3",

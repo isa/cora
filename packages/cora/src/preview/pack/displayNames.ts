@@ -1,11 +1,11 @@
 export const COMPONENT_DISPLAY_NAMES: Record<string, string> = {
   app: 'App',
   box: 'Box',
+  document: 'Document',
   group: 'Group',
   icon: 'Icon',
   label: 'Label',
   labelIcon: 'Icon Label',
-  page: 'Document',
   website: 'Website',
 };
 
@@ -27,9 +27,8 @@ export function displayNameForComponentLabel(label: string): string {
     IconNode: 'Icon',
     LabelIconNode: 'Icon Label',
     LabelNode: 'Label',
-    PageNode: 'Document',
+    DocumentNode: 'Document',
     WebsiteNode: 'Website',
   };
   return legacyLabels[label] ?? (label.endsWith('Node') ? label.slice(0, -4) : label);
 }
-

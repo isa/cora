@@ -18,9 +18,7 @@ describe('built-in preview pack', () => {
         'App',
       ]),
     );
-    expect(ids).not.toContain('DecisionNode');
-    expect(ids).not.toContain('IssueNode');
-    expect(ids).not.toContain('ShapeNode');
+    expect(builtInPack.components.map((component) => component.id)).toContain('document');
     expect(ids).not.toContain('Group');
     expect(ids).not.toContain('Line');
   });

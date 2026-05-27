@@ -4,18 +4,15 @@ import {
   EdgeLabel,
   Group,
   IconNode,
-  IssueNode,
   LabelIconNode,
   LabelNode,
   Line,
   LineMarkerDefs,
-  PageNode,
-  ShapeNode,
+  DocumentNode,
   WebsiteNode,
   WarningIcon,
 } from './components/index.js';
 import { BoxNode } from './components/nodes/BoxNode.js';
-import { DecisionNode } from './components/nodes/DecisionNode.js';
 import {
   edgeBridgeMaskPathData,
   edgeLineMarkerPoints,
@@ -57,16 +54,10 @@ function renderNode(node: LayoutedNode, diagram: LayoutedDiagram) {
       return <LabelIconNode key={node.id} {...catalogProps} icon={icon} />;
     case 'website':
       return <WebsiteNode key={node.id} {...catalogProps} />;
-    case 'page':
-      return <PageNode key={node.id} {...catalogProps} type="content" />;
+    case 'document':
+      return <DocumentNode key={node.id} {...catalogProps} />;
     case 'app':
       return <AppNode key={node.id} {...catalogProps} />;
-    case 'decision':
-      return <DecisionNode key={node.id} {...catalogProps} />;
-    case 'issue':
-      return <IssueNode key={node.id} {...catalogProps} icon="warning" />;
-    case 'shape':
-      return <ShapeNode key={node.id} {...catalogProps} />;
     case 'box':
     default:
       return <BoxNode key={node.id} node={node} theme={diagram.theme} />;

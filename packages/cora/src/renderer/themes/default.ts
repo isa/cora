@@ -35,29 +35,14 @@ export const defaultTheme: ThemeTokens = {
       stroke: LOOK.components.website.stroke,
       strokeWidth: 1,
     },
-    page: {
-      fill: LOOK.components.page.fill,
-      stroke: LOOK.components.page.stroke,
+    document: {
+      fill: LOOK.components.document.fill,
+      stroke: LOOK.components.document.stroke,
       strokeWidth: 1,
     },
     app: {
       fill: LOOK.components.app.fill,
       stroke: LOOK.components.app.stroke,
-      strokeWidth: 1,
-    },
-    decision: {
-      fill: LOOK.components.decision.fill,
-      stroke: LOOK.components.decision.stroke,
-      strokeWidth: 1,
-    },
-    issue: {
-      fill: LOOK.components.issue.fill,
-      stroke: LOOK.components.issue.stroke,
-      strokeWidth: 1,
-    },
-    shape: {
-      fill: LOOK.components.shape.fill,
-      stroke: LOOK.components.shape.stroke,
       strokeWidth: 1,
     },
     group: {

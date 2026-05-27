@@ -31,12 +31,12 @@ export const APP_SIZE_PRESETS: Record<SizePreset, ComponentDimensions> = {
   xxl: { width: 320, height: 256 },
 };
 
-export const PAGE_SIZE_PRESETS: Record<SizePreset, ComponentDimensions> = {
+export const DOCUMENT_SIZE_PRESETS: Record<SizePreset, ComponentDimensions> = {
   sm: { width: 48, height: 64 },
-  md: { width: 96, height: 128 },
-  lg: { width: 192, height: 256 },
-  xl: { width: 288, height: 384 },
-  xxl: { width: 384, height: 512 },
+  md: { width: 72, height: 96 },
+  lg: { width: 108, height: 144 },
+  xl: { width: 144, height: 192 },
+  xxl: { width: 216, height: 288 },
 };
 
 export const LABEL_ICON_SIZE_PRESETS: Record<SizePreset, ComponentDimensions> = {
@@ -91,7 +91,7 @@ export function resolveAppComponentSize(
   return typeof size === 'string' ? APP_SIZE_PRESETS[size] : size;
 }
 
-export function resolvePageComponentSize(
+export function resolveDocumentComponentSize(
   size: ComponentSize | undefined,
   fallback: ComponentDimensions,
 ): ComponentDimensions {
@@ -99,7 +99,7 @@ export function resolvePageComponentSize(
     return fallback;
   }
 
-  return typeof size === 'string' ? PAGE_SIZE_PRESETS[size] : size;
+  return typeof size === 'string' ? DOCUMENT_SIZE_PRESETS[size] : size;
 }
 
 export function borderDasharray(

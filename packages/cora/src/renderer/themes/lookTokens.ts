@@ -28,17 +28,9 @@ export const LOOK = {
     md: 8,
   },
   components: {
-    decision: {
-      fill: TAILWIND.amber[200],
-      stroke: TAILWIND.amber[500],
-    },
-    issue: {
-      fill: TAILWIND.rose[200],
-      stroke: TAILWIND.rose[500],
-    },
-    page: {
+    document: {
       fill: TAILWIND.white,
-      stroke: TAILWIND.sky[500],
+      stroke: TAILWIND.slate[700],
     },
     app: {
       fill: TAILWIND.white,
@@ -48,10 +40,6 @@ export const LOOK = {
       fill: TAILWIND.white,
       stroke: TAILWIND.slate[700],
       skeleton: TAILWIND.slate[200],
-    },
-    shape: {
-      fill: TAILWIND.teal[200],
-      stroke: TAILWIND.teal[500],
     },
     icon: {
       iconColor: TAILWIND.violet[500],

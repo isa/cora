@@ -206,23 +206,20 @@ import type {
 import {
   AppNode,
   BoxNode,
-  DecisionNode,
+  DocumentNode,
   Group,
   IconNode,
-  IssueNode,
   LabelIconNode,
   LabelNode,
   Line,
   LineMarkerDefs,
-  PageNode,
-  ShapeNode,
   WebsiteNode,
 } from 'cora/renderer/components';
 ```
 
 YAML nodes use `component` as the catalog discriminator. Omit it for the default
-`box`, or set one of: `box`, `label`, `icon`, `labelIcon`, `website`, `page`,
-`app`, `decision`, `issue`, `shape`.
+`box`, or set one of: `box`, `label`, `icon`, `labelIcon`, `website`,
+`document`, `app`.
 
 Icon and label-icon nodes may set `icon` to an offline Iconify id such as
 `material-symbols:database`. The legacy `provider: default` plus `service: database`
@@ -244,12 +241,9 @@ Cora defines a canonical locked default visual language for all built-in compone
 - **Palette**: A Tailwind-based neutral base using the `slate` scale for borders, default text, and layout backgrounds, without dynamic runtime Tailwind dependencies. Semantic hues map per component kind:
   - `slate-neutral`: Default box and label nodes
   - `violet`: Icon terminals (accent) and label-icons (violet-200 fill, violet-500 stroke)
-  - `amber`: Decision diamonds
-  - `rose`: Issue nodes
-  - `sky`: Page nodes
+  - `sky`: Document nodes
   - `emerald`: App nodes
   - `yellow`: Website nodes
-  - `teal`: Shape boundaries
 - **Omission Defaults**: Box-like nodes default to white fills, a subtle `slate-300` 1px solid border, medium `8px` corner radius, and flat presentation (no default shadow filter). Edges default to 2px solid `slate-700` lines. Groups render as 1px dashed `slate-400` boundaries with no default fill.
 - **Typography**: Uses Noto Sans with the following hierarchy:
   - Node titles: 12px SemiBold
@@ -265,7 +259,7 @@ Cora defines a canonical locked default visual language for all built-in compone
 |------|---------|
 | `examples/valid/minimal.yaml` | Smallest valid box-arrows diagram |
 | `examples/valid/box-arrows.yaml` | Box-arrows with direction |
-| `examples/valid/flowchart.yaml` | Flowchart with a decision component |
+| `examples/valid/flowchart.yaml` | Flowchart with default process nodes |
 | `examples/valid/microservice.yaml` | Microservice topology with groups |
 | `examples/valid/infra.yaml` | Infra diagram with boundary group |
 | `examples/valid/database.yaml` | Database kind with app and data nodes |

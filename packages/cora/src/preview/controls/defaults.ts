@@ -1,5 +1,5 @@
 import type { ControlDefinition } from './schema.js';
-import { APP_SIZE_PRESETS, PAGE_SIZE_PRESETS, WEBSITE_SIZE_PRESETS, LABEL_ICON_SIZE_PRESETS } from '../../renderer/components/styles.js';
+import { APP_SIZE_PRESETS, DOCUMENT_SIZE_PRESETS, WEBSITE_SIZE_PRESETS, LABEL_ICON_SIZE_PRESETS } from '../../renderer/components/styles.js';
 import { catalogDefaultProps } from '../../renderer/themes/componentDefaults.js';
 import { LOOK } from '../../renderer/themes/lookTokens.js';
 import type { MarkerType } from '../../renderer/components/lines/markers.js';
@@ -25,11 +25,7 @@ export type PreviewNodeProps = {
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'xxl' | { width: number; height: number };
   iconColor?: string;
   strokeColor?: string;
-  type?: 'landing' | 'form' | 'content' | 'profile' | 'settings';
-  skeletonColorDark?: string;
-  skeletonColorLight?: string;
   iconName?: string;
-  icon?: 'bug' | 'warning' | 'error' | 'stop';
   iconType?: 'ok' | 'nok' | 'question-mark';
 };
 
@@ -60,10 +56,9 @@ export const baseNodeDefaults: PreviewNodeProps = {
   ...catalogDefaultProps('box'),
 };
 
-export const pageNodeDefaults: PreviewNodeProps = {
-  ...catalogDefaultProps('page'),
-  title: 'PageNode.type',
-  type: 'landing',
+export const documentNodeDefaults: PreviewNodeProps = {
+  ...catalogDefaultProps('document'),
+  title: 'Document',
   size: 'lg',
 };
 
@@ -71,12 +66,6 @@ export const appNodeDefaults: PreviewNodeProps = {
   ...catalogDefaultProps('app'),
   title: 'App',
   size: 'lg',
-};
-
-export const issueNodeDefaults: PreviewNodeProps = {
-  ...catalogDefaultProps('issue'),
-  title: 'IssueNode.icon',
-  icon: 'warning',
 };
 
 export const connectionDefaults: ConnectionProps = {
@@ -92,7 +81,6 @@ export const connectionDefaults: ConnectionProps = {
 export const baseNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
   { kind: 'text', key: 'title', label: 'Title' },
   { kind: 'text', key: 'subtitle', label: 'Subtitle' },
-  { kind: 'color', key: 'backgroundColor', label: 'Fill' },
   { kind: 'number', key: 'radius', label: 'Radius', min: 0, max: 24, step: 1 },
   {
     kind: 'enum',
@@ -133,16 +121,7 @@ export const iconNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
     explicit: { width: 160, height: 128 },
     presetSizes: APP_SIZE_PRESETS,
   },
-  { kind: 'color', key: 'backgroundColor', label: 'Fill' },
   { kind: 'number', key: 'radius', label: 'Radius', min: 0, max: 24, step: 1 },
-  {
-    kind: 'enum',
-    key: 'borderStyle',
-    label: 'Border style',
-    options: ['none', 'solid', 'dashed', 'dotted'],
-  },
-  { kind: 'color', key: 'borderColor', label: 'Border' },
-  { kind: 'number', key: 'borderWidth', label: 'Border width', min: 0, max: 8, step: 0.5 },
   { kind: 'color', key: 'textColor', label: 'Title color' },
   { kind: 'color', key: 'subtitleColor', label: 'Subtitle color' },
   { kind: 'number', key: 'titleFontSize', label: 'Title size', min: 8, max: 28, step: 1 },
@@ -165,19 +144,25 @@ export const labelIconNodeControls: Array<ControlDefinition<PreviewNodeProps>> =
   },
 ];
 
-export const pageNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
-  ...baseNodeControls.map((control): ControlDefinition<PreviewNodeProps> =>
-    control.kind === 'size'
+export const documentNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
+  ...baseNodeControls
+    .filter((control) =>
+      control.key !== 'shadow' &&
+      control.key !== 'shadowColor' &&
+      control.key !== 'borderStyle' &&
+      control.key !== 'borderColor' &&
+      control.key !== 'borderWidth'
+    )
+    .map((control): ControlDefinition<PreviewNodeProps> =>
+      control.kind === 'size'
       ? {
           ...control,
-          explicit: PAGE_SIZE_PRESETS.lg,
-          presetSizes: PAGE_SIZE_PRESETS,
+          explicit: DOCUMENT_SIZE_PRESETS.lg,
+          presetSizes: DOCUMENT_SIZE_PRESETS,
         }
       : control,
-  ),
-  { kind: 'enum', key: 'type', label: 'PageNode.type', options: ['landing', 'form', 'content', 'profile', 'settings'] },
-  { kind: 'color', key: 'skeletonColorDark', label: 'Skeleton dark' },
-  { kind: 'color', key: 'skeletonColorLight', label: 'Skeleton light' },
+    ),
+  { kind: 'color', key: 'iconColor', label: 'Icon color' },
 ];
 
 export const appNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
@@ -203,12 +188,6 @@ export const websiteNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
       : control,
   ),
   { kind: 'color', key: 'skeletonColor', label: 'Skeleton' },
-];
-
-export const issueNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
-  ...baseNodeControls,
-  { kind: 'color', key: 'iconColor', label: 'Icon color' },
-  { kind: 'enum', key: 'icon', label: 'IssueNode.icon', options: ['bug', 'warning', 'error', 'stop'] },
 ];
 
 export const connectionControls: Array<ControlDefinition<ConnectionProps>> = [

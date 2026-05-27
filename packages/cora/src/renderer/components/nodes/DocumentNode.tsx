@@ -1,18 +1,16 @@
-import type { PageNodeProps as BasePageNodeProps } from '../types.js';
-import { resolvePageComponentSize } from '../styles.js';
-import { CatalogFrame, CatalogText, resolvedCatalogFrame } from './shared.js';
+import type { DocumentNodeProps as BaseDocumentNodeProps } from '../types.js';
+import { resolveDocumentComponentSize } from '../styles.js';
+import { CatalogText, resolvedCatalogFrame } from './shared.js';
 
-export interface PageNodeProps extends BasePageNodeProps {
+export interface DocumentNodeProps extends BaseDocumentNodeProps {
   x?: number;
   y?: number;
 }
 
 const ARTBOARD = 24;
-const DOCUMENT_PATH =
-  'M4 4a2 2 0 0 1 2-2h8a1 1 0 0 1 .707.293l5 5A1 1 0 0 1 20 8v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zm13.586 4L14 4.414V8zM12 4H6v16h12V10h-5a1 1 0 0 1-1-1zm-4 9a1 1 0 0 1 1-1h6a1 1 0 1 1 0 2H9a1 1 0 0 1-1-1m0 4a1 1 0 0 1 1-1h6a1 1 0 1 1 0 2H9a1 1 0 0 1-1-1';
 
-export function PageNode(props: PageNodeProps) {
-  const resolvedSize = resolvePageComponentSize(props.size, { width: 192, height: 256 });
+export function DocumentNode(props: DocumentNodeProps) {
+  const resolvedSize = resolveDocumentComponentSize(props.size, { width: 192, height: 256 });
   const frame = resolvedCatalogFrame({
     ...props,
     size: resolvedSize,
@@ -32,7 +30,7 @@ export function PageNode(props: PageNodeProps) {
   const topPadding = 12 * ratio;
   const bottomPadding = (hasLabel ? 8 : 12) * ratio;
 
-  const scale = 6.0 * ratio;
+  const scale = 6 * ratio;
   const artWidth = ARTBOARD * scale;
   const scaledArtHeight = ARTBOARD * scale;
 
@@ -41,13 +39,27 @@ export function PageNode(props: PageNodeProps) {
 
   const textY = frame.y + frame.height - textHeight - bottomPadding;
   const remainingTextHeight = Math.max(textHeight, frame.y + frame.height - textY - bottomPadding);
-
-  const fill = props.iconColor ?? frame.borderColor ?? '#0ea5e9';
+  const pageFill = frame.backgroundColor ?? '#ffffff';
+  const lineColor = props.iconColor ?? '#334155';
 
   return (
-    <CatalogFrame {...props} size={props.size ?? 'lg'}>
+    <g>
       <g transform={`translate(${offsetX}, ${offsetY}) scale(${scale})`}>
-        <path d={DOCUMENT_PATH} fill={fill} />
+        <path
+          fill={pageFill}
+          stroke={lineColor}
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+          d="M7 2.75h8.002c.385 0 .748.18.982.486l2.998 3.968c.174.23.268.51.268.798V19A2.25 2.25 0 0 1 17 21.25H7A2.25 2.25 0 0 1 4.75 19V5A2.25 2.25 0 0 1 7 2.75Z"
+        />
+        <path
+          fill="none"
+          stroke={lineColor}
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M14.75 3v5.147c0 .414.336.75.75.75h3.55M9 13h6M9 17h6"
+        />
       </g>
       <CatalogText
         x={frame.x}
@@ -61,7 +73,6 @@ export function PageNode(props: PageNodeProps) {
         fontSize={frame.titleFontSize ?? 12}
         subtitleFontSize={frame.subtitleFontSize}
       />
-    </CatalogFrame>
+    </g>
   );
 }
-

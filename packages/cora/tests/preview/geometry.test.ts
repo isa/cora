@@ -41,7 +41,7 @@ describe('preview geometry', () => {
   it('builds explicit line points and moves only the requested selected node', () => {
     const state = addNodeToCanvas(
       addNodeToCanvas(createDefaultWorkbenchState(), 'box', { x: 180, y: 170 }),
-      'page',
+      'document',
       { x: 470, y: 170 },
     );
     const points = computeConnectionPoints(state, state.connections[0]!);
@@ -117,7 +117,7 @@ describe('preview geometry', () => {
   it('centers attached labels on their connection path', () => {
     const connected = addNodeToCanvas(
       addNodeToCanvas(createDefaultWorkbenchState(), 'box', { x: 100, y: 100 }),
-      'page',
+      'document',
       { x: 420, y: 100 },
     );
     const state = addNodeToCanvas(
@@ -136,7 +136,7 @@ describe('preview geometry', () => {
   it('places attached label-icon nodes near the source side of the connection when dropped there', () => {
     const connected = addNodeToCanvas(
       addNodeToCanvas(createDefaultWorkbenchState(), 'box', { x: 100, y: 100 }),
-      'page',
+      'document',
       { x: 420, y: 100 },
     );
     const state = addNodeToCanvas(
@@ -156,7 +156,7 @@ describe('preview geometry', () => {
   it('places attached label-icon nodes near the destination side of the connection when dropped there', () => {
     const connected = addNodeToCanvas(
       addNodeToCanvas(createDefaultWorkbenchState(), 'box', { x: 100, y: 100 }),
-      'page',
+      'document',
       { x: 420, y: 100 },
     );
     const target = computeNodeBox(connected, connected.nodes[1]!.id)!;
@@ -180,7 +180,7 @@ describe('preview geometry', () => {
         'box',
         { x: 100, y: 100 },
       ),
-      'page',
+        'document',
       { x: 420, y: 80 },
     );
     const state = addNodeToCanvas(

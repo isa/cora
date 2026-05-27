@@ -2,10 +2,10 @@ import {
   resolveComponentSize,
   resolveWebsiteComponentSize,
   resolveAppComponentSize,
-  resolvePageComponentSize,
+  resolveDocumentComponentSize,
   resolveLabelIconComponentSize,
   APP_SIZE_PRESETS,
-  PAGE_SIZE_PRESETS,
+  DOCUMENT_SIZE_PRESETS,
   WEBSITE_SIZE_PRESETS,
   LABEL_ICON_SIZE_PRESETS,
 } from '../renderer/components/styles.js';
@@ -36,8 +36,8 @@ export interface AttachmentSlot {
 export function previewNodeSize(node: CanvasNode): { width: number; height: number } {
   const base = node.componentId === 'app'
     ? resolveAppComponentSize(node.props.size, APP_SIZE_PRESETS.lg)
-    : node.componentId === 'page'
-      ? resolvePageComponentSize(node.props.size, PAGE_SIZE_PRESETS.lg)
+    : node.componentId === 'document'
+      ? resolveDocumentComponentSize(node.props.size, DOCUMENT_SIZE_PRESETS.lg)
       : node.componentId === 'website'
         ? resolveWebsiteComponentSize(node.props.size, WEBSITE_SIZE_PRESETS.lg)
         : resolveComponentSize(node.props.size, { width: 140, height: 56 });

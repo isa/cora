@@ -1,6 +1,6 @@
 import type { SvgIconComponent } from '../icons.js';
 import type { BoxStyleProps, ComponentSize } from '../types.js';
-import { CatalogFrame, CatalogIconSlot, CatalogText, resolvedCatalogFrame } from './shared.js';
+import { CatalogIconSlot, CatalogText, resolvedCatalogFrame } from './shared.js';
 import { resolveAppComponentSize } from '../styles.js';
 
 export interface IconNodeProps extends BoxStyleProps {
@@ -40,15 +40,16 @@ export function IconNode({
   const verticalPadding = 18 * ratio;
 
   const iconSize = 87 * ratio;
+  const iconX = frame.x + (frame.width - iconSize) / 2;
   const iconY = frame.y + (hasText ? 9 * ratio : (frame.height - iconSize) / 2);
   const textY = iconY + iconSize + iconGap;
   const remainingTextHeight = Math.max(textHeight, frame.y + frame.height - textY - 6 * ratio);
 
   return (
-    <CatalogFrame {...props} shadow={undefined}>
+    <g>
       <CatalogIconSlot
         icon={icon}
-        x={frame.x + (frame.width - iconSize) / 2}
+        x={iconX}
         y={iconY}
         size={iconSize}
         color={iconColor ?? strokeColor}
@@ -68,6 +69,6 @@ export function IconNode({
           subtitleFontSize={subtitleFontSize}
         />
       ) : null}
-    </CatalogFrame>
+    </g>
   );
 }

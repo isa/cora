@@ -1039,15 +1039,6 @@ body.dark .component-grid .component-tile:hover .component-icon {
   background: var(--preview-surface);
 }
 
-.catalog-icon-shape {
-  display: block;
-  width: 18px;
-  height: 14px;
-  border: 1.8px solid currentColor;
-  border-radius: 4px;
-  background: transparent;
-}
-
 .catalog-icon-diamond {
   width: 16px;
   height: 16px;
@@ -1079,16 +1070,6 @@ body.dark .component-grid .component-tile:hover .component-icon {
   color: currentColor;
   font-size: 12px;
   font-weight: 800;
-  background: transparent;
-}
-
-.catalog-icon-issue {
-  display: grid;
-  place-items: center;
-  color: currentColor;
-  font-size: 13px;
-  font-weight: 800;
-  border-color: currentColor;
   background: transparent;
 }
 

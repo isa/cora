@@ -15,6 +15,7 @@
         "cora": "./dist/cli.js",
       },
       "dependencies": {
+        "@iconify-json/basil": "^1.2.4",
         "@iconify-json/material-symbols": "^1.2.74",
         "@iconify/types": "^2.0.0",
         "@iconify/utils": "^3.1.3",
@@ -68,6 +69,8 @@
     "@emnapi/wasi-threads": ["@emnapi/wasi-threads@1.2.1", "", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-uTII7OYF+/Mes/MrcIOYp5yOtSMLBWSIoLPpcgwipoiKbli6k322tcoFsxoIIxPDqW01SQGAgko4EzZi2BNv2w=="],
 
     "@fontsource/noto-sans": ["@fontsource/noto-sans@5.2.5", "", {}, "sha512-g3hWgsQayHQGVXgQKjbHKpS7YQFQY8azwXFCi3ZkhgCK5fZXe3udeQYrZJJ4PMswGkNhoDPRR9OJZBlMjzZAEQ=="],
+
+    "@iconify-json/basil": ["@iconify-json/basil@1.2.4", "", { "dependencies": { "@iconify/types": "*" } }, "sha512-KUL5JBdFDF7APY8XiuqvfpiecIby8pIbs6rm3WLgdVDqMlKH0WcWEwd+ilANby8X3AuHQVrjNjByh9MpfAR3lQ=="],
 
     "@iconify-json/material-symbols": ["@iconify-json/material-symbols@1.2.74", "", { "dependencies": { "@iconify/types": "*" } }, "sha512-GKJcvvm8A25pkh3Z2M430olvP4hDpDKg2sg7cpVnesM4bT7rExH74ThtRLWjdB86qhkxT3XrMuHRJa8LFCRmSw=="],
 

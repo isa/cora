@@ -4,10 +4,10 @@ import type { ComponentType } from 'react';
 import { ErrorIcon } from '../../renderer/components/icons.js';
 import { AppNode } from '../../renderer/components/nodes/AppNode.js';
 import { BoxNode } from '../../renderer/components/nodes/BoxNode.js';
+import { DocumentNode } from '../../renderer/components/nodes/DocumentNode.js';
 import { IconNode } from '../../renderer/components/nodes/IconNode.js';
 import { LabelIconNode } from '../../renderer/components/nodes/LabelIconNode.js';
 import { LabelNode } from '../../renderer/components/nodes/LabelNode.js';
-import { PageNode } from '../../renderer/components/nodes/PageNode.js';
 import { WebsiteNode } from '../../renderer/components/nodes/WebsiteNode.js';
 import type { PackManifest, PreviewComponentDefinition } from './types.js';
 import {
@@ -16,8 +16,8 @@ import {
   iconNodeControls,
   labelNodeControls,
   labelIconNodeControls,
-  pageNodeControls,
-  pageNodeDefaults,
+  documentNodeControls,
+  documentNodeDefaults,
   appNodeControls,
   appNodeDefaults,
   websiteNodeControls,
@@ -78,7 +78,7 @@ export const builtInPack: PackManifest = {
       title: 'Website',
       size: WEBSITE_SIZE_PRESETS.lg,
     }, websiteNodeControls),
-    component('page', displayNameForComponent('page'), 'product', PageNode as ComponentType<PreviewNodeProps>, pageNodeDefaults, pageNodeControls),
+    component('document', displayNameForComponent('document'), 'product', DocumentNode as ComponentType<PreviewNodeProps>, documentNodeDefaults, documentNodeControls),
     component('app', displayNameForComponent('app'), 'product', AppNode as ComponentType<PreviewNodeProps>, appNodeDefaults, appNodeControls),
   ],
 };

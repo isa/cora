@@ -13,11 +13,8 @@ export type DiagramComponent =
   | 'icon'
   | 'labelIcon'
   | 'website'
-  | 'page'
-  | 'app'
-  | 'decision'
-  | 'issue'
-  | 'shape';
+  | 'document'
+  | 'app';
 
 export type ErrorCode =
   | 'SCHEMA_VIOLATION'

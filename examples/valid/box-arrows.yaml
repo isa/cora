@@ -6,7 +6,7 @@ diagram:
   nodes:
     - id: client
       label: Client
-      component: page
+      component: document
     - id: proxy
       label: Edge Proxy
     - id: server

@@ -27,7 +27,6 @@ describe('preview workbench', () => {
     expect(markup).toContain('draggable="true"');
     expect(markup).toContain('component-icon');
     expect(markup).toContain('Group');
-    expect(markup).not.toContain('ShapeNode');
     expect(markup).toContain('Drag components here');
     expect(markup).not.toContain('Labels');
     expect(markup).not.toContain('Create Node');
@@ -83,7 +82,7 @@ describe('preview workbench', () => {
   it('opens a gap in preview connections under attached labels', () => {
     const connected = addNodeToCanvas(
       addNodeToCanvas(createDefaultWorkbenchState(), 'box', { x: 100, y: 100 }),
-      'page',
+      'document',
       { x: 420, y: 100 },
     );
     const state = addNodeToCanvas(
@@ -134,7 +133,7 @@ describe('preview workbench', () => {
     // Ensure others are present
     expect(ids).toContain('box');
     expect(ids).toContain('app');
-    expect(ids).toContain('page');
+    expect(ids).toContain('document');
     expect(ids).toContain('website');
     expect(ids).toContain('group');
   });

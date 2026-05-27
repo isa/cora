@@ -6,10 +6,9 @@ diagram:
   nodes:
     - id: intake
       label: Intake
-      component: page
+      component: document
     - id: review
       label: Review
-      component: decision
     - id: queue
       label: Queue
       component: app

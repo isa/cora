@@ -9,13 +9,16 @@ import {
 import { validateDocument } from '../../src/core/index.js';
 
 describe('Iconify icon resolution', () => {
-  it('resolves explicit Iconify ids from bundled material symbols data', () => {
+  it('resolves explicit Iconify ids from bundled icon data', () => {
     expect(parseIconReference('material-symbols:database')).toEqual({
       prefix: 'material-symbols',
       name: 'database',
       fullName: 'material-symbols:database',
     });
     expect(resolveIconData('material-symbols:database')).toMatchObject({
+      body: expect.stringContaining('currentColor'),
+    });
+    expect(resolveIconData('basil:document-outline')).toMatchObject({
       body: expect.stringContaining('currentColor'),
     });
   });

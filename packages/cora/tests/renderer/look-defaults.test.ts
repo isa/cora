@@ -60,11 +60,7 @@ describe('Design Tokens Contract', () => {
     const kinds: DiagramComponent[] = [
       'box',
       'website',
-      'page',
       'app',
-      'decision',
-      'issue',
-      'shape',
     ];
     for (const kind of kinds) {
       const props = catalogDefaultProps(kind);
@@ -72,7 +68,7 @@ describe('Design Tokens Contract', () => {
       expect(props.shadow).toBe('none');
     }
 
-    for (const kind of ['label', 'icon', 'labelIcon'] satisfies DiagramComponent[]) {
+    for (const kind of ['label', 'icon', 'labelIcon', 'document'] satisfies DiagramComponent[]) {
       const props = catalogDefaultProps(kind);
       expect(props.backgroundColor).toBeDefined();
       expect(props).not.toHaveProperty('shadow');

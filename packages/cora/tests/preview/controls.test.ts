@@ -3,25 +3,16 @@ import { describe, expect, it } from 'vitest';
 import {
   baseNodeControls,
   connectionControls,
+  documentNodeControls,
   iconNodeControls,
-  issueNodeControls,
   labelIconNodeControls,
   labelNodeControls,
-  pageNodeControls,
   websiteNodeControls,
 } from '../../src/preview/controls/defaults.js';
 import { searchPreviewIcons } from '../../src/preview/iconSearch.js';
 
 describe('preview controls', () => {
-  it('constrains enum controls for PageNode.type, IssueNode.icon, borderStyle, shadow, lineStyle, startMarker, and endMarker', () => {
-    expect(pageNodeControls.find((control) => control.label === 'PageNode.type')).toMatchObject({
-      kind: 'enum',
-      options: ['landing', 'form', 'content', 'profile', 'settings'],
-    });
-    expect(issueNodeControls.find((control) => control.label === 'IssueNode.icon')).toMatchObject({
-      kind: 'enum',
-      options: ['bug', 'warning', 'error', 'stop'],
-    });
+  it('constrains enum controls for borderStyle, shadow, lineStyle, startMarker, and endMarker', () => {
     expect(baseNodeControls.find((control) => control.key === 'borderStyle')).toMatchObject({
       kind: 'enum',
       options: ['none', 'solid', 'dashed', 'dotted'],
@@ -80,11 +71,7 @@ describe('preview controls', () => {
       'title',
       'subtitle',
       'size',
-      'backgroundColor',
       'radius',
-      'borderStyle',
-      'borderColor',
-      'borderWidth',
       'textColor',
       'subtitleColor',
       'titleFontSize',
@@ -114,6 +101,20 @@ describe('preview controls', () => {
         xxl: { width: 324, height: 360 },
       },
     });
+    expect(documentNodeControls.find((control) => control.kind === 'size')).toMatchObject({
+      explicit: { width: 108, height: 144 },
+      presetSizes: {
+        sm: { width: 48, height: 64 },
+        md: { width: 72, height: 96 },
+        lg: { width: 108, height: 144 },
+        xl: { width: 144, height: 192 },
+        xxl: { width: 216, height: 288 },
+      },
+    });
+    expect(documentNodeControls.map((control) => control.key)).not.toContain('borderStyle');
+    expect(documentNodeControls.map((control) => control.key)).not.toContain('borderColor');
+    expect(documentNodeControls.map((control) => control.key)).not.toContain('borderWidth');
+    expect(documentNodeControls.map((control) => control.key)).toContain('iconColor');
   });
 
   it('searches local Iconify index names for icon controls', async () => {

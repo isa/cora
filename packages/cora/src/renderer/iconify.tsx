@@ -51,4 +51,3 @@ export function iconifyIconForNode(node: Pick<DiagramNode, 'icon' | 'provider' |
   const iconName = iconReferenceForNode(node);
   return iconName ? iconifyIcon(iconName) : undefined;
 }
-

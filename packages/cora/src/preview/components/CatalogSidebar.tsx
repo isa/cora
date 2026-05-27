@@ -164,11 +164,11 @@ function componentIcon(id: string): ReactNode {
   const icons: Record<string, string> = {
     app: 'apps',
     box: 'check_box_outline_blank',
+    document: 'description',
     group: 'workspaces',
     icon: 'category',
     label: 'title',
     labelIcon: 'label',
-    page: 'description',
     website: 'web',
   };
   return <span className="material-symbols-outlined component-material-icon">{icons[id] ?? 'widgets'}</span>;

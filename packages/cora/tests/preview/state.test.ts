@@ -28,14 +28,14 @@ describe('preview drag canvas state', () => {
     const state = addNodeToCanvas(
       addNodeToCanvas(
         addNodeToCanvas(createDefaultWorkbenchState(), 'box', { x: 10, y: 20 }),
-        'page',
+        'document',
         { x: 200, y: 20 },
       ),
       'app',
       { x: 360, y: 20 },
     );
 
-    expect(state.nodes.map((node) => node.componentId)).toEqual(['box', 'page', 'app']);
+    expect(state.nodes.map((node) => node.componentId)).toEqual(['box', 'document', 'app']);
     expect(state.connections).toHaveLength(2);
     expect(state.selected).toEqual({ kind: 'node', id: 'node-4' });
   });
@@ -51,9 +51,9 @@ describe('preview drag canvas state', () => {
       'title',
       'Changed',
     );
-    const reset = addNodeToCanvas(selectCanvasItem(state, { kind: 'node', id: 'node-1' }), 'page', { x: 300, y: 120 });
+    const reset = addNodeToCanvas(selectCanvasItem(state, { kind: 'node', id: 'node-1' }), 'document', { x: 300, y: 120 });
 
-    expect(reset.nodes.at(-1)?.componentId).toBe('page');
+    expect(reset.nodes.at(-1)?.componentId).toBe('document');
     expect(reset.nodes.at(-1)?.props.title).not.toBe('Changed');
     expect(reset.nodes.at(-1)?.position).toEqual({ x: 300, y: 120 });
   });
@@ -87,7 +87,7 @@ describe('preview drag canvas state', () => {
   it('attaches label components to the selected connection without creating a node connection', () => {
     const connected = addNodeToCanvas(
       addNodeToCanvas(createDefaultWorkbenchState(), 'box', { x: 10, y: 20 }),
-      'page',
+      'document',
       { x: 220, y: 20 },
     );
     const withLabel = addNodeToCanvas(
@@ -141,7 +141,7 @@ describe('preview drag canvas state', () => {
   it('rejects invalid connection prop updates', () => {
     const state = addNodeToCanvas(
       addNodeToCanvas(createDefaultWorkbenchState(), 'box', { x: 10, y: 20 }),
-      'page',
+      'document',
       { x: 220, y: 20 },
     );
     const connection = state.connections[0]!;

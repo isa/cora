@@ -6,11 +6,8 @@ export type {
   EdgeComponentProps,
   GroupComponentProps,
   IconBearingProps,
-  IssueIconType,
-  IssueNodeProps,
   NodeComponentProps,
-  PageNodeProps,
-  PageNodeType,
+  DocumentNodeProps,
   SizePreset,
 } from './types.js';
 export {
@@ -19,10 +16,10 @@ export {
   resolveComponentSize,
   SIZE_PRESETS,
   APP_SIZE_PRESETS,
-  PAGE_SIZE_PRESETS,
+  DOCUMENT_SIZE_PRESETS,
   LABEL_ICON_SIZE_PRESETS,
   resolveAppComponentSize,
-  resolvePageComponentSize,
+  resolveDocumentComponentSize,
   resolveLabelIconComponentSize,
 } from './styles.js';
 export { Line, linePathData } from './lines/Line.js';
@@ -56,8 +53,5 @@ export { LabelNode } from './nodes/LabelNode.js';
 export { IconNode } from './nodes/IconNode.js';
 export { LabelIconNode } from './nodes/LabelIconNode.js';
 export { WebsiteNode } from './nodes/WebsiteNode.js';
-export { PageNode } from './nodes/PageNode.js';
+export { DocumentNode } from './nodes/DocumentNode.js';
 export { AppNode } from './nodes/AppNode.js';
-export { DecisionNode } from './nodes/DecisionNode.js';
-export { IssueNode } from './nodes/IssueNode.js';
-export { ShapeNode } from './nodes/ShapeNode.js';

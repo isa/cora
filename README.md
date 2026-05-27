@@ -212,7 +212,7 @@ diagram:
   nodes:
     - id: client
       label: Client
-      shape: rounded        # kind-specific shapes — see schema
+      component: document   # optional; omit for the default box component
       position: { x: 100, y: 50 }   # required for layout: preserve on all nodes
       pinned: true          # keep position during auto/hybrid relayout
   edges:
@@ -227,13 +227,13 @@ diagram:
 
 ### Diagram kinds
 
-| Kind | Typical use | Notable shapes |
-|------|-------------|----------------|
-| `box-arrows` | Simple architecture / component diagrams | `rectangle`, `rounded`, `diamond` |
-| `flowchart` | Process and decision flows | `rectangle`, `rounded`, `diamond`, `hexagon` |
-| `microservice` | Service topology with domain groups | default node shapes; `groups[].contains` |
-| `infra` | Cloud / boundary diagrams | `cloud`, `rounded`, `hexagon`, `group` |
-| `database` | App ↔ datastore | `cylinder` for databases |
+| Kind | Typical use |
+|------|-------------|
+| `box-arrows` | Simple architecture / component diagrams |
+| `flowchart` | Process flows |
+| `microservice` | Service topology with domain groups |
+| `infra` | Cloud / boundary diagrams |
+| `database` | App ↔ datastore |
 
 Run `cora schema` for the authoritative field list — do not add properties outside the schema.
 
@@ -264,7 +264,7 @@ The older `provider: default` + `service: database` form remains supported as an
 |------|---------|
 | `examples/valid/minimal.yaml` | Smallest valid box-arrows diagram |
 | `examples/valid/box-arrows.yaml` | Box-arrows with `direction: LR` and edge label |
-| `examples/valid/flowchart.yaml` | Flowchart with diamond decision node |
+| `examples/valid/flowchart.yaml` | Flowchart with process and retry edges |
 | `examples/valid/markers.yaml` | Box-arrows with open-circle and filled-circle edge markers |
 | `examples/valid/marker-cycle.yaml` | Flowchart loop with mixed arrow, circle, and filled-circle markers |
 | `examples/valid/microservice.yaml` | Large microservice topology with groups and labeled cross-domain edges |

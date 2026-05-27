@@ -4,7 +4,7 @@ import { Line, linePathData } from '../../renderer/components/lines/Line.js';
 import { LineMarkerDefs, markerUrl } from '../../renderer/components/lines/markers.js';
 import { previewIconForName } from '../iconRenderer.js';
 import { previewIcon } from '../pack/builtins.js';
-import { APP_SIZE_PRESETS, PAGE_SIZE_PRESETS, WEBSITE_SIZE_PRESETS, LABEL_ICON_SIZE_PRESETS } from '../../renderer/components/styles.js';
+import { APP_SIZE_PRESETS, DOCUMENT_SIZE_PRESETS, WEBSITE_SIZE_PRESETS, LABEL_ICON_SIZE_PRESETS } from '../../renderer/components/styles.js';
 import { catalogDefaultProps } from '../../renderer/themes/componentDefaults.js';
 import { defaultTheme } from '../../renderer/themes/default.js';
 import { toMonochrome, withoutShadow } from '../../renderer/themes/transforms.js';
@@ -549,7 +549,7 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
       componentId === 'group' ? { width: 280, height: 160 }
       : componentId === 'website' ? WEBSITE_SIZE_PRESETS.lg
       : componentId === 'app' ? APP_SIZE_PRESETS.lg
-      : componentId === 'page' ? PAGE_SIZE_PRESETS.lg
+      : componentId === 'document' ? DOCUMENT_SIZE_PRESETS.lg
       : componentId === 'icon' ? APP_SIZE_PRESETS.lg
       : componentId === 'labelIcon' ? LABEL_ICON_SIZE_PRESETS.md
       : { width: 176, height: 72 };

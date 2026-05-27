@@ -9,12 +9,10 @@ diagram:
       label: Load Input
     - id: check
       label: Valid?
-      component: decision
     - id: process
       label: Process
     - id: reject
       label: Reject
-      component: issue
     - id: end
       label: Done
   edges:
