@@ -34,6 +34,7 @@ import {
   addCatalogItemToCanvas,
   clearSelection,
   deleteSelected,
+  reconnectConnectionEndpoint,
   selectCanvasItem,
   setGroupPosition,
   setGroupSize,
@@ -58,7 +59,15 @@ type DragTarget =
   | { kind: 'node'; id: string }
   | { kind: 'group'; id: string }
   | { kind: 'group-resize'; id: string }
+  | { kind: 'connection-endpoint'; id: string; endpoint: 'from' | 'to' }
   | { kind: 'pan' };
+
+type EndpointDrag = {
+  connectionId: string;
+  endpoint: 'from' | 'to';
+  point: PreviewPoint;
+  hoverNodeId?: string;
+};
 
 const DEFAULT_VIEWPORT = { width: 960, height: 640 };
 const ATTACHED_LABEL_GAP_X = 4;
@@ -540,6 +549,7 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
   const panStartRef = useRef<{ clientX: number; clientY: number; pan: { x: number; y: number } } | undefined>(undefined);
   const [dragTarget, setDragTarget] = useState<DragTarget | undefined>();
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [endpointDrag, setEndpointDrag] = useState<EndpointDrag | undefined>();
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [viewport, setViewport] = useState(DEFAULT_VIEWPORT);
@@ -722,6 +732,30 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
     };
   };
 
+  // Topmost real node whose box contains the point — used to resolve where a
+  // dragged connection endpoint should re-attach. Labels attach to lines, not ends.
+  const nodeAtPoint = (point: PreviewPoint): string | undefined => {
+    for (let index = state.nodes.length - 1; index >= 0; index--) {
+      const node = state.nodes[index]!;
+      if (node.componentId === 'label' || node.componentId === 'labelIcon') {
+        continue;
+      }
+      const box = renderedNodeBoxesById.get(node.id) ?? computeNodeBox(state, node.id);
+      if (!box) {
+        continue;
+      }
+      if (
+        point.x >= box.x &&
+        point.x <= box.x + box.width &&
+        point.y >= box.y &&
+        point.y <= box.y + box.height
+      ) {
+        return node.id;
+      }
+    }
+    return undefined;
+  };
+
   const onDrop = (event: DragEvent<SVGSVGElement>) => {
     event.preventDefault();
     const iconPayload = event.dataTransfer.getData('application/x-cora-icon');
@@ -801,6 +835,16 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
       setPan({ x: start.pan.x - dx, y: start.pan.y - dy });
       return;
     }
+    if (dragTarget.kind === 'connection-endpoint') {
+      const point = toCanvasPoint(event.clientX, event.clientY);
+      setEndpointDrag({
+        connectionId: dragTarget.id,
+        endpoint: dragTarget.endpoint,
+        point,
+        hoverNodeId: nodeAtPoint(point),
+      });
+      return;
+    }
     const point = toCanvasPoint(event.clientX, event.clientY);
     const position = {
       x: point.x - dragOffset.x,
@@ -856,6 +900,36 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
     onStateChange(selectCanvasItem(state, { kind: 'group', id }));
   };
 
+  const beginEndpointDrag = (
+    event: PointerEvent<SVGCircleElement>,
+    connectionId: string,
+    endpoint: 'from' | 'to',
+  ) => {
+    event.stopPropagation();
+    svgRef.current?.setPointerCapture(event.pointerId);
+    setDragTarget({ kind: 'connection-endpoint', id: connectionId, endpoint });
+    setEndpointDrag({
+      connectionId,
+      endpoint,
+      point: toCanvasPoint(event.clientX, event.clientY),
+    });
+    onStateChange(selectCanvasItem(state, { kind: 'connection', id: connectionId }));
+  };
+
+  const endDrag = () => {
+    if (dragTarget?.kind === 'connection-endpoint' && endpointDrag) {
+      const targetNodeId = nodeAtPoint(endpointDrag.point);
+      if (targetNodeId) {
+        onStateChange(
+          reconnectConnectionEndpoint(state, dragTarget.id, dragTarget.endpoint, targetNodeId),
+        );
+      }
+    }
+    setDragTarget(undefined);
+    setEndpointDrag(undefined);
+    panStartRef.current = undefined;
+  };
+
   const changeZoom = (delta: number) => {
     setZoom((value) => Math.min(2, Math.max(0.65, Number((value + delta).toFixed(2)))));
   };
@@ -889,14 +963,8 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
             }
           }}
           onPointerMove={onPointerMove}
-          onPointerUp={() => {
-            setDragTarget(undefined);
-            panStartRef.current = undefined;
-          }}
-          onPointerLeave={() => {
-            setDragTarget(undefined);
-            panStartRef.current = undefined;
-          }}
+          onPointerUp={endDrag}
+          onPointerLeave={endDrag}
         >
         <defs>
           {state.connections.map((connection) => {
@@ -1090,6 +1158,63 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
             </g>
           );
         })}
+        {(() => {
+          if (state.selected?.kind !== 'connection') {
+            return null;
+          }
+          const selectedId = state.selected.id;
+          const rendered = renderedConnections.find((item) => item.connection.id === selectedId);
+          const points = rendered?.edge.points;
+          if (!points || points.length < 2) {
+            return null;
+          }
+          const start = points[0]!;
+          const end = points[points.length - 1]!;
+          const dragging = endpointDrag?.connectionId === selectedId ? endpointDrag : undefined;
+          const fixedAnchor = dragging?.endpoint === 'from' ? end : start;
+          const startPos = dragging?.endpoint === 'from' ? dragging.point : start;
+          const endPos = dragging?.endpoint === 'to' ? dragging.point : end;
+          const hoverBox = dragging?.hoverNodeId
+            ? renderedNodeBoxesById.get(dragging.hoverNodeId) ?? computeNodeBox(state, dragging.hoverNodeId)
+            : undefined;
+          return (
+            <g className="connection-endpoints">
+              {dragging ? (
+                <line
+                  x1={fixedAnchor.x}
+                  y1={fixedAnchor.y}
+                  x2={dragging.point.x}
+                  y2={dragging.point.y}
+                  className="connection-endpoint-rubber"
+                />
+              ) : null}
+              {hoverBox ? (
+                <rect
+                  x={hoverBox.x - 4}
+                  y={hoverBox.y - 4}
+                  width={hoverBox.width + 8}
+                  height={hoverBox.height + 8}
+                  rx="10"
+                  className="connection-endpoint-target"
+                />
+              ) : null}
+              <circle
+                cx={startPos.x}
+                cy={startPos.y}
+                r={6}
+                className="connection-endpoint-handle"
+                onPointerDown={(event) => beginEndpointDrag(event, selectedId, 'from')}
+              />
+              <circle
+                cx={endPos.x}
+                cy={endPos.y}
+                r={6}
+                className="connection-endpoint-handle"
+                onPointerDown={(event) => beginEndpointDrag(event, selectedId, 'to')}
+              />
+            </g>
+          );
+        })()}
         {state.nodes.length === 0 && state.groups.length === 0 ? (
           <text x={viewport.width / 2} y={viewport.height / 2} textAnchor="middle" className="drop-hint">
             Drag components here

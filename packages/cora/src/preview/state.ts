@@ -232,6 +232,38 @@ export function updateConnectionProps(
   };
 }
 
+export function reconnectConnectionEndpoint(
+  state: WorkbenchState,
+  connectionId: string,
+  endpoint: 'from' | 'to',
+  nodeId: string,
+): WorkbenchState {
+  const connection = state.connections.find((item) => item.id === connectionId);
+  if (!connection) {
+    return state;
+  }
+  const node = state.nodes.find((item) => item.id === nodeId);
+  // Only real nodes can be connection endpoints; labels attach to a line, not to its ends.
+  if (!node || node.componentId === 'label' || node.componentId === 'labelIcon') {
+    return state;
+  }
+  const fromNodeId = endpoint === 'from' ? nodeId : connection.fromNodeId;
+  const toNodeId = endpoint === 'to' ? nodeId : connection.toNodeId;
+  if (fromNodeId === toNodeId) {
+    return state;
+  }
+  if (fromNodeId === connection.fromNodeId && toNodeId === connection.toNodeId) {
+    return state;
+  }
+  return {
+    ...state,
+    connections: state.connections.map((item) =>
+      item.id === connectionId ? { ...item, fromNodeId, toNodeId } : item,
+    ),
+    selected: { kind: 'connection', id: connectionId },
+  };
+}
+
 export function updateGroup(
   state: WorkbenchState,
   groupId: string,

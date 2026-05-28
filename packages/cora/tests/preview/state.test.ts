@@ -4,6 +4,7 @@ import {
   addNodeToCanvas,
   clearSelection,
   createDefaultWorkbenchState,
+  reconnectConnectionEndpoint,
   selectCanvasItem,
   setGroupSize,
   updateGroup,
@@ -136,6 +137,52 @@ describe('preview drag canvas state', () => {
     });
     expect(deselected.groups).toHaveLength(1);
     expect(deselected.selected).toBeUndefined();
+  });
+
+  it('re-attaches a connection endpoint to another node, creating a second input', () => {
+    // node-1 -> node-2 -> node-3 (connection-3: 1->2, connection-6: 2->3)
+    const chain = addNodeToCanvas(
+      addNodeToCanvas(
+        addNodeToCanvas(createDefaultWorkbenchState(), 'box', { x: 10, y: 20 }),
+        'box',
+        { x: 220, y: 20 },
+      ),
+      'box',
+      { x: 430, y: 20 },
+    );
+    const [first, second] = chain.connections;
+    expect(first).toMatchObject({ fromNodeId: 'node-1', toNodeId: 'node-2' });
+    expect(second).toMatchObject({ fromNodeId: 'node-2', toNodeId: 'node-4' });
+
+    // Drag the target end of node-1 -> node-2 onto node-3 (node-4).
+    const reconnected = reconnectConnectionEndpoint(chain, first!.id, 'to', 'node-4');
+    expect(reconnected.connections.find((c) => c.id === first!.id)).toMatchObject({
+      fromNodeId: 'node-1',
+      toNodeId: 'node-4',
+    });
+    // node-4 now has two incoming connections.
+    expect(reconnected.connections.filter((c) => c.toNodeId === 'node-4')).toHaveLength(2);
+    expect(reconnected.selected).toEqual({ kind: 'connection', id: first!.id });
+  });
+
+  it('rejects endpoint re-attachment that would create a self-loop or hit a label', () => {
+    const connected = addNodeToCanvas(
+      addNodeToCanvas(createDefaultWorkbenchState(), 'box', { x: 10, y: 20 }),
+      'box',
+      { x: 220, y: 20 },
+    );
+    const connection = connected.connections[0]!;
+    const withLabel = addNodeToCanvas(
+      selectCanvasItem(connected, { kind: 'connection', id: connection.id }),
+      'label',
+      { x: 100, y: 100 },
+    );
+    const labelId = withLabel.nodes.at(-1)!.id;
+
+    // Dropping the 'to' end back onto its own source would self-loop -> unchanged.
+    expect(reconnectConnectionEndpoint(withLabel, connection.id, 'to', 'node-1')).toBe(withLabel);
+    // Labels attach to the line, not its ends -> unchanged.
+    expect(reconnectConnectionEndpoint(withLabel, connection.id, 'to', labelId)).toBe(withLabel);
   });
 
   it('rejects invalid connection prop updates', () => {

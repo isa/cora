@@ -1485,6 +1485,33 @@ body.dark .component-grid .component-tile:hover .component-icon {
   pointer-events: stroke;
 }
 
+.connection-endpoint-handle {
+  fill: #FFFFFF;
+  stroke: #6366F1;
+  stroke-width: 1.5;
+  cursor: grab;
+  pointer-events: all;
+}
+
+.connection-endpoint-handle:hover {
+  fill: #EEF2FF;
+}
+
+.connection-endpoint-rubber {
+  fill: none;
+  stroke: #6366F1;
+  stroke-width: 1.5;
+  stroke-dasharray: 4 4;
+  pointer-events: none;
+}
+
+.connection-endpoint-target {
+  fill: none;
+  stroke: #6366F1;
+  stroke-width: 1.5;
+  pointer-events: none;
+}
+
 .drop-hint {
   fill: var(--preview-muted);
   font-size: 12px;
