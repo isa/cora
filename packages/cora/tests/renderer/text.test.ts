@@ -144,14 +144,16 @@ describe('renderToTextFromSvg', () => {
     const unicode = renderToTextFromSvg(layouted, { charset: 'unicode' });
     expect(unicode).not.toContain('┼enqueue');
     expect(unicode).not.toContain('┼write');
-    expect(unicode).toMatch(/API Server │O[─]+□│ Async Worker/u);
+    expect(unicode).toMatch(/API Server │O[─]+enqueue[─]+□│ Async Worker/u);
     expect(unicode).toMatch(/Async Worker │─write──◇│ Audit Log/u);
+    expect(unicode).not.toContain('│─enqueue─  │');
 
     const ascii = renderToTextFromSvg(layouted, { charset: 'ascii' });
     expect(ascii).not.toContain('+enqueue');
     expect(ascii).not.toContain('+write');
-    expect(ascii).toMatch(/API Server \|O[-]+#\| Async Worker/u);
+    expect(ascii).toMatch(/API Server \|O[-]+enqueue[-]+#\| Async Worker/u);
     expect(ascii).toMatch(/Async Worker \|-write--D\| Audit Log/u);
+    expect(ascii).not.toContain('|-enqueue-  |');
   });
 
   it('keeps start markers attached through the first bend in database output', async () => {

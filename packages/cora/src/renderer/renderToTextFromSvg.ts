@@ -1306,7 +1306,7 @@ function placeHorizontalLabelAlongLine(
   gridW: number,
   nodeBoxes: Map<string, BoxBounds>,
   arrowPts: Array<{ x: number; y: number }>,
-): number {
+): number | null {
   const gridMin = 0;
   const gridMax = Math.max(0, gridW - len);
   const segmentMin = Math.min(segment.x0, segment.x1);
@@ -1336,7 +1336,38 @@ function placeHorizontalLabelAlongLine(
   const relaxed = tryRange(relaxedMin, relaxedMax, false);
   if (relaxed !== null) return relaxed;
 
-  const anywhere = tryRange(gridMin, gridMax, false);
+  return null;
+}
+
+function placeHorizontalLabelFallback(
+  desiredX: number,
+  ly: number,
+  len: number,
+  segment: SegmentInfo,
+  gridW: number,
+  nodeBoxes: Map<string, BoxBounds>,
+  arrowPts: Array<{ x: number; y: number }>,
+): number {
+  const inline = placeHorizontalLabelAlongLine(
+    desiredX,
+    ly,
+    len,
+    segment,
+    gridW,
+    nodeBoxes,
+    arrowPts,
+  );
+  if (inline !== null) {
+    return inline;
+  }
+
+  const gridMin = 0;
+  const gridMax = Math.max(0, gridW - len);
+  const anywhere = scanNearestCandidate(gridMin, gridMax, desiredX, candidate => {
+    if (labelIntersectsBox(candidate, ly, len, nodeBoxes)) return false;
+    if (labelOverlapsArrow(candidate, ly, len, arrowPts)) return false;
+    return true;
+  });
   if (anywhere !== null) return anywhere;
 
   return Math.max(gridMin, Math.min(gridMax, desiredX));
@@ -1594,18 +1625,35 @@ export function renderToTextFromSvg(
       );
     }
 
-    const desiredLy = segment?.orientation === 'horizontal' ? segment.y0 : rawLy;
-    const ly = getSafeLabelRow(lx, desiredLy, label.length, mapper.gridH, nodeBoxes, arrowPts);
+    let ly = rawLy;
     if (segment?.orientation === 'horizontal') {
-      lx = placeHorizontalLabelAlongLine(
+      const inlineX = placeHorizontalLabelAlongLine(
         lx,
-        ly,
+        segment.y0,
         label.length,
         segment,
         mapper.gridW,
         nodeBoxes,
         arrowPts,
       );
+
+      if (inlineX !== null) {
+        lx = inlineX;
+        ly = segment.y0;
+      } else {
+        ly = getSafeLabelRow(lx, segment.y0, label.length, mapper.gridH, nodeBoxes, arrowPts);
+        lx = placeHorizontalLabelFallback(
+          lx,
+          ly,
+          label.length,
+          segment,
+          mapper.gridW,
+          nodeBoxes,
+          arrowPts,
+        );
+      }
+    } else {
+      ly = getSafeLabelRow(lx, rawLy, label.length, mapper.gridH, nodeBoxes, arrowPts);
     }
 
     // Clear only the label glyphs; line shoulders are restored below.
