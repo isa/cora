@@ -2186,13 +2186,10 @@ function finalizeEdgeGeometry(
   nodes: LayoutedNode[],
   groups: LayoutedGroup[],
 ): void {
-  const boxEdges = edges.filter((edge) => {
-    const from = nodeById.get(edge.from);
-    const to = nodeById.get(edge.to);
-    return from && to && shouldRepairEndpointNode(from) && shouldRepairEndpointNode(to);
-  });
-
-  applyBalancedConnectionAnchors(boxEdges, nodeById);
+  // Balance/centre endpoints on every node side, for all node types. Non-box
+  // nodes are anchored to their artwork box (with the bottom side reserving
+  // room for the title/subtitle) via connectionAnchorBox.
+  applyBalancedConnectionAnchors(edges, nodeById);
   repairEndpointNodeCrossings(edges, nodeById, groups);
   ensureEndpointRunway(edges);
   cleanAllEdgePoints(edges, nodes, groups);

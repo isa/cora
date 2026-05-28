@@ -4,9 +4,12 @@ import {
   addNodeToCanvas,
   clearSelection,
   createDefaultWorkbenchState,
+  deleteSelected,
   reconnectConnectionEndpoint,
   selectCanvasItem,
   setGroupSize,
+  setNodeSize,
+  setSelectedItems,
   updateGroup,
   updateConnectionProps,
   updateNodeProps,
@@ -74,15 +77,23 @@ describe('preview drag canvas state', () => {
 
   it('uses the compact remapped website component size scale', () => {
     const state = addNodeToCanvas(createDefaultWorkbenchState(), 'website', { x: 10, y: 20 });
-    const small = updateNodeProps(state, state.nodes[0]!.id, 'size', 'sm');
-    const medium = updateNodeProps(small, state.nodes[0]!.id, 'size', 'md');
-    const large = updateNodeProps(medium, state.nodes[0]!.id, 'size', 'lg');
+    const node = state.nodes[0]!;
+    const sized = (size: 'sm' | 'md' | 'lg') => ({ ...node, props: { ...node.props, size } });
 
-    expect(state.nodes[0]?.props.size).toBe('lg');
-    expect(previewNodeSize(state.nodes[0]!)).toEqual({ width: 108, height: 120 });
-    expect(previewNodeSize(small.nodes[0]!)).toEqual({ width: 64, height: 60 });
-    expect(previewNodeSize(medium.nodes[0]!)).toEqual({ width: 81, height: 90 });
-    expect(previewNodeSize(large.nodes[0]!)).toEqual({ width: 108, height: 120 });
+    expect(node.props.size).toBe('lg');
+    expect(previewNodeSize(sized('lg'))).toEqual({ width: 108, height: 120 });
+    expect(previewNodeSize(sized('sm'))).toEqual({ width: 64, height: 60 });
+    expect(previewNodeSize(sized('md'))).toEqual({ width: 81, height: 90 });
+  });
+
+  it('resizes a node by setting an explicit pixel size', () => {
+    const state = addNodeToCanvas(createDefaultWorkbenchState(), 'box', { x: 10, y: 20 });
+    const id = state.nodes[0]!.id;
+    const resized = setNodeSize(state, id, { width: 220.4, height: 96.6 });
+
+    expect(resized.nodes[0]?.props.size).toEqual({ width: 220, height: 97 });
+    // Other nodes/props are untouched.
+    expect(resized.nodes[0]?.position).toEqual(state.nodes[0]?.position);
   });
 
   it('attaches label components to the selected connection without creating a node connection', () => {
@@ -183,6 +194,43 @@ describe('preview drag canvas state', () => {
     expect(reconnectConnectionEndpoint(withLabel, connection.id, 'to', 'node-1')).toBe(withLabel);
     // Labels attach to the line, not its ends -> unchanged.
     expect(reconnectConnectionEndpoint(withLabel, connection.id, 'to', labelId)).toBe(withLabel);
+  });
+
+  it('marquee-selects nodes, connections and groups, and deletes them all together', () => {
+    const withNodes = addNodeToCanvas(
+      addNodeToCanvas(createDefaultWorkbenchState(), 'box', { x: 10, y: 20 }),
+      'box',
+      { x: 220, y: 20 },
+    );
+    const withGroup = addNodeToCanvas(withNodes, 'group', { x: 0, y: 0 });
+    const connectionId = withGroup.connections[0]!.id;
+    const groupId = withGroup.groups[0]!.id;
+
+    const selected = setSelectedItems(withGroup, {
+      nodeIds: ['node-1', 'node-2'],
+      connectionIds: [connectionId],
+      groupIds: [groupId],
+    });
+    expect(selected.selectedNodeIds).toEqual(['node-1', 'node-2']);
+    expect(selected.selectedConnectionIds).toEqual([connectionId]);
+    expect(selected.selectedGroupIds).toEqual([groupId]);
+    // Mixed selection has no single `selected` item.
+    expect(selected.selected).toBeUndefined();
+
+    const cleared = deleteSelected(selected);
+    expect(cleared.nodes).toEqual([]);
+    expect(cleared.connections).toEqual([]);
+    expect(cleared.groups).toEqual([]);
+    expect(cleared.selectedNodeIds).toEqual([]);
+    expect(cleared.selectedConnectionIds).toEqual([]);
+    expect(cleared.selectedGroupIds).toEqual([]);
+  });
+
+  it('collapses a single-item marquee result back to a normal selection', () => {
+    const state = addNodeToCanvas(createDefaultWorkbenchState(), 'box', { x: 10, y: 20 });
+    const selected = setSelectedItems(state, { nodeIds: ['node-1'] });
+    expect(selected.selected).toEqual({ kind: 'node', id: 'node-1' });
+    expect(selected.selectedNodeIds).toEqual(['node-1']);
   });
 
   it('rejects invalid connection prop updates', () => {

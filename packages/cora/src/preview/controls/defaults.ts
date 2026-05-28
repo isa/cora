@@ -1,5 +1,5 @@
 import type { ControlDefinition } from './schema.js';
-import { API_SIZE_PRESETS, APP_SIZE_PRESETS, DATABASE_SIZE_PRESETS, DOCUMENT_SIZE_PRESETS, WEBSITE_SIZE_PRESETS, LABEL_ICON_SIZE_PRESETS } from '../../renderer/components/styles.js';
+import { API_SIZE_PRESETS, APP_SIZE_PRESETS, DATABASE_SIZE_PRESETS, DOCUMENT_SIZE_PRESETS, WEBSITE_SIZE_PRESETS } from '../../renderer/components/styles.js';
 import { catalogDefaultProps } from '../../renderer/themes/componentDefaults.js';
 import { LOOK } from '../../renderer/themes/lookTokens.js';
 import type { MarkerType } from '../../renderer/components/lines/markers.js';
@@ -108,13 +108,6 @@ export const baseNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
   { kind: 'number', key: 'subtitleFontSize', label: 'Subtitle size', min: 7, max: 24, step: 1 },
   { kind: 'enum', key: 'shadow', label: 'Shadow', options: ['none', 'cast', 'radial'] },
   { kind: 'color', key: 'shadowColor', label: 'Shadow color' },
-  {
-    kind: 'size',
-    key: 'size',
-    label: 'Size',
-    presets: [...sizePresets],
-    explicit: { width: 140, height: 40 },
-  },
 ];
 
 export const boxNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
@@ -130,15 +123,6 @@ export const iconNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
   { kind: 'color', key: 'iconColor', label: 'Icon color' },
   { kind: 'text', key: 'title', label: 'Title' },
   { kind: 'text', key: 'subtitle', label: 'Subtitle' },
-  {
-    kind: 'size',
-    key: 'size',
-    label: 'Size',
-    presets: [...sizePresets],
-    explicit: APP_SIZE_PRESETS.lg,
-    presetSizes: APP_SIZE_PRESETS,
-  },
-  { kind: 'number', key: 'radius', label: 'Radius', min: 0, max: 24, step: 1 },
   { kind: 'color', key: 'textColor', label: 'Title color' },
   { kind: 'color', key: 'subtitleColor', label: 'Subtitle color' },
   { kind: 'number', key: 'titleFontSize', label: 'Title size', min: 8, max: 28, step: 1 },
@@ -151,19 +135,12 @@ export const labelIconNodeControls: Array<ControlDefinition<PreviewNodeProps>> =
   { kind: 'text', key: 'title', label: 'Title' },
   { kind: 'text', key: 'subtitle', label: 'Subtitle' },
   { kind: 'color', key: 'backgroundColor', label: 'Background' },
-  {
-    kind: 'size',
-    key: 'size',
-    label: 'Size',
-    presets: [...sizePresets],
-    explicit: LABEL_ICON_SIZE_PRESETS.lg,
-    presetSizes: LABEL_ICON_SIZE_PRESETS,
-  },
 ];
 
 export const documentNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
   ...baseNodeControls
     .filter((control) =>
+      control.key !== 'radius' &&
       control.key !== 'borderStyle' &&
       control.key !== 'borderColor' &&
       control.key !== 'borderWidth'
@@ -181,15 +158,17 @@ export const documentNodeControls: Array<ControlDefinition<PreviewNodeProps>> = 
 ];
 
 export const appNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
-  ...baseNodeControls.map((control): ControlDefinition<PreviewNodeProps> =>
-    control.kind === 'size'
-      ? {
-          ...control,
-          explicit: APP_SIZE_PRESETS.lg,
-          presetSizes: APP_SIZE_PRESETS,
-        }
-      : control,
-  ),
+  ...baseNodeControls
+    .filter((control) => control.key !== 'radius')
+    .map((control): ControlDefinition<PreviewNodeProps> =>
+      control.kind === 'size'
+        ? {
+            ...control,
+            explicit: APP_SIZE_PRESETS.lg,
+            presetSizes: APP_SIZE_PRESETS,
+          }
+        : control,
+    ),
 ];
 
 export const apiNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
@@ -233,15 +212,17 @@ export const databaseNodeControls: Array<ControlDefinition<PreviewNodeProps>> = 
 ];
 
 export const websiteNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
-  ...baseNodeControls.map((control): ControlDefinition<PreviewNodeProps> =>
-    control.kind === 'size'
-      ? {
-          ...control,
-          explicit: WEBSITE_SIZE_PRESETS.lg,
-          presetSizes: WEBSITE_SIZE_PRESETS,
-        }
-      : control,
-  ),
+  ...baseNodeControls
+    .filter((control) => control.key !== 'radius')
+    .map((control): ControlDefinition<PreviewNodeProps> =>
+      control.kind === 'size'
+        ? {
+            ...control,
+            explicit: WEBSITE_SIZE_PRESETS.lg,
+            presetSizes: WEBSITE_SIZE_PRESETS,
+          }
+        : control,
+    ),
   { kind: 'color', key: 'skeletonColor', label: 'Skeleton' },
 ];
 

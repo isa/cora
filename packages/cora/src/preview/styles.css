@@ -654,6 +654,20 @@ textarea {
   cursor: grab;
 }
 
+.pan-overlay {
+  fill: transparent;
+  cursor: grab;
+  pointer-events: all;
+}
+
+.marquee-rect {
+  fill: rgba(99, 102, 241, 0.08);
+  stroke: #6366f1;
+  stroke-width: 1;
+  stroke-dasharray: 4 3;
+  pointer-events: none;
+}
+
 .preview-canvas.canvas-dragging,
 .preview-canvas.canvas-dragging * {
   cursor: grabbing !important;
@@ -1003,6 +1017,13 @@ body.dark .component-grid .component-tile:hover .component-icon {
   line-height: 1.6;
 }
 
+.inspector-multi-hint {
+  margin: 0 0 12px;
+  color: var(--preview-muted);
+  font-size: var(--font-sidebar-body);
+  font-weight: 600;
+}
+
 .inspector-empty-hint {
   margin: 0 auto;
   color: var(--preview-muted);
@@ -1280,7 +1301,7 @@ body.dark .component-grid .component-tile:hover .component-icon {
   padding: 8px 0;
   display: grid;
   grid-template-columns: 1fr;
-  gap: 24px;
+  gap: 14px;
 }
 
 .control-group-content .field-text,
@@ -1291,6 +1312,29 @@ body.dark .component-grid .component-tile:hover .component-icon {
 .control-group-content .check-field {
   grid-column: 1 / -1;
   min-width: 0;
+}
+
+/* Two related controls (e.g. title colour + title size) on one line. */
+.control-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  align-items: start;
+}
+
+.control-group-content .control-row > * {
+  grid-column: auto;
+  min-width: 0;
+}
+
+/* Equalise the input heights of two paired controls (e.g. a colour swatch next
+   to a number field) so the row reads as one tidy line. */
+.control-row .ui-input,
+.control-row .color-picker-trigger,
+.control-row .color-picker-eyedropper-btn {
+  box-sizing: border-box;
+  height: 34px;
+  min-height: 34px;
 }
 
 .content-subtitle-size-row {
@@ -1433,6 +1477,15 @@ body.dark .component-grid .component-tile:hover .component-icon {
   stroke: #CBD5E1;
   stroke-width: 1;
   cursor: nwse-resize;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease;
+}
+
+.preview-group:hover .group-resize-handle,
+.preview-group.resizing .group-resize-handle {
+  opacity: 1;
+  pointer-events: all;
 }
 
 .group-resize-handle:hover {
@@ -1462,6 +1515,21 @@ body.dark .component-grid .component-tile:hover .component-icon {
 
 .node-hit-target ~ * {
   pointer-events: none;
+}
+
+.node-resize-handle {
+  fill: #FFFFFF;
+  stroke: #6366F1;
+  stroke-width: 1.2;
+  cursor: nwse-resize;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.node-interactive:hover .node-resize-handle,
+.node-interactive.resizing .node-resize-handle {
+  opacity: 1;
+  pointer-events: all;
 }
 
 .connection-label-mask {
@@ -2170,8 +2238,16 @@ body.dark .component-grid .component-tile:hover .component-icon {
   width: 26px;
   height: 26px;
   border-radius: 999px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
   color: #202438;
   font-size: 20px;
+}
+
+.canvas-tool:hover {
+  background: rgba(15, 23, 42, 0.06);
 }
 
 .canvas-tool.active {

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  appNodeControls,
   baseNodeControls,
   connectionControls,
   documentNodeControls,
@@ -52,16 +53,15 @@ describe('preview controls', () => {
     });
   });
 
-  it('defines bounded number controls and size controls', () => {
+  it('defines bounded number controls and no size controls (nodes resize by drag)', () => {
     expect(baseNodeControls.find((control) => control.kind === 'number')).toMatchObject({
       min: expect.any(Number),
       max: expect.any(Number),
       step: expect.any(Number),
     });
-    expect(baseNodeControls.find((control) => control.kind === 'size')).toMatchObject({
-      presets: ['sm', 'md', 'lg', 'xl', 'xxl'],
-      explicit: { width: 140, height: 40 },
-    });
+    // Size is now controlled by dragging the node's resize handle, not the inspector.
+    expect(baseNodeControls.some((control) => control.kind === 'size')).toBe(false);
+    expect(baseNodeControls.some((control) => control.key === 'size')).toBe(false);
     expect(labelNodeControls.some((control) => control.key === 'size')).toBe(false);
     expect(labelNodeControls.some((control) => control.key === 'shadow')).toBe(false);
     expect(labelNodeControls.some((control) => control.key === 'shadowColor')).toBe(false);
@@ -70,48 +70,24 @@ describe('preview controls', () => {
       'iconColor',
       'title',
       'subtitle',
-      'size',
-      'radius',
       'textColor',
       'subtitleColor',
       'titleFontSize',
       'subtitleFontSize',
     ]);
-    expect(labelIconNodeControls.map((control) => control.key)).toEqual(['iconName', 'iconColor', 'title', 'subtitle', 'backgroundColor', 'size']);
+    // Icon/web/document/database/api/app have no visual radius — control removed.
+    expect(iconNodeControls.some((control) => control.key === 'radius')).toBe(false);
+    expect(websiteNodeControls.some((control) => control.key === 'radius')).toBe(false);
+    expect(appNodeControls.some((control) => control.key === 'radius')).toBe(false);
+    expect(documentNodeControls.some((control) => control.key === 'radius')).toBe(false);
+    expect(labelIconNodeControls.map((control) => control.key)).toEqual(['iconName', 'iconColor', 'title', 'subtitle', 'backgroundColor']);
     expect(labelIconNodeControls.find((control) => control.key === 'iconName')).toMatchObject({
       kind: 'icon',
     });
-    expect(labelIconNodeControls.find((control) => control.kind === 'size')).toMatchObject({
-      explicit: { width: 96, height: 96 },
-      presetSizes: {
-        sm: { width: 48, height: 48 },
-        md: { width: 72, height: 72 },
-        lg: { width: 96, height: 96 },
-        xl: { width: 144, height: 144 },
-        xxl: { width: 192, height: 192 },
-      },
-    });
+    expect(labelIconNodeControls.some((control) => control.kind === 'size')).toBe(false);
     expect(websiteNodeControls.map((control) => control.key)).toContain('skeletonColor');
-    expect(websiteNodeControls.find((control) => control.kind === 'size')).toMatchObject({
-      explicit: { width: 108, height: 120 },
-      presetSizes: {
-        sm: { width: 54, height: 60 },
-        md: { width: 81, height: 90 },
-        lg: { width: 108, height: 120 },
-        xl: { width: 162, height: 180 },
-        xxl: { width: 216, height: 240 },
-      },
-    });
-    expect(documentNodeControls.find((control) => control.kind === 'size')).toMatchObject({
-      explicit: { width: 72, height: 96 },
-      presetSizes: {
-        sm: { width: 36, height: 48 },
-        md: { width: 54, height: 72 },
-        lg: { width: 72, height: 96 },
-        xl: { width: 108, height: 144 },
-        xxl: { width: 144, height: 192 },
-      },
-    });
+    expect(websiteNodeControls.some((control) => control.kind === 'size')).toBe(false);
+    expect(documentNodeControls.some((control) => control.kind === 'size')).toBe(false);
     expect(documentNodeControls.map((control) => control.key)).not.toContain('borderStyle');
     expect(documentNodeControls.map((control) => control.key)).not.toContain('borderColor');
     expect(documentNodeControls.map((control) => control.key)).not.toContain('borderWidth');

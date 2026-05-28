@@ -5,7 +5,7 @@ import { CatalogSidebar } from './components/CatalogSidebar.js';
 import { ConnectionPanel } from './components/ConnectionPanel.js';
 import { GroupPanel } from './components/GroupPanel.js';
 import { IconSearchDropdown } from './components/IconSearchDropdown.js';
-import { NodePropPanel, visibleComponentLabel } from './components/NodePropPanel.js';
+import { MultiNodePanel, NodePropPanel, visibleComponentLabel } from './components/NodePropPanel.js';
 import { Select } from './components/ui/select.js';
 import { WorkbenchCanvas } from './components/WorkbenchCanvas.js';
 import type { ConnectionProps } from './controls/defaults.js';
@@ -19,6 +19,7 @@ import {
   updateGroup,
   updateConnectionProps,
   updateNodeProps,
+  updateNodesProps,
 } from './state.js';
 import {
   deserializeWorkbenchState,
@@ -193,7 +194,12 @@ export function App() {
     state.selected?.kind === 'group'
       ? state.groups.find((group) => group.id === state.selected?.id)
       : undefined;
-  const hasSelection = Boolean(selectedNode || selectedConnection || selectedGroup);
+  const selectedItemCount =
+    state.selectedNodeIds.length + state.selectedConnectionIds.length + state.selectedGroupIds.length;
+  const isMultiSelect = selectedItemCount > 1;
+  const isMultiNodesOnly =
+    isMultiSelect && state.selectedConnectionIds.length === 0 && state.selectedGroupIds.length === 0;
+  const hasSelection = selectedItemCount > 0;
 
   return (
     <div className="preview-app">
@@ -344,7 +350,22 @@ export function App() {
             </p>
           </section>
         ) : null}
-        {selectedConnection ? (
+        {isMultiSelect ? (
+          isMultiNodesOnly ? (
+            <MultiNodePanel
+              state={state}
+              nodeIds={state.selectedNodeIds}
+              onPropChange={(key, value) =>
+                setState((current) => updateNodesProps(current, current.selectedNodeIds, key, value))
+              }
+            />
+          ) : (
+            <section className="inspector-section" aria-label="Inspector controls">
+              <p className="inspector-multi-hint">{selectedItemCount} items selected</p>
+              <p className="inspector-tab-empty">No shared attributes.</p>
+            </section>
+          )
+        ) : selectedConnection ? (
           <ConnectionPanel
             connection={selectedConnection}
             onConnectionChange={(key: keyof ConnectionProps, value) =>

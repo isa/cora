@@ -28,6 +28,7 @@ import {
   computeConnectionPoints,
   computeNodeBox,
   computeSceneAttachmentSlots,
+  previewLabelContentSize,
   previewNodeSize,
 } from '../geometry.js';
 import {
@@ -37,8 +38,13 @@ import {
   reconnectConnectionEndpoint,
   selectCanvasItem,
   setGroupPosition,
+  setGroupPositions,
   setGroupSize,
   setNodePosition,
+  setNodePositions,
+  setNodeSize,
+  setSelectedItems,
+  toggleNodeSelection,
   type CanvasSelection,
   type WorkbenchState,
   type CanvasNode,
@@ -57,10 +63,78 @@ interface WorkbenchCanvasProps {
 
 type DragTarget =
   | { kind: 'node'; id: string }
+  | { kind: 'nodes' }
+  | { kind: 'node-resize'; id: string }
   | { kind: 'group'; id: string }
   | { kind: 'group-resize'; id: string }
   | { kind: 'connection-endpoint'; id: string; endpoint: 'from' | 'to' }
+  | { kind: 'marquee' }
   | { kind: 'pan' };
+
+type MarqueeRect = { start: PreviewPoint; current: PreviewPoint };
+
+function normalizedRect(a: PreviewPoint, b: PreviewPoint) {
+  return {
+    x: Math.min(a.x, b.x),
+    y: Math.min(a.y, b.y),
+    width: Math.abs(a.x - b.x),
+    height: Math.abs(a.y - b.y),
+  };
+}
+
+function rectsIntersect(
+  a: { x: number; y: number; width: number; height: number },
+  b: { x: number; y: number; width: number; height: number },
+): boolean {
+  return (
+    a.x < b.x + b.width &&
+    a.x + a.width > b.x &&
+    a.y < b.y + b.height &&
+    a.y + a.height > b.y
+  );
+}
+
+function pointInRect(p: PreviewPoint, rect: { x: number; y: number; width: number; height: number }): boolean {
+  return p.x >= rect.x && p.x <= rect.x + rect.width && p.y >= rect.y && p.y <= rect.y + rect.height;
+}
+
+function segmentsCross(p1: PreviewPoint, p2: PreviewPoint, p3: PreviewPoint, p4: PreviewPoint): boolean {
+  const cross = (a: PreviewPoint, b: PreviewPoint, c: PreviewPoint) =>
+    (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+  const d1 = cross(p3, p4, p1);
+  const d2 = cross(p3, p4, p2);
+  const d3 = cross(p1, p2, p3);
+  const d4 = cross(p1, p2, p4);
+  return ((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) && ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0));
+}
+
+function polylineIntersectsRect(
+  points: PreviewPoint[],
+  rect: { x: number; y: number; width: number; height: number },
+): boolean {
+  const corners = [
+    { x: rect.x, y: rect.y },
+    { x: rect.x + rect.width, y: rect.y },
+    { x: rect.x + rect.width, y: rect.y + rect.height },
+    { x: rect.x, y: rect.y + rect.height },
+  ];
+  for (let index = 0; index < points.length - 1; index++) {
+    const a = points[index]!;
+    const b = points[index + 1]!;
+    if (pointInRect(a, rect) || pointInRect(b, rect)) {
+      return true;
+    }
+    for (let edge = 0; edge < 4; edge++) {
+      if (segmentsCross(a, b, corners[edge]!, corners[(edge + 1) % 4]!)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+const MIN_NODE_WIDTH = 24;
+const MIN_NODE_HEIGHT = 20;
 
 type EndpointDrag = {
   connectionId: string;
@@ -242,6 +316,9 @@ export function previewConnectionPathData(
       continue;
     }
 
+    // Gap the line around the visible text, not the fixed label-node box width.
+    const content = previewLabelContentSize(node);
+
     const center = {
       x: box.x + box.width / 2,
       y: box.y + box.height / 2,
@@ -260,8 +337,8 @@ export function previewConnectionPathData(
 
       const horizontal = Math.abs(start.y - end.y) < 0.001;
       const halfSpan = horizontal
-        ? box.width / 2 + ATTACHED_LABEL_GAP_X
-        : box.height / 2 + ATTACHED_LABEL_GAP_Y;
+        ? content.width / 2 + ATTACHED_LABEL_GAP_X
+        : content.height / 2 + ATTACHED_LABEL_GAP_Y;
       const totalLength = pathLength(points);
       const centerDistance = cursor + ratio * length;
       const availableHalfSpan = Math.max(
@@ -374,9 +451,21 @@ function sharedPreviewLayout(state: WorkbenchState) {
 
   const { nodeStyles, theme } = resolveTheme(document.diagram, defaultTheme);
 
+  // Size every node by its actual rendered size (previewNodeSize), the same size
+  // used when the node stands alone. Using the text-only measure here would make
+  // nodes jump to a different size the moment a connection exists.
+  const measured = measureNodes(document.diagram.nodes).map((measuredNode) => {
+    const stateNode = state.nodes.find((node) => node.id === measuredNode.id);
+    if (!stateNode) {
+      return measuredNode;
+    }
+    const size = previewNodeSize(stateNode);
+    return { ...measuredNode, measuredWidth: size.width, measuredHeight: size.height };
+  });
+
   return computePreservedLayout({
     diagram: document.diagram,
-    measuredNodes: applyNodeStyles(measureNodes(document.diagram.nodes), nodeStyles),
+    measuredNodes: applyNodeStyles(measured, nodeStyles),
     theme,
     // Keep preview geometry in the same canvas coordinate space as the live nodes.
     offset: false,
@@ -515,7 +604,7 @@ function renderNode(
   return (
     <g
       key={node.id}
-      className={state.selected?.kind === 'node' && state.selected.id === node.id ? 'preview-node selected' : 'preview-node'}
+      className={state.selectedNodeIds.includes(node.id) ? 'preview-node selected' : 'preview-node'}
       data-node-id={node.id}
     >
       {node.attachedConnectionId && node.componentId === 'label' && effectiveProps.backgroundColor && effectiveProps.backgroundColor !== 'transparent' && effectiveProps.backgroundColor !== 'none' ? (
@@ -554,6 +643,11 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [viewport, setViewport] = useState(DEFAULT_VIEWPORT);
   const [isSpaceDown, setIsSpaceDown] = useState(false);
+  const [panMode, setPanMode] = useState(false);
+  const [marquee, setMarquee] = useState<MarqueeRect | undefined>();
+  const multiDragRef = useRef<
+    { start: PreviewPoint; nodes: Map<string, PreviewPoint>; groups: Map<string, PreviewPoint> } | undefined
+  >(undefined);
   const viewBox = zoomViewBox(zoom, pan, viewport);
 
   const zoomRef = useRef(zoom);
@@ -639,7 +733,7 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
     const bridgeMaskPath = edgeBridgeMaskPathData(edge);
     const hasMarkers =
       connection.props.startMarker !== 'none' || connection.props.endMarker !== 'none';
-    const selected = state.selected?.kind === 'connection' && state.selected.id === connection.id;
+    const selected = state.selectedConnectionIds.includes(connection.id);
     const isSameColor = (c1: string, c2: string) => {
       if (c1 === c2) return true;
       if (!c1 || !c2) return false;
@@ -692,7 +786,7 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
         event.preventDefault();
         setIsSpaceDown(true);
       } else if ((event.key === 'Backspace' || event.key === 'Delete') && !isEditable(event.target)) {
-        if (state.selected) {
+        if (state.selected || state.selectedNodeIds.length > 0) {
           event.preventDefault();
           onStateChange(deleteSelected(state));
         }
@@ -756,23 +850,42 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
     return undefined;
   };
 
+  // Nearest connection to a point, measured against the *rendered* edge geometry
+  // (what the user sees) so dropping an icon onto a line is detected reliably.
+  const nearestRenderedConnectionAtPoint = (point: PreviewPoint, threshold = 20): string | undefined => {
+    let nearestId: string | undefined;
+    let nearestDistance = threshold;
+    for (const { connection, edge } of renderedConnections) {
+      const points = edge.points;
+      for (let index = 1; index < points.length; index++) {
+        const distance = distanceToSegment(point, points[index - 1]!, points[index]!);
+        if (distance <= nearestDistance) {
+          nearestDistance = distance;
+          nearestId = connection.id;
+        }
+      }
+    }
+    return nearestId;
+  };
+
   const onDrop = (event: DragEvent<SVGSVGElement>) => {
     event.preventDefault();
     const iconPayload = event.dataTransfer.getData('application/x-cora-icon');
     let iconProps: Record<string, unknown> | undefined;
     const point = toCanvasPoint(event.clientX, event.clientY);
-    const nearestConnection = iconPayload ? nearestConnectionAtPoint(state, point) : undefined;
+    const nearestConnectionId = iconPayload ? nearestRenderedConnectionAtPoint(point) : undefined;
     let componentId = event.dataTransfer.getData('application/x-cora-component');
 
     if (iconPayload) {
       try {
         const parsed = JSON.parse(iconPayload) as { name: string; fullName: string };
-        const isLabelIcon = Boolean(nearestConnection);
+        const isLabelIcon = Boolean(nearestConnectionId);
         iconProps = {
           title: isLabelIcon ? '' : parsed.name,
           subtitle: '',
           iconName: parsed.fullName,
-          size: 'lg',
+          // Icons sitting on a line read better small; standalone icons stay large.
+          size: isLabelIcon ? 'sm' : 'lg',
         };
         componentId = isLabelIcon ? 'labelIcon' : 'icon';
       } catch {
@@ -795,8 +908,8 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
     }
     props = { ...props, ...iconProps };
     const dropState =
-      nearestConnection
-        ? selectCanvasItem(state, { kind: 'connection', id: nearestConnection.id })
+      nearestConnectionId
+        ? selectCanvasItem(state, { kind: 'connection', id: nearestConnectionId })
         : (componentId === 'label' || componentId === 'labelIcon') && state.selected?.kind !== 'connection'
           ? selectNearestConnection(state, point)
         : state;
@@ -808,7 +921,7 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
       : componentId === 'app' ? APP_SIZE_PRESETS.lg
       : componentId === 'document' ? DOCUMENT_SIZE_PRESETS.lg
       : componentId === 'icon' ? APP_SIZE_PRESETS.lg
-      : componentId === 'labelIcon' ? LABEL_ICON_SIZE_PRESETS.lg
+      : componentId === 'labelIcon' ? LABEL_ICON_SIZE_PRESETS.sm
       : { width: 176, height: 72 };
     onStateChange(addCatalogItemToCanvas(dropState, componentId, {
       x: Math.max(16, point.x - dropSize.width / 2),
@@ -845,6 +958,28 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
       });
       return;
     }
+    if (dragTarget.kind === 'marquee') {
+      setMarquee((current) =>
+        current ? { ...current, current: toCanvasPoint(event.clientX, event.clientY) } : current,
+      );
+      return;
+    }
+    if (dragTarget.kind === 'nodes') {
+      const drag = multiDragRef.current;
+      if (!drag) {
+        return;
+      }
+      const point = toCanvasPoint(event.clientX, event.clientY);
+      const delta = { x: point.x - drag.start.x, y: point.y - drag.start.y };
+      const shift = ([id, origin]: [string, PreviewPoint]) => ({
+        id,
+        position: { x: origin.x + delta.x, y: origin.y + delta.y },
+      });
+      let next = setNodePositions(state, [...drag.nodes.entries()].map(shift));
+      next = setGroupPositions(next, [...drag.groups.entries()].map(shift));
+      onStateChange(next);
+      return;
+    }
     const point = toCanvasPoint(event.clientX, event.clientY);
     const position = {
       x: point.x - dragOffset.x,
@@ -858,6 +993,17 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
       onStateChange(setGroupSize(state, group.id, {
         width: Math.max(120, point.x - group.position.x),
         height: Math.max(80, point.y - group.position.y),
+      }));
+      return;
+    }
+    if (dragTarget.kind === 'node-resize') {
+      const box = renderedNodeBoxesById.get(dragTarget.id) ?? computeNodeBox(state, dragTarget.id);
+      if (!box) {
+        return;
+      }
+      onStateChange(setNodeSize(state, dragTarget.id, {
+        width: Math.max(MIN_NODE_WIDTH, point.x - box.x),
+        height: Math.max(MIN_NODE_HEIGHT, point.y - box.y),
       }));
       return;
     }
@@ -880,14 +1026,65 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
     onStateChange(selectCanvasItem(state, target as CanvasSelection));
   };
 
-  const beginPan = (event: PointerEvent<SVGSVGElement>) => {
-    event.currentTarget.setPointerCapture(event.pointerId);
+  const beginPan = (event: PointerEvent<Element>) => {
+    svgRef.current?.setPointerCapture(event.pointerId);
     panStartRef.current = {
       clientX: event.clientX,
       clientY: event.clientY,
       pan,
     };
     setDragTarget({ kind: 'pan' });
+  };
+
+  const multiSelectionCount = () => state.selectedNodeIds.length + state.selectedGroupIds.length;
+
+  const startMultiDrag = (event: PointerEvent<SVGGElement>) => {
+    event.stopPropagation();
+    svgRef.current?.setPointerCapture(event.pointerId);
+    multiDragRef.current = {
+      start: toCanvasPoint(event.clientX, event.clientY),
+      nodes: new Map(
+        state.nodes.filter((item) => state.selectedNodeIds.includes(item.id)).map((item) => [item.id, { ...item.position }]),
+      ),
+      groups: new Map(
+        state.groups.filter((item) => state.selectedGroupIds.includes(item.id)).map((item) => [item.id, { ...item.position }]),
+      ),
+    };
+    setDragTarget({ kind: 'nodes' });
+  };
+
+  const beginNodePointerDown = (event: PointerEvent<SVGGElement>, node: CanvasNode) => {
+    // Shift/Cmd/Ctrl-click toggles the node in the multi-selection.
+    if (event.shiftKey || event.metaKey || event.ctrlKey) {
+      event.stopPropagation();
+      onStateChange(toggleNodeSelection(state, node.id));
+      return;
+    }
+    // Dragging any node in a multi-selection moves the whole set (nodes + groups).
+    if (multiSelectionCount() > 1 && state.selectedNodeIds.includes(node.id)) {
+      startMultiDrag(event);
+      return;
+    }
+    beginDrag(event, { kind: 'node', id: node.id }, node.position);
+  };
+
+  const beginGroupPointerDown = (
+    event: PointerEvent<SVGGElement>,
+    groupId: string,
+    groupPosition: { x: number; y: number },
+  ) => {
+    if (multiSelectionCount() > 1 && state.selectedGroupIds.includes(groupId)) {
+      startMultiDrag(event);
+      return;
+    }
+    beginDrag(event, { kind: 'group', id: groupId }, groupPosition);
+  };
+
+  const beginMarquee = (event: PointerEvent<SVGSVGElement>) => {
+    const point = toCanvasPoint(event.clientX, event.clientY);
+    svgRef.current?.setPointerCapture(event.pointerId);
+    setMarquee({ start: point, current: point });
+    setDragTarget({ kind: 'marquee' });
   };
 
   const beginGroupResize = (
@@ -898,6 +1095,16 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
     svgRef.current?.setPointerCapture(event.pointerId);
     setDragTarget({ kind: 'group-resize', id });
     onStateChange(selectCanvasItem(state, { kind: 'group', id }));
+  };
+
+  const beginNodeResize = (
+    event: PointerEvent<SVGRectElement>,
+    id: string,
+  ) => {
+    event.stopPropagation();
+    svgRef.current?.setPointerCapture(event.pointerId);
+    setDragTarget({ kind: 'node-resize', id });
+    onStateChange(selectCanvasItem(state, { kind: 'node', id }));
   };
 
   const beginEndpointDrag = (
@@ -925,6 +1132,35 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
         );
       }
     }
+    if (dragTarget?.kind === 'marquee' && marquee) {
+      const rect = normalizedRect(marquee.start, marquee.current);
+      if (rect.width < 3 && rect.height < 3) {
+        // A plain click on empty canvas — clear the selection.
+        onStateChange(clearSelection(state));
+      } else {
+        const nodeIds = state.nodes
+          .filter((node) => {
+            const box = renderedNodeBoxesById.get(node.id) ?? computeNodeBox(state, node.id);
+            return box ? rectsIntersect(rect, box) : false;
+          })
+          .map((node) => node.id);
+        const connectionIds = renderedConnections
+          .filter(({ edge }) => polylineIntersectsRect(edge.points, rect))
+          .map(({ connection }) => connection.id);
+        const groupIds = state.groups
+          .filter((group) => {
+            const layoutGroup = sharedGroupsById.get(group.id);
+            const box = layoutGroup
+              ? { x: layoutGroup.x, y: layoutGroup.y, width: layoutGroup.width, height: layoutGroup.height }
+              : { x: group.position.x, y: group.position.y, width: group.size.width, height: group.size.height };
+            return rectsIntersect(rect, box);
+          })
+          .map((group) => group.id);
+        onStateChange(setSelectedItems(state, { nodeIds, connectionIds, groupIds }));
+      }
+    }
+    multiDragRef.current = undefined;
+    setMarquee(undefined);
     setDragTarget(undefined);
     setEndpointDrag(undefined);
     panStartRef.current = undefined;
@@ -946,7 +1182,7 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
           ref={svgRef}
           className={[
             'preview-canvas',
-            isSpaceDown ? 'space-panning' : '',
+            isSpaceDown || panMode ? 'space-panning' : '',
             dragTarget ? 'canvas-dragging' : '',
           ].filter(Boolean).join(' ')}
           viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`}
@@ -955,10 +1191,10 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
           onDrop={onDrop}
           onPointerDown={(event) => {
             if (event.target === event.currentTarget) {
-              if (isSpaceDown) {
+              if (isSpaceDown || panMode) {
                 beginPan(event);
               } else {
-                onStateChange(clearSelection(state));
+                beginMarquee(event);
               }
             }
           }}
@@ -1009,11 +1245,17 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
             pointerEvents: 'all' as const,
           };
 
+          const isGroupResizing = dragTarget?.kind === 'group-resize' && dragTarget.id === group.id;
+          const groupClassName = [
+            'preview-group',
+            state.selectedGroupIds.includes(group.id) ? 'selected' : '',
+            isGroupResizing ? 'resizing' : '',
+          ].filter(Boolean).join(' ');
           return (
             <g
               key={group.id}
-              className={state.selected?.kind === 'group' && state.selected.id === group.id ? 'preview-group selected' : 'preview-group'}
-              onPointerDown={(event) => beginDrag(event, { kind: 'group', id: group.id }, groupPosition)}
+              className={groupClassName}
+              onPointerDown={(event) => beginGroupPointerDown(event, group.id, groupPosition)}
             >
               <rect
                 x={groupPosition.x}
@@ -1132,10 +1374,12 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
           if (!box) {
             return null;
           }
+          const isResizing = dragTarget?.kind === 'node-resize' && dragTarget.id === node.id;
           return (
             <g
               key={node.id}
-              onPointerDown={(event) => beginDrag(event, { kind: 'node', id: node.id }, node.position)}
+              className={isResizing ? 'node-interactive resizing' : 'node-interactive'}
+              onPointerDown={(event) => beginNodePointerDown(event, node)}
             >
               <rect
                 x={box.x}
@@ -1144,7 +1388,7 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
                 height={box.height}
                 className="node-hit-target"
               />
-              {state.selected?.kind === 'node' && state.selected.id === node.id ? (
+              {state.selectedNodeIds.includes(node.id) ? (
                 <rect
                   x={box.x - selectionPadding(node.componentId)}
                   y={box.y - selectionPadding(node.componentId)}
@@ -1155,6 +1399,17 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
                 />
               ) : null}
               {renderNode(state, node.id, activeTheme, box)}
+              {node.componentId !== 'label' ? (
+                <rect
+                  x={box.x + box.width - 6}
+                  y={box.y + box.height - 6}
+                  width={9}
+                  height={9}
+                  rx={2}
+                  className="node-resize-handle"
+                  onPointerDown={(event) => beginNodeResize(event, node.id)}
+                />
+              ) : null}
             </g>
           );
         })}
@@ -1220,11 +1475,53 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
             Drag components here
           </text>
         ) : null}
+        {marquee ? (() => {
+          const rect = normalizedRect(marquee.start, marquee.current);
+          return (
+            <rect
+              x={rect.x}
+              y={rect.y}
+              width={rect.width}
+              height={rect.height}
+              className="marquee-rect"
+            />
+          );
+        })() : null}
+        {panMode ? (
+          <rect
+            x={viewBox.x}
+            y={viewBox.y}
+            width={viewBox.width}
+            height={viewBox.height}
+            className="pan-overlay"
+            onPointerDown={(event) => beginPan(event)}
+          />
+        ) : null}
         </svg>
       </section>
       <div className="canvas-toolbar">
         <div className="canvas-toolbar-inner">
-          <span className="material-symbols-outlined canvas-tool active" aria-hidden="true">near_me</span>
+          <button
+            type="button"
+            className={`canvas-tool${panMode ? '' : ' active'}`}
+            aria-label="Select tool"
+            aria-pressed={!panMode}
+            title="Select (V)"
+            onClick={() => setPanMode(false)}
+          >
+            <span className="material-symbols-outlined" aria-hidden="true">near_me</span>
+          </button>
+          <button
+            type="button"
+            className={`canvas-tool${panMode ? ' active' : ''}`}
+            aria-label="Pan tool"
+            aria-pressed={panMode}
+            title="Pan — drag to move the canvas (or hold Space)"
+            onClick={() => setPanMode((value) => !value)}
+          >
+            <span className="material-symbols-outlined" aria-hidden="true">pan_tool</span>
+          </button>
+          <span className="canvas-toolbar-divider" aria-hidden="true" />
           <button
             type="button"
             className="preview-btn preview-btn-icon preview-btn-zoom"
@@ -1293,26 +1590,6 @@ function selectNearestConnection(state: WorkbenchState, point: { x: number; y: n
   return nearest
     ? selectCanvasItem(state, { kind: 'connection', id: nearest.id })
     : state;
-}
-
-function nearestConnectionAtPoint(
-  state: WorkbenchState,
-  point: { x: number; y: number },
-  threshold = 18,
-): { id: string; distance: number } | undefined {
-  let nearest: { id: string; distance: number } | undefined;
-
-  for (const connection of state.connections) {
-    const points = computeConnectionPoints(state, connection);
-    for (let index = 1; index < points.length; index++) {
-      const distance = distanceToSegment(point, points[index - 1]!, points[index]!);
-      if (distance <= threshold && (!nearest || distance < nearest.distance)) {
-        nearest = { id: connection.id, distance };
-      }
-    }
-  }
-
-  return nearest;
 }
 
 function distanceToSegment(

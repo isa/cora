@@ -44,9 +44,18 @@ function renderedPreviewLayout(state: ReturnType<typeof createDefaultWorkbenchSt
   }
 
   const { nodeStyles, theme } = resolveTheme(document.diagram, defaultTheme);
+  // Mirror production: size nodes by their rendered size, not the text-only measure.
+  const measured = measureNodes(document.diagram.nodes).map((measuredNode) => {
+    const stateNode = state.nodes.find((node) => node.id === measuredNode.id);
+    if (!stateNode) {
+      return measuredNode;
+    }
+    const size = previewNodeSize(stateNode);
+    return { ...measuredNode, measuredWidth: size.width, measuredHeight: size.height };
+  });
   const layout = computePreservedLayout({
     diagram: document.diagram,
-    measuredNodes: applyNodeStyles(measureNodes(document.diagram.nodes), nodeStyles),
+    measuredNodes: applyNodeStyles(measured, nodeStyles),
     theme,
     offset: false,
   });

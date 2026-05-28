@@ -114,10 +114,35 @@ function documentArtworkBox(node: AnchorNode): AnchorBox {
   return centeredArtworkBox(node, artSize, artY);
 }
 
+// Mirrors WebsiteNode's art layout: the browser-window rectangle, excluding the
+// label rendered below it, so side anchors centre on the artwork not the text.
+function websiteArtworkBox(node: AnchorNode): AnchorBox {
+  const hasLabel = hasNodeText(node);
+  const textHeight = textHeightForNode(node, 1);
+  const labelGap = hasLabel ? 8 : 0;
+  const topPadding = hasLabel ? 6 : 0;
+  const bottomPadding = hasLabel ? 6 : 0;
+  const artHeight = Math.max(24, node.height - textHeight - labelGap - topPadding - bottomPadding);
+  const scale = Math.min(node.width / 624, artHeight / 584);
+  const artWidth = 624 * scale;
+  const scaledArtHeight = 584 * scale;
+  const offsetX = node.x + (node.width - artWidth) / 2;
+  const offsetY = node.y + topPadding + (artHeight - scaledArtHeight) / 2;
+  return {
+    id: node.id,
+    x: offsetX + (100 - 88) * scale,
+    y: offsetY + (150 - 138) * scale,
+    width: (700 - 100) * scale,
+    height: (710 - 150) * scale,
+  };
+}
+
 function artworkBox(node: AnchorNode): AnchorBox | undefined {
   switch (node.component) {
     case 'icon':
       return iconArtworkBox(node);
+    case 'website':
+      return websiteArtworkBox(node);
     case 'labelIcon':
       return labelIconArtworkBox(node);
     case 'app': {

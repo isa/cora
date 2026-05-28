@@ -50,6 +50,11 @@ export interface WorkbenchState {
   groups: CanvasGroup[];
   connections: CanvasConnection[];
   selected?: CanvasSelection;
+  // Multi-selection (marquee / shift-click). For a single item the matching
+  // array holds just its id and mirrors `selected`; 2+ ids total = multi mode.
+  selectedNodeIds: string[];
+  selectedConnectionIds: string[];
+  selectedGroupIds: string[];
   nextId: number;
 }
 
@@ -99,6 +104,9 @@ export function createDefaultWorkbenchState(pack = builtInPack): WorkbenchState 
     nodes: [],
     groups: [],
     connections: [],
+    selectedNodeIds: [],
+    selectedConnectionIds: [],
+    selectedGroupIds: [],
     nextId: 1,
   };
 }
@@ -126,6 +134,9 @@ export function addCatalogItemToCanvas(
         },
       ],
       selected: { kind: 'group', id },
+      selectedNodeIds: [],
+      selectedConnectionIds: [],
+      selectedGroupIds: [id],
       nextId: state.nextId + 1,
     };
   }
@@ -165,6 +176,9 @@ export function addCatalogItemToCanvas(
     nodes: [...state.nodes, nextNode],
     connections: [...state.connections, ...connection],
     selected: { kind: 'node', id },
+    selectedNodeIds: [id],
+    selectedConnectionIds: [],
+    selectedGroupIds: [],
     nextId: state.nextId + 1 + connection.length,
   };
 }
@@ -172,11 +186,68 @@ export function addCatalogItemToCanvas(
 export const addNodeToCanvas = addCatalogItemToCanvas;
 
 export function selectCanvasItem(state: WorkbenchState, selected: CanvasSelection): WorkbenchState {
-  return { ...state, selected };
+  return {
+    ...state,
+    selected,
+    selectedNodeIds: selected.kind === 'node' ? [selected.id] : [],
+    selectedConnectionIds: selected.kind === 'connection' ? [selected.id] : [],
+    selectedGroupIds: selected.kind === 'group' ? [selected.id] : [],
+  };
 }
 
 export function clearSelection(state: WorkbenchState): WorkbenchState {
-  return { ...state, selected: undefined };
+  return {
+    ...state,
+    selected: undefined,
+    selectedNodeIds: [],
+    selectedConnectionIds: [],
+    selectedGroupIds: [],
+  };
+}
+
+/** Replace the whole multi-selection (marquee result across all item kinds). */
+export function setSelectedItems(
+  state: WorkbenchState,
+  items: { nodeIds?: string[]; connectionIds?: string[]; groupIds?: string[] },
+): WorkbenchState {
+  const nodeIds = state.nodes.filter((n) => items.nodeIds?.includes(n.id)).map((n) => n.id);
+  const connectionIds = state.connections.filter((c) => items.connectionIds?.includes(c.id)).map((c) => c.id);
+  const groupIds = state.groups.filter((g) => items.groupIds?.includes(g.id)).map((g) => g.id);
+  const total = nodeIds.length + connectionIds.length + groupIds.length;
+  const single: CanvasSelection | undefined =
+    total !== 1
+      ? undefined
+      : nodeIds.length
+        ? { kind: 'node', id: nodeIds[0]! }
+        : connectionIds.length
+          ? { kind: 'connection', id: connectionIds[0]! }
+          : { kind: 'group', id: groupIds[0]! };
+  return { ...state, selected: single, selectedNodeIds: nodeIds, selectedConnectionIds: connectionIds, selectedGroupIds: groupIds };
+}
+
+/** Add/remove a node from the multi-selection (shift/cmd-click). */
+export function toggleNodeSelection(state: WorkbenchState, nodeId: string): WorkbenchState {
+  const has = state.selectedNodeIds.includes(nodeId);
+  const ids = has
+    ? state.selectedNodeIds.filter((id) => id !== nodeId)
+    : [...state.selectedNodeIds, nodeId];
+  return {
+    ...state,
+    selectedNodeIds: ids,
+    selectedConnectionIds: [],
+    selectedGroupIds: [],
+    selected: ids.length === 1 ? { kind: 'node', id: ids[0]! } : undefined,
+  };
+}
+
+/** Apply a prop change to every selected node that accepts it. */
+export function updateNodesProps(
+  state: WorkbenchState,
+  nodeIds: string[],
+  key: string,
+  value: unknown,
+): WorkbenchState {
+  return nodeIds.reduce((next, nodeId) => updateNodeProps(next, nodeId, key, value), state);
 }
 
 export function updateNodeProps(
@@ -289,6 +360,42 @@ export function setNodePosition(
   };
 }
 
+export function setNodePositions(
+  state: WorkbenchState,
+  positions: Array<{ id: string; position: PreviewPosition }>,
+): WorkbenchState {
+  const byId = new Map(positions.map((entry) => [entry.id, entry.position]));
+  return {
+    ...state,
+    nodes: state.nodes.map((node) => (byId.has(node.id) ? { ...node, position: byId.get(node.id)! } : node)),
+  };
+}
+
+export function setGroupPositions(
+  state: WorkbenchState,
+  positions: Array<{ id: string; position: PreviewPosition }>,
+): WorkbenchState {
+  const byId = new Map(positions.map((entry) => [entry.id, roundPosition(entry.position)]));
+  return {
+    ...state,
+    groups: state.groups.map((group) => (byId.has(group.id) ? { ...group, position: byId.get(group.id)! } : group)),
+  };
+}
+
+export function setNodeSize(
+  state: WorkbenchState,
+  nodeId: string,
+  size: { width: number; height: number },
+): WorkbenchState {
+  const explicit = { width: Math.round(size.width), height: Math.round(size.height) };
+  return {
+    ...state,
+    nodes: state.nodes.map((node) =>
+      node.id === nodeId ? { ...node, props: { ...node.props, size: explicit } } : node,
+    ),
+  };
+}
+
 export function setGroupPosition(
   state: WorkbenchState,
   groupId: string,
@@ -306,6 +413,29 @@ export function setGroupSize(
 }
 
 export function duplicateSelected(state: WorkbenchState): WorkbenchState {
+  // Multi-node selection: copy each node (offset, no auto-connections).
+  if (state.selectedNodeIds.length > 1) {
+    const ids = new Set(state.selectedNodeIds);
+    const originals = state.nodes.filter((node) => ids.has(node.id));
+    if (originals.length === 0) {
+      return state;
+    }
+    const copies = originals.map((node, index) => ({
+      ...node,
+      id: `node-${state.nextId + index}`,
+      position: { x: node.position.x + 28, y: node.position.y + 28 },
+      attachedConnectionId: undefined,
+    }));
+    return {
+      ...state,
+      nodes: [...state.nodes, ...copies],
+      selected: undefined,
+      selectedNodeIds: copies.map((node) => node.id),
+      selectedConnectionIds: [],
+      selectedGroupIds: [],
+      nextId: state.nextId + copies.length,
+    };
+  }
   if (!state.selected) {
     return state;
   }
@@ -338,6 +468,9 @@ export function duplicateSelected(state: WorkbenchState): WorkbenchState {
       ],
       connections: [...state.connections, ...connection],
       selected: { kind: 'node', id },
+      selectedNodeIds: [id],
+      selectedConnectionIds: [],
+      selectedGroupIds: [],
       nextId: state.nextId + 1 + connection.length,
     };
   }
@@ -359,6 +492,9 @@ export function duplicateSelected(state: WorkbenchState): WorkbenchState {
         },
       ],
       selected: { kind: 'group', id },
+      selectedNodeIds: [],
+      selectedConnectionIds: [],
+      selectedGroupIds: [id],
       nextId: state.nextId + 1,
     };
   }
@@ -366,35 +502,31 @@ export function duplicateSelected(state: WorkbenchState): WorkbenchState {
 }
 
 export function deleteSelected(state: WorkbenchState): WorkbenchState {
-  if (!state.selected) {
+  const nodeIds = new Set(state.selectedNodeIds);
+  const groupIds = new Set(state.selectedGroupIds);
+  // Connections removed: explicitly selected, or attached to a removed node.
+  const removedConnectionIds = new Set(state.selectedConnectionIds);
+  for (const connection of state.connections) {
+    if (nodeIds.has(connection.fromNodeId) || nodeIds.has(connection.toNodeId)) {
+      removedConnectionIds.add(connection.id);
+    }
+  }
+
+  if (nodeIds.size === 0 && groupIds.size === 0 && removedConnectionIds.size === 0) {
     return state;
   }
-  if (state.selected.kind === 'node') {
-    const id = state.selected.id;
-    const removedConnectionIds = new Set(
-      state.connections
-        .filter((connection) => connection.fromNodeId === id || connection.toNodeId === id)
-        .map((connection) => connection.id),
-    );
-    return {
-      ...state,
-      connections: state.connections.filter((connection) => connection.fromNodeId !== id && connection.toNodeId !== id),
-      nodes: state.nodes.filter((node) => node.id !== id && !removedConnectionIds.has(node.attachedConnectionId ?? '')),
-      selected: undefined,
-    };
-  }
-  if (state.selected.kind === 'connection') {
-    return {
-      ...state,
-      connections: state.connections.filter((connection) => connection.id !== state.selected?.id),
-      nodes: state.nodes.filter((node) => node.attachedConnectionId !== state.selected?.id),
-      selected: undefined,
-    };
-  }
+
   return {
     ...state,
-    groups: state.groups.filter((group) => group.id !== state.selected?.id),
+    connections: state.connections.filter((connection) => !removedConnectionIds.has(connection.id)),
+    nodes: state.nodes.filter(
+      (node) => !nodeIds.has(node.id) && !removedConnectionIds.has(node.attachedConnectionId ?? ''),
+    ),
+    groups: state.groups.filter((group) => !groupIds.has(group.id)),
     selected: undefined,
+    selectedNodeIds: [],
+    selectedConnectionIds: [],
+    selectedGroupIds: [],
   };
 }
 
@@ -405,5 +537,8 @@ export function clearCanvas(state: WorkbenchState): WorkbenchState {
     groups: [],
     connections: [],
     selected: undefined,
+    selectedNodeIds: [],
+    selectedConnectionIds: [],
+    selectedGroupIds: [],
   };
 }

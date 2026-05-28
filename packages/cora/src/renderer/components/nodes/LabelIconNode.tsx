@@ -108,12 +108,14 @@ export function LabelIconNode(props: LabelIconNodeProps) {
 
   return (
     <CatalogFrame {...props} shadow={undefined}>
-      <circle
-        cx={frame.x + frame.width / 2}
-        cy={iconY + iconSize / 2}
-        r={iconSize / 2}
-        fill="#FFFFFF"
-      />
+      {filledBackground ? (
+        <circle
+          cx={frame.x + frame.width / 2}
+          cy={iconY + iconSize / 2}
+          r={iconSize / 2}
+          fill={filledBackground}
+        />
+      ) : null}
       <CatalogIconSlot
         icon={props.icon}
         x={frame.x + (frame.width - iconSize) / 2}

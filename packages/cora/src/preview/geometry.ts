@@ -206,6 +206,23 @@ export function previewNodeSize(node: CanvasNode): { width: number; height: numb
   return base;
 }
 
+/**
+ * Rendered size of a label node's text (longest wrapped line + wrapped height),
+ * as opposed to its fixed box width. Used to tightly gap the connection line
+ * around the visible text rather than the whole node box.
+ */
+export function previewLabelContentSize(node: CanvasNode): { width: number; height: number } {
+  const base = previewBaseSize(node);
+  const layout = resolveCatalogTextLayout({
+    text: nodeText(node),
+    subtitle: nodeSubtitle(node),
+    width: base.width,
+    fontSize: nodeTitleFontSize(node),
+    subtitleFontSize: nodeSubtitleFontSize(node),
+  });
+  return { width: layout.contentWidth, height: layout.totalHeight };
+}
+
 export function computeNodeBox(state: WorkbenchState, nodeId: string): PreviewBox | undefined {
   const node = state.nodes.find((item) => item.id === nodeId);
   if (!node) {

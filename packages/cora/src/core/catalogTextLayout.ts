@@ -22,6 +22,8 @@ export interface CatalogTextLayout {
   subtitleLineHeight: number;
   totalHeight: number;
   maxTextWidth: number;
+  /** Width of the longest rendered line (title or subtitle), in px. */
+  contentWidth: number;
   stillTooWide: boolean;
 }
 
@@ -134,6 +136,11 @@ export function resolveCatalogTextLayout({
     (hasTitle && hasSubtitle ? CATALOG_TEXT_SUBTITLE_GAP : 0) +
     subtitleLines.length * subtitleLineHeight;
   const stillTooWide = !wrapText && estimatedLineWidth(longestTitleLine, fittedTitleFontSize) > maxTextWidth;
+  const contentWidth = Math.max(
+    0,
+    ...titleLines.map((line) => estimatedLineWidth(line, fittedTitleFontSize)),
+    ...subtitleLines.map((line) => estimatedLineWidth(line, resolvedSubtitleFontSize)),
+  );
 
   return {
     titleLines,
@@ -144,6 +151,7 @@ export function resolveCatalogTextLayout({
     subtitleLineHeight,
     totalHeight,
     maxTextWidth,
+    contentWidth,
     stillTooWide,
   };
 }
