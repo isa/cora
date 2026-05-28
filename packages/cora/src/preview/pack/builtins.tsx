@@ -15,6 +15,7 @@ import type { PackManifest, PreviewComponentDefinition } from './types.js';
 import {
   baseNodeControls,
   baseNodeDefaults,
+  boxNodeControls,
   iconNodeControls,
   labelNodeControls,
   labelIconNodeControls,
@@ -59,7 +60,7 @@ export const builtInPack: PackManifest = {
     component('box', displayNameForComponent('box'), 'basic', BoxNode as ComponentType<PreviewNodeProps>, {
       ...catalogDefaultProps('box'),
       title: 'Box',
-    }),
+    }, boxNodeControls),
     component('label', displayNameForComponent('label'), 'basic', LabelNode as ComponentType<PreviewNodeProps>, {
       ...catalogDefaultProps('label'),
       title: 'Label',

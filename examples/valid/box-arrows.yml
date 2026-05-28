@@ -1,0 +1,78 @@
+version: 1
+diagram:
+  kind: box-arrows
+  layout: preserve
+  direction: LR
+  nodes:
+    - id: client
+      label: Browser Client
+      component: box
+      position:
+        x: 24
+        y: 24
+      style:
+        title: Browser Client
+        text: Browser Client
+    - id: proxy
+      label: Edge Proxy
+      component: box
+      position:
+        x: 240.61328125
+        y: 132.98828125
+      style:
+        title: Edge Proxy
+        text: Edge Proxy
+    - id: server
+      label: API Server
+      component: box
+      position:
+        x: 441
+        y: 24
+      style:
+        title: API Server
+        text: API Server
+    - id: worker
+      label: Async Worker
+      component: box
+      position:
+        x: 694.01953125
+        y: 24.40625
+      style:
+        title: Async Worker
+        text: Async Worker
+    - id: audit
+      label: Audit Log
+      component: box
+      position:
+        x: 943.07421875
+        y: 23.9375
+      style:
+        title: Audit Log
+        text: Audit Log
+  edges:
+    - from: client
+      to: proxy
+      label: request
+      startMarker: none
+      endMarker: arrow
+    - from: proxy
+      to: server
+      label: forward
+      startMarker: none
+      endMarker: filledCircle
+    - from: server
+      to: worker
+      label: enqueue
+      startMarker: circle
+      endMarker: square
+    - from: worker
+      to: audit
+      label: write
+      startMarker: none
+      endMarker: diamond
+    - from: server
+      to: client
+      label: response
+      startMarker: filledSquare
+      endMarker: arrow
+  groups: []

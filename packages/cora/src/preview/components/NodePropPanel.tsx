@@ -76,9 +76,9 @@ export function visibleComponentLabel(label: string): string {
 const CONTENT_KEYS = ['iconName', 'iconColor', 'title', 'subtitle', 'text', 'iconType', 'type', 'icon'];
 const LAYOUT_KEYS = ['size', 'radius', 'borderStyle', 'borderWidth', 'borderColor'];
 const STYLE_KEYS = [
-  'backgroundColor',
   'textColor',
   'subtitleColor',
+  'backgroundColor',
   'skeletonColor',
   'titleFontSize',
   'subtitleFontSize',

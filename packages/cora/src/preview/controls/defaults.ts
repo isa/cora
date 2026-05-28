@@ -117,6 +117,11 @@ export const baseNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
   },
 ];
 
+export const boxNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
+  ...baseNodeControls,
+  { kind: 'color', key: 'backgroundColor', label: 'Fill' },
+];
+
 export const labelNodeControls: Array<ControlDefinition<PreviewNodeProps>> =
   baseNodeControls.filter((control) => control.key !== 'size' && control.key !== 'shadow' && control.key !== 'shadowColor');
 

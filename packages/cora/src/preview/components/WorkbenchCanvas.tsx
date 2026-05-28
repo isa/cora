@@ -933,8 +933,12 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
             stroke: '#000000',
             strokeWidth: 0.75,
             strokeDasharray: '4 4',
+            // Capture pointer events across the whole box even when unfilled,
+            // otherwise the group can only be grabbed by its thin border.
+            pointerEvents: 'all' as const,
           } : {
             fill: group.fillColor,
+            pointerEvents: 'all' as const,
           };
 
           return (
