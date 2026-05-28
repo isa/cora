@@ -142,7 +142,8 @@ describe('preview geometry', () => {
     );
     const node = withLabelIcon.nodes.at(-1)!;
     const box = computeNodeBox(withLabelIcon, node.id)!;
-    expect(box.y).toBe(82);
+    // Centred on the connection line between the two (now 37px-tall) boxes.
+    expect(box.y).toBe(70.5);
   });
 
   it('centers attached labels on their connection path', () => {

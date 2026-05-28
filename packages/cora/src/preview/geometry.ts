@@ -538,6 +538,10 @@ export function computeConnectionCenter(
   return connection ? connectionCenter(computeConnectionPoints(state, connection)) : undefined;
 }
 
+// Fixed distance an on-line icon sits from the nearer node, independent of its
+// own size, so resizing scales it in place rather than sliding it.
+const LABEL_ICON_LINE_OFFSET = 40;
+
 export function computeConnectionLabelIconCenter(
   state: WorkbenchState,
   connectionId: string,
@@ -549,7 +553,10 @@ export function computeConnectionLabelIconCenter(
     return undefined;
   }
   const points = computeConnectionPoints(state, connection);
-  const distance = Math.max(24, Math.min(size.width, size.height) * 0.85);
+  // Anchor the icon a fixed distance along the line — independent of its size —
+  // so resizing scales it in place instead of sliding it along the connection.
+  void size;
+  const distance = LABEL_ICON_LINE_OFFSET;
   if (preferredPoint && points.length > 1) {
     const source = points[0]!;
     const target = points[points.length - 1]!;

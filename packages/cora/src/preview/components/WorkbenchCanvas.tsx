@@ -43,6 +43,7 @@ import {
   setNodePosition,
   setNodePositions,
   setNodeSize,
+  setNodeSizeAndPosition,
   setSelectedItems,
   toggleNodeSelection,
   type CanvasSelection,
@@ -648,6 +649,11 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
   const multiDragRef = useRef<
     { start: PreviewPoint; nodes: Map<string, PreviewPoint>; groups: Map<string, PreviewPoint> } | undefined
   >(undefined);
+  // Centre-anchored, aspect-locked resize: the body centre and aspect ratio
+  // captured at drag start stay fixed for the whole gesture.
+  const resizeRef = useRef<
+    { center: PreviewPoint; baseWidth: number; baseHeight: number } | undefined
+  >(undefined);
   const viewBox = zoomViewBox(zoom, pan, viewport);
 
   const zoomRef = useRef(zoom);
@@ -922,6 +928,7 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
       : componentId === 'document' ? DOCUMENT_SIZE_PRESETS.lg
       : componentId === 'icon' ? APP_SIZE_PRESETS.lg
       : componentId === 'labelIcon' ? LABEL_ICON_SIZE_PRESETS.sm
+      : componentId === 'box' ? { width: 140, height: 37 }
       : { width: 176, height: 72 };
     onStateChange(addCatalogItemToCanvas(dropState, componentId, {
       x: Math.max(16, point.x - dropSize.width / 2),
@@ -997,14 +1004,46 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
       return;
     }
     if (dragTarget.kind === 'node-resize') {
-      const box = renderedNodeBoxesById.get(dragTarget.id) ?? computeNodeBox(state, dragTarget.id);
-      if (!box) {
+      const node = state.nodes.find((item) => item.id === dragTarget.id);
+      if (!node) {
         return;
       }
-      onStateChange(setNodeSize(state, dragTarget.id, {
-        width: Math.max(MIN_NODE_WIDTH, point.x - box.x),
-        height: Math.max(MIN_NODE_HEIGHT, point.y - box.y),
-      }));
+      // Boxes resize from their top-left corner (free aspect ratio).
+      if (node.componentId === 'box') {
+        const box = renderedNodeBoxesById.get(node.id) ?? computeNodeBox(state, node.id);
+        if (!box) {
+          return;
+        }
+        onStateChange(setNodeSize(state, node.id, {
+          width: Math.max(MIN_NODE_WIDTH, point.x - box.x),
+          height: Math.max(MIN_NODE_HEIGHT, point.y - box.y),
+        }));
+        return;
+      }
+      // Every other node resizes from its centre with the aspect ratio locked.
+      const resize = resizeRef.current;
+      if (!resize || resize.baseWidth === 0 || resize.baseHeight === 0) {
+        return;
+      }
+      const scaleX = Math.abs(point.x - resize.center.x) / (resize.baseWidth / 2);
+      const scaleY = Math.abs(point.y - resize.center.y) / (resize.baseHeight / 2);
+      const minScale = Math.max(MIN_NODE_WIDTH / resize.baseWidth, MIN_NODE_HEIGHT / resize.baseHeight);
+      const scale = Math.max(scaleX, scaleY, minScale);
+      const size = { width: resize.baseWidth * scale, height: resize.baseHeight * scale };
+
+      if (node.attachedConnectionId) {
+        // Attached labels are auto-centred on their line; only the size matters.
+        onStateChange(setNodeSize(state, dragTarget.id, size));
+        return;
+      }
+      // Pin the body centre: position the node so its rendered box stays centred.
+      const rendered = previewNodeSize({ ...node, props: { ...node.props, size } });
+      onStateChange(
+        setNodeSizeAndPosition(state, dragTarget.id, size, {
+          x: resize.center.x - rendered.width / 2,
+          y: resize.center.y - rendered.height / 2,
+        }),
+      );
       return;
     }
     onStateChange(
@@ -1103,6 +1142,14 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
   ) => {
     event.stopPropagation();
     svgRef.current?.setPointerCapture(event.pointerId);
+    const box = renderedNodeBoxesById.get(id) ?? computeNodeBox(state, id);
+    if (box) {
+      resizeRef.current = {
+        center: { x: box.x + box.width / 2, y: box.y + box.height / 2 },
+        baseWidth: box.width,
+        baseHeight: box.height,
+      };
+    }
     setDragTarget({ kind: 'node-resize', id });
     onStateChange(selectCanvasItem(state, { kind: 'node', id }));
   };
@@ -1160,6 +1207,7 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
       }
     }
     multiDragRef.current = undefined;
+    resizeRef.current = undefined;
     setMarquee(undefined);
     setDragTarget(undefined);
     setEndpointDrag(undefined);

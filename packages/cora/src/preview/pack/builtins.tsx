@@ -60,6 +60,8 @@ export const builtInPack: PackManifest = {
     component('box', displayNameForComponent('box'), 'basic', BoxNode as ComponentType<PreviewNodeProps>, {
       ...catalogDefaultProps('box'),
       title: 'Box',
+      // Boxes default to a flatter shape (~40% shorter than the legacy 56px, +10%).
+      size: { width: 140, height: 37 },
     }, boxNodeControls),
     component('label', displayNameForComponent('label'), 'basic', LabelNode as ComponentType<PreviewNodeProps>, {
       ...catalogDefaultProps('label'),

@@ -396,6 +396,24 @@ export function setNodeSize(
   };
 }
 
+/** Resize a node while pinning its top-left to `position` (used to keep the
+ *  body centre fixed during a centre-anchored resize). */
+export function setNodeSizeAndPosition(
+  state: WorkbenchState,
+  nodeId: string,
+  size: { width: number; height: number },
+  position: PreviewPosition,
+): WorkbenchState {
+  const explicit = { width: Math.round(size.width), height: Math.round(size.height) };
+  const pos = roundPosition(position);
+  return {
+    ...state,
+    nodes: state.nodes.map((node) =>
+      node.id === nodeId ? { ...node, props: { ...node.props, size: explicit }, position: pos } : node,
+    ),
+  };
+}
+
 export function setGroupPosition(
   state: WorkbenchState,
   groupId: string,
