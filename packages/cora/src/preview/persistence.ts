@@ -121,6 +121,8 @@ function previewNodePropsFromDiagramNode(node: DiagramNode): PreviewNodeProps {
     skeletonColor: stringValue(style.skeletonColor) ?? defaults.skeletonColor,
     titleFontSize: numberValue(style.titleFontSize) ?? numberValue(style.titleSize) ?? defaults.titleFontSize,
     subtitleFontSize: numberValue(style.subtitleFontSize) ?? defaults.subtitleFontSize,
+    titleBold: typeof style.titleBold === 'boolean' ? style.titleBold : defaults.titleBold,
+    subtitleBold: typeof style.subtitleBold === 'boolean' ? style.subtitleBold : defaults.subtitleBold,
     shadow: shadowValue(style.shadow) ?? defaults.shadow,
     shadowColor: stringValue(style.shadowColor) ?? defaults.shadowColor,
     size: sizeValue(style.size) ?? defaults.size,
@@ -323,6 +325,8 @@ function nodeStyleFromPreviewNode(state: WorkbenchState, node: CanvasNode, attac
   assignIfChanged('skeletonColor', props.skeletonColor, defaults.skeletonColor);
   assignIfChanged('titleFontSize', props.titleFontSize, defaults.titleFontSize);
   assignIfChanged('subtitleFontSize', props.subtitleFontSize, defaults.subtitleFontSize);
+  assignIfChanged('titleBold', props.titleBold, defaults.titleBold);
+  assignIfChanged('subtitleBold', props.subtitleBold, defaults.subtitleBold);
   assignIfChanged('shadow', props.shadow, defaults.shadow);
   assignIfChanged('shadowColor', props.shadowColor, defaults.shadowColor);
   assignIfChanged('size', props.size, defaults.size);

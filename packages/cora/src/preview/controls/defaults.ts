@@ -20,6 +20,8 @@ export type PreviewNodeProps = {
   skeletonColor?: string;
   titleFontSize?: number;
   subtitleFontSize?: number;
+  titleBold?: boolean;
+  subtitleBold?: boolean;
   shadow?: 'none' | 'cast' | 'radial';
   shadowColor?: string;
   size?: 'sm' | 'md' | 'lg' | 'xl' | 'xxl' | { width: number; height: number };
@@ -106,6 +108,8 @@ export const baseNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
   { kind: 'color', key: 'subtitleColor', label: 'Subtitle color' },
   { kind: 'number', key: 'titleFontSize', label: 'Title size', min: 8, max: 28, step: 1 },
   { kind: 'number', key: 'subtitleFontSize', label: 'Subtitle size', min: 7, max: 24, step: 1 },
+  { kind: 'bold', key: 'titleBold', label: 'Bold' },
+  { kind: 'bold', key: 'subtitleBold', label: 'Bold' },
   { kind: 'enum', key: 'shadow', label: 'Shadow', options: ['none', 'cast', 'radial'] },
   { kind: 'color', key: 'shadowColor', label: 'Shadow color' },
 ];
@@ -127,6 +131,8 @@ export const iconNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
   { kind: 'color', key: 'subtitleColor', label: 'Subtitle color' },
   { kind: 'number', key: 'titleFontSize', label: 'Title size', min: 8, max: 28, step: 1 },
   { kind: 'number', key: 'subtitleFontSize', label: 'Subtitle size', min: 7, max: 24, step: 1 },
+  { kind: 'bold', key: 'titleBold', label: 'Bold' },
+  { kind: 'bold', key: 'subtitleBold', label: 'Bold' },
 ];
 
 export const labelIconNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
@@ -134,6 +140,12 @@ export const labelIconNodeControls: Array<ControlDefinition<PreviewNodeProps>> =
   { kind: 'color', key: 'iconColor', label: 'Icon color' },
   { kind: 'text', key: 'title', label: 'Title' },
   { kind: 'text', key: 'subtitle', label: 'Subtitle' },
+  { kind: 'color', key: 'textColor', label: 'Title color' },
+  { kind: 'color', key: 'subtitleColor', label: 'Subtitle color' },
+  { kind: 'number', key: 'titleFontSize', label: 'Title size', min: 8, max: 28, step: 1 },
+  { kind: 'number', key: 'subtitleFontSize', label: 'Subtitle size', min: 7, max: 24, step: 1 },
+  { kind: 'bold', key: 'titleBold', label: 'Bold' },
+  { kind: 'bold', key: 'subtitleBold', label: 'Bold' },
   { kind: 'color', key: 'backgroundColor', label: 'Background' },
 ];
 

@@ -74,13 +74,30 @@ describe('preview controls', () => {
       'subtitleColor',
       'titleFontSize',
       'subtitleFontSize',
+      'titleBold',
+      'subtitleBold',
     ]);
     // Icon/web/document/database/api/app have no visual radius — control removed.
     expect(iconNodeControls.some((control) => control.key === 'radius')).toBe(false);
     expect(websiteNodeControls.some((control) => control.key === 'radius')).toBe(false);
     expect(appNodeControls.some((control) => control.key === 'radius')).toBe(false);
     expect(documentNodeControls.some((control) => control.key === 'radius')).toBe(false);
-    expect(labelIconNodeControls.map((control) => control.key)).toEqual(['iconName', 'iconColor', 'title', 'subtitle', 'backgroundColor']);
+    expect(labelIconNodeControls.map((control) => control.key)).toEqual([
+      'iconName',
+      'iconColor',
+      'title',
+      'subtitle',
+      'textColor',
+      'subtitleColor',
+      'titleFontSize',
+      'subtitleFontSize',
+      'titleBold',
+      'subtitleBold',
+      'backgroundColor',
+    ]);
+    // Icon labels expose text size and a bold toggle.
+    expect(labelIconNodeControls.some((control) => control.key === 'titleFontSize')).toBe(true);
+    expect(labelIconNodeControls.some((control) => control.kind === 'bold')).toBe(true);
     expect(labelIconNodeControls.find((control) => control.key === 'iconName')).toMatchObject({
       kind: 'icon',
     });

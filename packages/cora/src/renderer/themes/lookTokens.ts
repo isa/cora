@@ -10,8 +10,8 @@ export const LOOK = {
     hairline: TAILWIND.slate[200],
   },
   text: {
-    primary: TAILWIND.slate[900],
-    muted: TAILWIND.slate[500],
+    primary: TAILWIND.slate[800],
+    muted: TAILWIND.slate[400],
     edgeLabel: TAILWIND.slate[600],
     standaloneLabel: TAILWIND.slate[800],
   },

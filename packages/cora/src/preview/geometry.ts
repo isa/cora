@@ -55,7 +55,7 @@ function nodeSubtitle(node: CanvasNode): string {
   return String(node.props.subtitle ?? '');
 }
 
-function nodeTitleFontSize(node: CanvasNode, fallback = 13): number {
+function nodeTitleFontSize(node: CanvasNode, fallback = 12): number {
   return node.props.titleFontSize ?? fallback;
 }
 

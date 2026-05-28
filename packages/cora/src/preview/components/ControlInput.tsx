@@ -439,6 +439,25 @@ export function ControlInput({ control, value, onChange, showColorSwatches = fal
     );
   }
 
+  if (control.kind === 'bold') {
+    const active = Boolean(value);
+    return (
+      <div className="field compact field-bold">
+        <span>{control.label}</span>
+        <button
+          type="button"
+          className={`bold-toggle${active ? ' active' : ''}`}
+          aria-pressed={active}
+          aria-label={`${control.label}: ${active ? 'on' : 'off'}`}
+          title="Bold"
+          onClick={() => onChange(!active)}
+        >
+          B
+        </button>
+      </div>
+    );
+  }
+
   if (control.kind === 'size') {
     const current = typeof value === 'string'
       ? value

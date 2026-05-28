@@ -88,6 +88,8 @@ export function ApiNode(props: ApiNodeProps) {
         subtitleColor={frame.subtitleColor}
         fontSize={titleFontSize}
         subtitleFontSize={subtitleFontSize}
+        fontWeight={frame.titleBold ? 700 : 400}
+        subtitleFontWeight={frame.subtitleBold ? 700 : 400}
       />
     </g>
   );

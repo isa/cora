@@ -1318,8 +1318,22 @@ body.dark .component-grid .component-tile:hover .component-icon {
 .control-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 10px;
   align-items: start;
+}
+
+/* No room for the inline eyedropper in a paired row — the picker popover keeps
+   its own, and dropping it stops the colour field overflowing into its neighbour. */
+.control-row .color-picker-eyedropper-btn {
+  display: none;
+}
+
+/* The colour cell is narrow inside a paired row; open the picker from the left
+   edge so its fixed-width panel stays inside the inspector. */
+.control-row .color-picker-popover {
+  left: 0;
+  right: auto;
+  max-width: 240px;
 }
 
 .control-group-content .control-row > * {
@@ -1331,10 +1345,35 @@ body.dark .component-grid .component-tile:hover .component-icon {
    to a number field) so the row reads as one tidy line. */
 .control-row .ui-input,
 .control-row .color-picker-trigger,
-.control-row .color-picker-eyedropper-btn {
+.control-row .color-picker-eyedropper-btn,
+.control-row .bold-toggle {
   box-sizing: border-box;
   height: 34px;
   min-height: 34px;
+}
+
+.bold-toggle {
+  min-width: 34px;
+  padding: 0 8px;
+  border: 1px solid rgba(207, 196, 197, 0.4);
+  border-radius: 8px;
+  background: var(--preview-surface);
+  color: var(--preview-ink);
+  font-family: 'Hanken Grotesk', Manrope, sans-serif;
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.bold-toggle:hover {
+  border-color: var(--inspector-accent-color, var(--preview-accent));
+}
+
+.bold-toggle.active {
+  background: var(--inspector-accent-color, var(--preview-accent));
+  border-color: var(--inspector-accent-color, var(--preview-accent));
+  color: #ffffff;
 }
 
 .content-subtitle-size-row {

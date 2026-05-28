@@ -24,9 +24,9 @@ const SECTION_LAYOUT: SectionLayout[] = [
       ['iconName'],
       ['iconColor'],
       ['title'],
-      ['textColor', 'titleFontSize'],
+      ['textColor', 'titleFontSize', 'titleBold'],
       ['subtitle'],
-      ['subtitleColor', 'subtitleFontSize'],
+      ['subtitleColor', 'subtitleFontSize', 'subtitleBold'],
       ['text'],
       ['iconType'],
     ],
@@ -54,6 +54,15 @@ const SECTION_LAYOUT: SectionLayout[] = [
 
 type Control = ControlDefinition<PreviewNodeProps>;
 type ControlRow = Control[];
+
+// Column sizing for a paired row: colours need room for the swatch + hex, number
+// fields stay snug, and the bold "B" toggle hugs its button.
+function columnWidth(control: Control): string {
+  if (control.kind === 'bold') return 'auto';
+  if (control.kind === 'color') return 'minmax(0, 1.25fr)';
+  if (control.kind === 'number') return 'minmax(0, 0.75fr)';
+  return 'minmax(0, 1fr)';
+}
 
 function buildSections(controls: Control[]) {
   const byKey = new Map<string, Control>(controls.map((control) => [control.key, control]));
@@ -117,7 +126,11 @@ function ControlSections({ controls, getValue, onChange }: ControlSectionsProps)
           <div className="control-group-content">
             {section.rows.map((row, index) =>
               row.length > 1 ? (
-                <div key={index} className="control-row">
+                <div
+                  key={index}
+                  className="control-row"
+                  style={{ gridTemplateColumns: row.map(columnWidth).join(' ') }}
+                >
                   {row.map(renderControl)}
                 </div>
               ) : (

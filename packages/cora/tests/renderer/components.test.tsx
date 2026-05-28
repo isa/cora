@@ -394,16 +394,22 @@ describe('renderer catalog nodes', () => {
     expect((markup.match(/<tspan/g) ?? []).length).toBeGreaterThan(1);
   });
 
-  it('renders LabelNode and LabelIconNode as bold only when subtitle is present', () => {
-    const boldLabel = renderToStaticMarkup(<LabelNode title="Primary" subtitle="Secondary" />);
-    const regularLabel = renderToStaticMarkup(<LabelNode title="Primary" />);
-    expect(boldLabel).toContain('font-weight="600"');
+  it('renders title/subtitle bold only when the bold flag is set (default not bold)', () => {
+    const regularLabel = renderToStaticMarkup(<LabelNode title="Primary" subtitle="Secondary" />);
     expect(regularLabel).toContain('font-weight="400"');
+    expect(regularLabel).not.toContain('font-weight="700"');
 
-    const boldLabelIcon = renderToStaticMarkup(<LabelIconNode icon={TestIcon} text="Primary" subtitle="Secondary" />);
-    const regularLabelIcon = renderToStaticMarkup(<LabelIconNode icon={TestIcon} text="Primary" />);
-    expect(boldLabelIcon).toContain('font-weight="600"');
+    const boldLabel = renderToStaticMarkup(<LabelNode title="Primary" subtitle="Secondary" titleBold subtitleBold />);
+    expect(boldLabel).toContain('font-weight="700"');
+
+    const regularLabelIcon = renderToStaticMarkup(<LabelIconNode icon={TestIcon} text="Primary" subtitle="Secondary" />);
     expect(regularLabelIcon).toContain('font-weight="400"');
+    expect(regularLabelIcon).not.toContain('font-weight="700"');
+
+    const boldLabelIcon = renderToStaticMarkup(
+      <LabelIconNode icon={TestIcon} text="Primary" subtitle="Secondary" titleBold subtitleBold />,
+    );
+    expect(boldLabelIcon).toContain('font-weight="700"');
   });
 
   it('renders DocumentNode from the Solar documents duotone paths', () => {

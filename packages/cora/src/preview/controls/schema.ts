@@ -1,6 +1,6 @@
 import type { ComponentDimensions, SizePreset } from '../../renderer/components/types.js';
 
-export type ControlKind = 'text' | 'color' | 'boolean' | 'number' | 'enum' | 'size' | 'icon';
+export type ControlKind = 'text' | 'color' | 'boolean' | 'bold' | 'number' | 'enum' | 'size' | 'icon';
 
 export interface BaseControl<Props extends Record<string, unknown>> {
   key: keyof Props & string;
@@ -21,6 +21,11 @@ export interface ColorControl<Props extends Record<string, unknown>> extends Bas
 
 export interface BooleanControl<Props extends Record<string, unknown>> extends BaseControl<Props> {
   kind: 'boolean';
+}
+
+/** A compact "B" toggle button (bold on/off), rendered inline beside a size. */
+export interface BoldControl<Props extends Record<string, unknown>> extends BaseControl<Props> {
+  kind: 'bold';
 }
 
 export interface NumberControl<Props extends Record<string, unknown>> extends BaseControl<Props> {
@@ -48,6 +53,7 @@ export type ControlDefinition<Props extends Record<string, unknown> = Record<str
   | IconControl<Props>
   | ColorControl<Props>
   | BooleanControl<Props>
+  | BoldControl<Props>
   | NumberControl<Props>
   | EnumControl<Props>
   | SizeControl<Props>;
@@ -59,7 +65,7 @@ export function isValidControlValue(
   if (control.kind === 'text' || control.kind === 'color' || control.kind === 'icon') {
     return typeof value === 'string';
   }
-  if (control.kind === 'boolean') {
+  if (control.kind === 'boolean' || control.kind === 'bold') {
     return typeof value === 'boolean';
   }
   if (control.kind === 'number') {

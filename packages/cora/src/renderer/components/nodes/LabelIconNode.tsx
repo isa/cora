@@ -135,7 +135,8 @@ export function LabelIconNode(props: LabelIconNodeProps) {
           subtitleColor={frame.subtitleColor}
           fontSize={titleFontSize}
           subtitleFontSize={subtitleFontSize}
-          fontWeight={frame.subtitle ? 600 : 400}
+          fontWeight={frame.titleBold ? 700 : 400}
+          subtitleFontWeight={frame.subtitleBold ? 700 : 400}
         />
       ) : null}
     </CatalogFrame>

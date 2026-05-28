@@ -99,6 +99,8 @@ export function resolvedCatalogFrame(props: CatalogNodeFrameProps) {
     subtitleColor: props.subtitleColor ?? LOOK.text.muted,
     titleFontSize: props.titleFontSize,
     subtitleFontSize: props.subtitleFontSize,
+    titleBold: props.titleBold ?? false,
+    subtitleBold: props.subtitleBold ?? false,
     shadow: props.shadow ?? 'none',
     shadowColor: props.shadowColor,
   };
@@ -294,7 +296,8 @@ export function CatalogText({
   subtitleFontSize,
   paddingX = 4,
   minFontSize = 9,
-  fontWeight = 600,
+  fontWeight = 400,
+  subtitleFontWeight = 400,
   wrapText = true,
 }: {
   x: number;
@@ -310,6 +313,7 @@ export function CatalogText({
   paddingX?: number;
   minFontSize?: number;
   fontWeight?: number | string;
+  subtitleFontWeight?: number | string;
   wrapText?: boolean;
 }) {
   if (!text && !subtitle) return null;
@@ -356,7 +360,7 @@ export function CatalogText({
               : 0
             : layout.subtitleLineHeight}
           fontSize={layout.subtitleFontSize}
-          fontWeight={500}
+          fontWeight={subtitleFontWeight}
           fill={subtitleColor}
         >
           {line}
