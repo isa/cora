@@ -6,15 +6,35 @@ import Worker from 'web-worker';
 import type { ElkNode } from 'elkjs/lib/elk-api';
 
 const require = createRequire(import.meta.url);
-const workerPath = require.resolve('elkjs/lib/elk-worker.min.js');
+let workerPath: string | undefined;
+
+export function setElkWorkerUrl(url: string | undefined): void {
+  workerPath = url;
+  if (elkInstance) {
+    void elkInstance.terminateWorker();
+    elkInstance = null;
+  }
+}
+
+function resolveWorkerPath(): string {
+  if (workerPath) {
+    return workerPath;
+  }
+
+  workerPath = typeof require.resolve === 'function'
+    ? require.resolve('elkjs/lib/elk-worker.min.js')
+    : 'elkjs/lib/elk-worker.min.js';
+  return workerPath;
+}
 
 let elkInstance: InstanceType<typeof ELK> | null = null;
 
 export function createElkWorker(): InstanceType<typeof ELK> {
   if (!elkInstance) {
+    const resolvedWorkerPath = resolveWorkerPath();
     elkInstance = new ELK({
-      workerUrl: workerPath,
-      workerFactory: (url) => new Worker(url ?? workerPath),
+      workerUrl: resolvedWorkerPath,
+      workerFactory: (url) => new Worker(url ?? resolvedWorkerPath),
     });
   }
   return elkInstance;

@@ -101,7 +101,7 @@ export function registerRenderCommand(program: Command): void {
     .option(
       '--ascii-engine <engine>',
       'ASCII/Text rendering engine: layout or svg',
-      'layout',
+      'svg',
     )
     .action(
       async (

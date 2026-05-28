@@ -1,33 +1,11 @@
-// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`renderToText matches snapshot for minimal.yaml 1`] = `
-"
-
-  ┌───────────┐
-  │    API    │
-  └─────╷─────┘
-        │
-        │
-        │
-        │
-        │
-        │
-  ┌─────▼────┐
-  │ Database │
-  └──────────┘
-
-Nodes:
-- api: API
-- db: Database
-"
-`;
-
-exports[`renderToText matches snapshot for box-arrows.yaml 1`] = `
+exports[`renderToText > matches snapshot for box-arrows.yaml 1`] = `
 "
                                 ─response─
 ┌────────────────┐ ┌──────────────────────────────────┐ ┌────────────┐            ┌──────────────┐            ┌───────────┐
 │                │ │          ┌────────────┐          │ │            │            │              │   ─write─  │           │
-│                ◀─┘          │            ─forward─  └─┼            ─enqueue─────┼ Async Worker ╶────────────┼ Audit Log │
+│                ◀─┘          │            ─forward─  └─■            ─enqueue─────□ Async Worker ╶────────────◇ Audit Log │
 │ Browser Client ─request─────▶ Edge Proxy ╶──────┐     │ API Server O──────┘     │              │            │           │
 │                ╶──────┘     │            │      └─────●            │            └──────────────┘            └───────────┘
 │                │            └────────────┘            │            │
@@ -49,7 +27,50 @@ Edges:
 "
 `;
 
-exports[`renderToText matches snapshot for flowchart.yaml 1`] = `
+exports[`renderToText > matches snapshot for database.yaml 1`] = `
+"
+
+         ─session lookup─   ┌───────────┐
+ ┌─────────────┐            │           │
+ │             │      ┌─────O   Redis   │
+ │             ╶──────┘     │           │
+ │             ─writes─     └───────────┘
+ │ Application ╶──────┐                                       ┌─────────────────┐
+ │             │      │       ─reads─                         │                 │
+ │             ╶──────┼───────────────────────────┐     ┌─────▶ Dataset Catalog │
+ │             │      │                    ─schema changes─   │                 │
+ └─────────────┘      │     ┌────────────────────┐│     │     └─────────────────┘
+                      │     │                    ││     │                                       ┌────────────────┐
+                      │     │                    ◆streaming─                                    │                │
+                      └─────● PostgreSQL Primary ││                                       ┌─────◇ Analytics View │
+                            │                    □┼─────┐                                 │     │                │
+                            │                    ││     │     ┌────────────────────┐      │     └────────────────┘
+                            └────────────────────┘│     │     │                    ─snapshots─
+                                                  └─────┼─────▶                    │      │
+                                                        │     │ PostgreSQL Replica ╶──────┘
+                                                        └─────□                    │
+                                                              │                    │
+                                                              └────────────────────┘
+
+Nodes:
+- app: Application
+- cache: Redis
+- primary: PostgreSQL Primary
+- replica: PostgreSQL Replica
+- analytics: Analytics View
+- catalog: Dataset Catalog
+
+Edges:
+- app -> cache: session lookup
+- app -> primary: writes
+- app -> replica: reads
+- primary -> replica: streaming
+- replica -> analytics: snapshots
+- primary -> catalog: schema changes
+"
+`;
+
+exports[`renderToText > matches snapshot for flowchart.yaml 1`] = `
 "
 
   ┌───────────┐
@@ -72,7 +93,7 @@ exports[`renderToText matches snapshot for flowchart.yaml 1`] = `
         │            │      │          │
   ┌─────O────┐       │      └─────╷────┘
   │          │ ─no─  │            │
-  │  Reject  ┼───────┘            │ yes
+  │  Reject  ◇───────┘            │ yes
   │          │            ┌───────●───────┐
   └──────────┘            │               │
                  ┌────────╴ Generate Plan │
@@ -84,7 +105,7 @@ exports[`renderToText matches snapshot for flowchart.yaml 1`] = `
                  │
                  │┌──────────┐
                  ││          │
-                 ││   Done   ┼─┐
+                 ││   Done   ■─┐
                  ││          │ │
                  │└──────────┘ │
                  └─────────────┘
@@ -104,50 +125,7 @@ Edges:
 "
 `;
 
-exports[`renderToText matches snapshot for database.yaml 1`] = `
-"
-
-         ─session lookup─   ┌───────────┐
- ┌─────────────┐            │           │
- │             │      ┌─────O   Redis   │
- │             ╶──────┘     │           │
- │             ─writes─     └───────────┘
- │ Application ╶──────┐                                       ┌─────────────────┐
- │             │      │       ─reads─                         │                 │
- │             ╶──────┼───────────────────────────┐     ┌─────▶ Dataset Catalog │
- │             │      │                    ─schema changes─   │                 │
- └─────────────┘      │     ┌────────────────────┐│     │     └─────────────────┘
-                      │     │                    ││     │                                       ┌────────────────┐
-                      │     │                    ─streaming─                                    │                │
-                      └─────● PostgreSQL Primary ││                                       ┌─────┼ Analytics View │
-                            │                    ┼┼─────┐                                 │     │                │
-                            │                    ││     │     ┌────────────────────┐      │     └────────────────┘
-                            └────────────────────┘│     │     │                    ─snapshots─
-                                                  └─────┼─────▶                    │      │
-                                                        │     │ PostgreSQL Replica ╶──────┘
-                                                        └─────┼                    │
-                                                              │                    │
-                                                              └────────────────────┘
-
-Nodes:
-- app: Application
-- cache: Redis
-- primary: PostgreSQL Primary
-- replica: PostgreSQL Replica
-- analytics: Analytics View
-- catalog: Dataset Catalog
-
-Edges:
-- app -> cache: session lookup
-- app -> primary: writes
-- app -> replica: reads
-- primary -> replica: streaming
-- replica -> analytics: snapshots
-- primary -> catalog: schema changes
-"
-`;
-
-exports[`renderToText matches snapshot for infra.yaml 1`] = `
+exports[`renderToText > matches snapshot for infra.yaml 1`] = `
 "
 
          ┌──────────┐
@@ -180,7 +158,7 @@ exports[`renderToText matches snapshot for infra.yaml 1`] = `
          │ │      │ jobs   │
          │ │      │        │
          │ │      │        │
-         │ │┌─────┼─────┐  │
+         │ │┌─────□─────┐  │
          │ ││   Queue   │  │
          │ ││   East    │  │
          │ │└─────╷─────┘  │
@@ -188,12 +166,12 @@ exports[`renderToText matches snapshot for infra.yaml 1`] = `
          │ │      │        │
          │ │      │        │
          │ │      │ persist│
-         │ │ route│        │
          │ │      │        │
+         │ │ route│        │
          │ │┌─────▼────┐   │
          │ ││    DB    │   │
          │ ││   East   │   │
-         │ │└─────┼────┘   │
+         │ │└─────◆────┘   │
          │ │      │        │
          └─┼──────┼────────┘
            │      │
@@ -218,8 +196,10 @@ exports[`renderToText matches snapshot for infra.yaml 1`] = `
   │        │      │ │
   │        │      │ │
   │        │      │ │
-  │     replicate │ │
   │        │      │ │
+  │        │      │ │
+  │        │      │ │
+  │     replicate │ │
   │  ┌─────●────┐ │ │
   │  │   VPC    │ │ │
   │  │   West   │ │ │
@@ -240,7 +220,7 @@ exports[`renderToText matches snapshot for infra.yaml 1`] = `
   │        │ jobs │ │
   │        │      │ │
   │        │      │ │
-  │  ┌─────┼─────┐│ │
+  │  ┌─────□─────┐│ │
   │  │   Queue   ││ │
   │  │   West    ││ │
   │  └─────╷─────┘│ │
@@ -250,7 +230,7 @@ exports[`renderToText matches snapshot for infra.yaml 1`] = `
   │     ┌──┘      │ │
   │     │    ┌────┘ │
   │     │    │      │
-  │  ┌──▼────┼──┐   │
+  │  ┌──▼────◆──┐   │
   │  │    DB    │   │
   │  │   West   │   │
   │  └──────────┘   │
@@ -285,7 +265,7 @@ Edges:
 "
 `;
 
-exports[`renderToText matches snapshot for microservice.yaml 1`] = `
+exports[`renderToText > matches snapshot for microservice.yaml 1`] = `
 "
 
     ┌─────────────────────────────────────────────────────────────────────────┐
@@ -294,77 +274,77 @@ exports[`renderToText matches snapshot for microservice.yaml 1`] = `
     │               ┌──────────────┐                           ┌───────────┐  │
     │               │              │                           │           │  │
     │               │ Notification │                           │    API    │  │
-    │               │   Service    ◀─────────────────┐   ┌─────╴  Gateway  │  │
-    │               │              │                 │   │     │           │  │
-    │               └──▲────▲───▲──┘                 │   │     └─────╷─────┘  │
-    │                  │    │   │                    │   │           │        │
-    │                  └──┐┌┼───┘                    │   │           │        │
-    │                     │││                        │   │           │        │
-    │                     │││                        │   │           │        │
-    │        ┌───────────┐│││         ┌───────────┐  │   │     ┌─────▼────┐   │
-    │        │           ││││         │           │  │   │     │          │   │
-    │        │   Cart    ││││         │           ◀──┼───┘     │  Mobile  │   │
-    │        │  Service  ◀┼┼┼───┐     │    Web    │  │   ┌─────╴   BFF    │   │
-    │        │           ││││   └─────╴    BFF    │  │   │     │          │   │
-    │        └─╷───╷───▲─┘│││         │           ╶──┼───┼┐    └─────╷────┘   │
-    │          │   │   │  │││         │           │  │   ││          │        │
-    │          │   └─┐ │  │││         └─────╷─────┘  │   ││          │        │
-    │         ┌┘     │ │  │││               │        │   ││          │        │
-    │         │      │ │  │││               │        │   ││          │        │
-    │  ┌──────▼─────┐│ │  │││         ┌─────▼─────┐  │   ││    ┌─────▼─────┐  │
-    │  │  Checkout  ││ │  │││         │           │  │   ││    │           │  │
-    │  │  Service   ││ │  ││receipts  │           ◀──┼───┘│    │  Catalog  │  │
-    │  └───╷─────╷──┘│ │  │││         │   Auth    │  │    └────▶  Service  ◀──┼─────────────────┐
-    │      │     │   │ │  │││         │  Service  │  │         │           │  │                 │
-    │      │     │   │ │  │││         │           ╶─┐│         └──╷─────╷──┘  │                 │
-    │      │     │   │ │  │││         │           │ └┼────────────┼─────┼───┐ │                 │
-    │      │     │   │ │  │││         └─────╷─────┘  │      ─login─     │   │ │                 │
-    │      │     │   │ │ stock──────────────┼──┐     │      ─events─    │   │ │                 │
-    │      │     │   │ │ sync      ┌────────┘  │     │      │           │   │ │                 │
-    │      │     │   │ │  ││ ┌─────▼─────┐     │     │┌─────▼─────┐     │   │ │                 │
-    │      │     │   │ │  ││ │           │     │     ││           │     │   │ │                 │
-    │      │     │   │ │  ││ │   Users   │  shipping ││  Search   │     │   │ ─personalize─     │
-    │      │     │   │ │  ││ │  Service  ╶─┐updates  ││  Service  ╶─────┼───┼─┼────────────────┐│
-    │      │ authorize │  ││ │           │ │   │     ││           │     │   │ │                ││
-    └──────┼─────┼───┼─┼──┼┼─└───────────┘─┼───┼─────┼└───────────┘─────┼───┼─┘                ││
-          ┌┼─────┼───┼─┼──┘│               └───┼─async──────────────────┼──live─────────────┐  ││ featured
-          ││     │   │ │   └───────────────────┼─alerts───────preferences─prices            │  ││  items
-  ┌───────┼┼─────┼───┼─┼───────────────────────┼─────┼──────────────────┼───┼─┼─────────────┼──┼┼────────────────────────────────────────────────┐
-  │ Commerce Platform│ │                       │     │                  │   │ │             │  ││                                                │
-  │       ││     └───┼─┼─────────────────┐     │     │                  │   │ │             │  ││                                                │
-  │       ││         └─┼───place─┐       │     │  order                 │   │ │             │  ││                                                │
-  │       ││           └───order─┼───┐   │     │ updates                │   │ │             │  ││                                                │
-  │       ││                     │   │   │     │     │                  │   │ │             │  ││                                                │
-  │       ││                     │   │   │     │     │                  │   │ │             │  ││                                                │
-  │     ┌─┼┘                     │   │   │     │     │                  │   │ │             │  ││                                                │
-  │     │ │                      │   │   │     │     │        ┌─────────┘   │ │┌───────────┐│  ││                                                │
-  │     │ │                      │   │   │     │     │        │             │ ││           ││  ││                                                │
-  │     │ │                      │   │   │     │     │        │             │ ││   Audit   ││  ││                                                │
-  │     │ │                      │   │   │     │     │        │             └─┼▶  Service  ││  ││                                                │
-  │     │ │                      │   │   │     │     │        │               ││           ││  ││                                                │
-  │     │ │                      │   │   │     │     │        │               │└───────────┘│  ││                                                │
-  │     │ │                      │   │   │     │     │        │               │             │  ││                                                │
-  │     │ │                      │ reserve     │     │        │               │             │  │└─────────────────────────┐                      │
-  │     │ │                      │  stock│     │     │        │               │             └──┼──────────────────────────┐ ┌─────────────────┐  │
-  │     │ │                      │   │   │     │     │        │               │                └──────────────────────────┐ │                 │  │
-  │     │ │  ┌───────────┐       │   │┌──●─────╵──┐  │        │         ┌─────●─────┐            ┌─────────────┐          └─╴                 │  │
-  │     │ │  │           │       │   ││           │  │        │         │   Event   │            │             │          │ │                 │  │
-  │     │ │  │  Config   │      ┌┼───┼▶           │  │        │         │    Bus    │          ┌─╴             │          ┼─▶                 │  │
-  │     │ │  │  Service  ╶──────┘│   ││  Orders   │  │        │         └─────╷─────┘          │ │             │          │ │ Recommendations │  │
-  │     │ │  │           │       │   ││  Service  ╶──┼────────┼───────────┐   │                │ │ Fulfillment │          │ │     Service     │  │
-  │     │ │  └─────╷─────┘  ┌────┼───┼╴           │  │        │           └───┼────────────────┼─▶   Service   │          └─▶                 │  │
-  │     │ │        │        │    │   ││           │  └────────┼───────────────┼────────────────┘ │             │            │                 │  │
-  │     │ │        │        │    │   │└─────╷─────┘           │               └────────┐       ┌─╴             │┌───────────╴                 │  │
-  │     │ └─┼───┐──┘        │    │   │      │                 │                        │       │ │             ││           │                 │  │
-  │     │   │   │           │    │   │   ┌──┘                 │                        │       │ └─────────────┘│           └─────────────────┘  │
-  │  ┌──┼───▼───╵─┐         │  ┌─┼───╵───▼─┐            ┌─────▼─────┐            ┌─────▼─────┐ │                │                                │
-  │  │            │         │  │           │            │           │            │           │ │                │                                │
-  │  │  Payments  │         │  │ Inventory │            │  Pricing  │            │           ◀─┼────────────────┘                                │
-  │  │  Service   ◀─────────┘  │  Service  ╶────────────▶  Service  │            │ Analytics │ │                                                 │
-  │  │            │            │           │            │           │            │  Service  │ │                                                 │
-  └──└────────────┘────────────└───────────┘────────────└───────────┘────────────┼           ◀─┘─────────────────────────────────────────────────┘
-                                                                                 │           │
-                                                                                 └───────────┘
+    │               │   Service    ◀───────────────────┐ ┌─────╴  Gateway  │  │
+    │               │              │                   │ │     │           │  │
+    │               └──▲────▲───▲──┘                   │ │     └─────╷─────┘  │
+    │                  │    │   │                      │ │           │        │
+    │                  └──┐ │   └┐                     │ │           │        │
+    │                     │ │    │                     │ │           │        │
+    │                     │ │    │                     │ │           │        │
+    │        ┌───────────┐│ │    │    ┌───────────┐    │ │     ┌─────▼────┐   │
+    │        │           ││ │    │    │           │    │ │     │          │   │
+    │        │   Cart    ││ │    │    │           ◀────┼─┘     │  Mobile  │   │
+    │        │  Service  ◀┼─┼───┐│    │    Web    │    │ ┌─────╴   BFF    │   │
+    │        │           ││ │   └┼────╴    BFF    │    │ │     │          │   │
+    │        └─╷───╷───▲─┘│ │    │    │           ╶────┼─┼┐    └─────╷────┘   │
+    │          │   │   │  │ │  order  │           │    │ ││          │        │
+    │          │   └──┐│  │ │ updates └─────╷─────┘─async─│          │        │
+    │         ┌┘      ││  │ │    │          │      ─alerts─          │        │
+    │         │       ││  │ │    └──────────┼──────────┼─┼┼──────────┼───────┐│
+    │  ┌──────▼─────┐ ││  │ receipts  ┌─────▼─────┐    │ ││    ┌─────▼─────┐ ││
+    │  │            │ ││  │ │         │           │    │ ││    │           │ ││
+    │  │  Checkout  │ ││  │ │         │           ◀────┼─┘│    │  Catalog  │ ││
+    │  │  Service   ╶ ││  │ │         │   Auth    │    │  └────▶  Service  ◀─┼┼──────────────────────┐
+    │  │            │ ││  │ │         │  Service  │    │       │           │ ││                      │
+    │  └──────╷─────┘┐││  │ │         │           ╶─┐  │       └──╷─────╷──┘ ││                      │
+    │         │      │││  │ │         │           │ └──┼──────────┼─────┼───┐││                      │
+    │         │      │││ stock        └─────╷─────┘    │          └───┐ │   │││                      │
+    │         │      │││ sync───────────────┼┐         │       ┌──────┼─┘   │││                      │
+    │         │      │││  │           ┌─────┘│         │       │      │     │││                      │
+    │         │      │││  │     ┌─────▼─────┐│shipping │ ┌─────▼─────┐│     │││                      │
+    │         │      │││  │     │           ││updates  │ │           ││     │││                      │
+    │         │      │││  │     │   Users   ││         │ │  Search   ││     │││                      │
+    │      ┌──┼──────┼┼┼──┘     │  Service  ╶┼┐        │ │  Service  ╶┼─────┼┼┼────────┐             │
+    │      │  │ authorize       │           │││        │ │           ││     │││        │             │
+    └──────┼──┼──────┼┼┼────────└───────────┘┼┼────────┼─└───────────┘┼─────┼┼┘        │             │
+           │  │      │││                     │└────────┼──────────────┼─────┼┼──┐      │             │ featured
+           │  │      │└┼─────────┐           │         │              │     ││  │      │             │  items
+  ┌────────┼──┼──────┼─┼─────────┼───────────┼─────────┼──────────────┼─────┼┼──┼──────┼─────────────┼──────────────────────────────────┐
+  │ Commerce Platform└─┼─────────┼───┐       │         │              │     ││login    │             │                                  │
+  │        │  │        └───place─┼──┐│       │         │              │     ││events   │             │                                  │
+  │        │  │           ─order─│  ││       │         │              │     ││  │      │             │                                  │
+  │        │  │                  │  ││       │         │              │     ││  │      │             │                                  │
+  │     ┌──┼──┘                  │  ││       │         │      ┌───────┘     ││  │      │             │                                  │
+  │     │  │                     │  ││       │         │      │             ││  │      │             │                                  │
+  │     │  │                     │  ││       │         │      │             ││  │      │             │                                  │
+  │     │  │                     │  ││       │         │      │             ││  │      │             │                                  │
+  │     │  │                     │  ││       │         │      │             ││  │      │             │                                  │
+  │     │  │                     │ reserve  ┌┘         │      │      ┌──────┼┘  │      │┌───────────┐│                                  │
+  │     │  │                     │  stock   │          │      │      │      │   │      ││           ││             ┌─────────────────┐  │
+  │     │  │ ┌───────────┐       │  │└┌─────╵─────┐    │      │┌─────●─────┐│   │      ││   Audit   ││             │                 │  │
+  │     │  │ │           │       │  │ │           │    │live  ││   Event   │└───┼──────┼▶  Service  │└─────────────╴                 │  │
+  │     │  │ │  Config   │       │  │ ●           │    prices ││    Bus    │    │      ││           │              │                 │  │
+  │     │  │ │  Service  ╶──────┐│  │ │           │    │      │└─────╷─────┘    │      │└───────────┘            ┌─▶                 │  │
+  │     │  │ │           │      ││  │ │  Orders   │    │      │      │          │      └─────────────────────────┘ │ Recommendations │  │
+  │     │  │ └─────╷─────┘      └┼──┼─▶  Service  ╶────┼──────┼──────┼┐         │             ─personalize─        │     Service     │  │
+  │     │  │       │             │  │ │           │    │      │      ││         └──────────────────────────────────▶                 │  │
+  │     │  │       │        ┌────┼──┼─╴           │    │      │      ││                     ─preferences─          │                 │  │
+  │     │  └┼───┐──┘        │    │  └┐│           │    │      │      ││                 ┌─────────────┐ ┌──────────╴                 │  │
+  │     │   │   │           │    │   │└─────╷─────┘    └──────┼──────┼┼───────────────┐ │             │ │          │                 │  │
+  │  ┌──◇───▼───╵─┐         │  ┌─□───╵───◀─┐┘           ┌─────▼─────┐││               └─╴             │ │          └─────────────────┘  │
+  │  │            │         │  │           │            │           ││└─────────────┐   │ Fulfillment │ │                               │
+  │  │  Payments  │         │  │ Inventory │            │  Pricing  ││              │   │   Service   │ │                               │
+  │  │  Service   ◀─────────┘  │  Service  ╶────────────▶  Service  │└──────────────┼───▶             │ │                               │
+  │  │            │            │           │            │           │               │   │             │ │                               │
+  │  └────────────┘            └───────────┘            └───────────┘               │   └──────╷──────┘ │                               │
+  │                                                                                 │          │        │                               │
+  │                                                                                 │     ┌────┘        │                               │
+  │                                                                              ┌──▼─────▼──┐          │                               │
+  │                                                                              │           │          │                               │
+  │                                                                              │ Analytics │          │                               │
+  │                                                                              │  Service  ◀──────────┘                               │
+  │                                                                              │           │                                          │
+  └──────────────────────────────────────────────────────────────────────────────└───────────┘──────────────────────────────────────────┘
 
 Nodes:
 - gateway: API Gateway
@@ -409,19 +389,21 @@ Edges:
 "
 `;
 
-exports[`renderToTextFromSvg matches snapshot for minimal.yaml 1`] = `
+exports[`renderToText > matches snapshot for minimal.yaml 1`] = `
 "
 
-
-    ┌──────────┐
-    │   API    │
-    └──────────┘
-          │
-          │
-          ▼
-    ┌──────────┐
-    │ Database │
-    └──────────┘
+  ┌───────────┐
+  │    API    │
+  └─────╷─────┘
+        │
+        │
+        │
+        │
+        │
+        │
+  ┌─────▼────┐
+  │ Database │
+  └──────────┘
 
 Nodes:
 - api: API
@@ -429,15 +411,15 @@ Nodes:
 "
 `;
 
-exports[`renderToTextFromSvg matches snapshot for box-arrows.yaml 1`] = `
+exports[`renderToTextFromSvg > matches snapshot for box-arrows.yaml 1`] = `
 "
 
 
                         ┌────────────response─────┐
    ┌────────────────┐   │                         │           ┌────────────┐           ┌──────────────┐         ┌───────────┐
    │                │   │           ┌────────────┐│           │            │           │              │         │           │
-   │                │◀──┘           │            │└───────────│            ┼enqueue─   │              │         │           │
-   │ Browser Client │               │            │            │ API Server │O──────────│ Async Worker ┼write────│ Audit Log │
+   │                │◀──┘           │            │└──────────■│            │─enqueue─  │              │         │           │
+   │ Browser Client │               │            │            │ API Server │O─────────□│ Async Worker │─write──◇│ Audit Log │
    │                │────request───▶│ Edge Proxy │─forward───●│            │           │              │         │           │
    └────────────────┘               │            │            └────────────┘           └──────────────┘         └───────────┘
                                     └────────────┘
@@ -458,54 +440,7 @@ Edges:
 "
 `;
 
-exports[`renderToTextFromSvg matches snapshot for flowchart.yaml 1`] = `
-"
-
-
-    ┌──────────────────┐
-    │      Start       │
-    └──────────────────┘
-              ●
-              │
-              ▼
-    ┌──────────────────┐
-    │   Load Config    │
-    └──────────────────┘
-         ▲        └───────────────┐
-         │                        │
-         │                        ▼
-         │                  ┌──────────┐
-         │ retry            │  Valid?  │
-         │        │         └──────────┘
-         │        ┌─no─────────┘     │
-         │        │             yes  │
-         O        │                  ●
-    ┌──────────────────┐     ┌───────────────┐
-    │      Reject      │     │ Generate Plan │
-    └──────────────────┘     └───────────────┘
-                                     │
-                                     │
-                                     │
-                             ┌───────────────┐
-                             │     Done      │
-                             └───────────────┘
-
-Nodes:
-- start: Start
-- load: Load Config
-- check: Valid?
-- process: Generate Plan
-- reject: Reject
-- end: Done
-
-Edges:
-- check -> process: yes
-- check -> reject: no
-- reject -> load: retry
-"
-`;
-
-exports[`renderToTextFromSvg matches snapshot for database.yaml 1`] = `
+exports[`renderToTextFromSvg > matches snapshot for database.yaml 1`] = `
 "
 
 
@@ -516,22 +451,23 @@ exports[`renderToTextFromSvg matches snapshot for database.yaml 1`] = `
    │             │┐│                           └─────────┘
    └─────────────┘││
                   ││
-                  ││                                                                                ┌─────────────────┐
-                  ││ writes                                                                         │                 │
-                  ││                           ┌────────────────────┐                               │                 │
-                  ││                           │                    │─────────────schema changes───▶│ Dataset Catalog │
-                  ││                           │                    │                               │                 │
-                  │└──────────────────────────●│ PostgreSQL Primary │                               │                 │
-                  │                            │                    │┐                              └─────────────────┘
-                  │                            └────────────────────┘│
-                  │                                                  │ streaming
-                  │                                                  │
-                  │                                                  │
-                  │                                                  │                              ┌────────────────────┐             ┌────────────────┐
-                  └─────────────────────────────reads────────────────┼─────────────────────────────▶│                    │             │                │
-                                                                     │                              │ PostgreSQL Replica ┼snapshots────│ Analytics View │
-                                                                     └──────────────────────────────│                    │             │                │
-                                                                                                    └────────────────────┘             └────────────────┘
+                  ││                                                                                   ┌─────────────────┐
+                  ││ writes                                                                            │                 │
+                  ││                           ┌────────────────────┐                                  │                 │
+                  ││                           │                    │◆───────────────schema changes───▶│ Dataset Catalog │
+                  ││                           │                    │                                  │                 │
+                  │└──────────────────────────●│ PostgreSQL Primary │                                  │                 │
+                  │                            │                    │□──┐                              └─────────────────┘
+                  │                            └────────────────────┘   │
+                  │                                                     │
+                  │                                                     │
+                  │                                                     │
+                  │                                                     │                              ┌────────────────────┐             ┌────────────────┐
+                  │                                                     │ streaming                    │                    │             │                │
+                  └─────────────────────────────reads───────────────────┼─────────────────────────────▶│                    │             │                │
+                                                                        │                              │ PostgreSQL Replica │─snapshots──◇│ Analytics View │
+                                                                        └─────────────────────────────□│                    │             │                │
+                                                                                                       └────────────────────┘             └────────────────┘
 
 Nodes:
 - app: Application
@@ -551,19 +487,66 @@ Edges:
 "
 `;
 
-exports[`renderToTextFromSvg matches snapshot for infra.yaml 1`] = `
+exports[`renderToTextFromSvg > matches snapshot for flowchart.yaml 1`] = `
+"
+
+
+    ┌─────────────┐
+    │    Start    │
+    └─────────────┘
+           ●
+           │
+           ▼
+    ┌─────────────┐
+    │ Load Config │
+    └─────────────┘
+        ▲     └────────────────┐
+        │                      │
+        │                      ▼
+        │                ┌──────────┐
+        │ retry          │  Valid?  │
+        │                └──────────┘
+        │     ┌────no───────┘     │
+        │     │              yes  │
+        O     ◇                   ●
+    ┌─────────────┐       ┌───────────────┐
+    │   Reject    │       │ Generate Plan │
+    └─────────────┘       └───────────────┘
+                                  │
+                                  │
+                                  ■
+                          ┌───────────────┐
+                          │     Done      │
+                          └───────────────┘
+
+Nodes:
+- start: Start
+- load: Load Config
+- check: Valid?
+- process: Generate Plan
+- reject: Reject
+- end: Done
+
+Edges:
+- check -> process: yes
+- check -> reject: no
+- reject -> load: retry
+"
+`;
+
+exports[`renderToTextFromSvg > matches snapshot for infra.yaml 1`] = `
 "
 
 
                                       ┌──────────────────────────────┐
                                       │          Global DNS          │
                                       └──────────────────────────────┘
+                                              │  route   │
         ┌─────────────────────────────────────┘          │
-        │                                        route   │
         │         ┌┄us-east┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄●┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐
         │         ┆                       ┌────────────────────────────┐  ┆
         │         ┆                       │          VPC East          │  ┆
-        │         ┆                       └─────────────┼──────────────┘  ┆
+        │         ┆                       └────────────────────────────┘  ┆
         │         ┆                                     │ private ingress ┆
         │         ┆                                     │                 ┆
         │         ┆                                     ▼                 ┆
@@ -572,38 +555,38 @@ exports[`renderToTextFromSvg matches snapshot for infra.yaml 1`] = `
         │         ┆                    └─────────────────────────────────┘┆
         │ route   ┆                                     │                 ┆
         │         ┆                              jobs   │                 ┆
-        │         ┆                                     │                 ┆
+        │         ┆                                     □                 ┆
         │         ┆                     ┌───────────────────────────────┐ ┆
         │         ┆                     │          Queue East           │ ┆
-        │         ┆                     └────────────────┼──────────────┘ ┆
+        │         ┆                     └───────────────────────────────┘ ┆
         │         ┆                              persist │                ┆
         │         ┆                                      │                ┆
         │         ┆                                      ▼                ┆
         │         ┆                        ┌──────────────────────────┐   ┆
         │         ┆                        │         DB East          │   ┆
         │         ┆                        └──────────────────────────┘   ┆
-        │         └┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘
+        │         └┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄◆┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘
         └─────────────────┐                              │
     ┌┄us-west┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┐
     ┆                     ●                              │          ┆
     ┆  ┌─────────────────────────────────────┐           │          ┆
     ┆  │              VPC West               │           │          ┆
-    ┆  └───────────────────┼─────────────────┘           │          ┆
+    ┆  └─────────────────────────────────────┘           │          ┆
     ┆                      │ private ingress             │          ┆
     ┆                      │                             │          ┆
     ┆                      ▼                             │          ┆
     ┆┌──────────────────────────────────────────┐        │          ┆
-    ┆│               Compute West               │        │ replicate┆
-    ┆└────────────────────┼─────────────────────┘        │          ┆
+    ┆│               Compute West               │        │          ┆
+    ┆└──────────────────────────────────────────┘        │          ┆
+    ┆                     │                              │ replicate┆
     ┆              jobs   │                              │          ┆
-    ┆                     │                              │          ┆
-    ┆                     │                              │          ┆
+    ┆                     □                              │          ┆
     ┆ ┌───────────────────────────────────────┐          │          ┆
     ┆ │              Queue West               │          │          ┆
     ┆ └───────────────────────────────────────┘          │          ┆
     ┆                    │             ┌─────────────────┘          ┆
     ┆                    │ persist     │                            ┆
-    ┆                    ▼             │                            ┆
+    ┆                    ▼             ◆                            ┆
     ┆            ┌─────────────────────────────┐                    ┆
     ┆            │           DB West           │                    ┆
     ┆            └─────────────────────────────┘                    ┆
@@ -637,87 +620,92 @@ Edges:
 "
 `;
 
-exports[`renderToTextFromSvg matches snapshot for microservice.yaml 1`] = `
+exports[`renderToTextFromSvg > matches snapshot for microservice.yaml 1`] = `
 "
 
-                                                                ┌─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-                                                                │                                                                 ┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐               │
-                  ┌┄Customer Experience┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐                                                                                                             │               │
-                  ┆                                             │┌────────────────────────────────────────────────────────────┐   │     ┌──────────────────────────────────┐            ┆                                                                                                             │               │
-                  ┆                                             ││                    Notification Service                    │   │┌────│           API Gateway            │            ┆                                                                                                             │               │
-                  ┆                                             │└────────────────────────────────────────────────────────────┘   ││    └──────────────────────────────────┘            ┆                                                                                                             │               │
-                  ┆                                             │        ▲              ▲              ▲              ▲           ││                      │                             ┆                                                                                                             │               │
-                  ┆                                             │        │              │              │              │           ││                      │                             ┆                                                                                                             │               │
-                  ┆                                             └────────┼──────────────┘              └──────────────┼───────────┘│┌─────────────────────┼───────────────────────────────────────────────────────────────┐                                                                           │               │
-                  ┆                                                      │                                            │            ││                     └────┐                        ┆                                 │                                                                           │               │
-    ┌────────────────────────────────────────────────────────────────────┘                                            └────────────┼┘                          │                        ┆                                 │                                                                           │               │
-    │             ┆                                                                                                                │                           ▼                        ┆                                 │                                                                           │               │
-    │             ┆                                                                                          ┌──────────────┐      │           ┌───────────────────────────────┐        ┆                                 │                                                                           │               │
-    │             ┆                                                                                          │              │◀─────┘           │                               │        ┆                                 │                                                                           │               │
-    │             ┆                                                                     ┌────────────────────│   Web BFF    │               ┌──│          Mobile BFF           │        ┆                                 │                                                                           │               │
-    │             ┆                                                                     │                    │              │──────┐        │  │                               │        ┆                                 │                                                                           │               │
-    │             ┆                                                                     │                    └──────────────┘      │        │  └───────────────────────────────┘        ┆                                 │                                                                           │               │
-    │             ┆                                                                     │                            └────┐        │        │                  └─┐                      ┆                                 │                                                                           │               │
-    │             ┆                                                                     │                                 │        │        │                    │                      ┆                                 │ shipping updates                                                          │               │
-    │             ┆                                                                     │                                 ▼        └─────┐  │                    ▼                      ┆                                 │                                                                           │               │
-    │             ┆                                   ┌──────────────┐                  │                     ┌───────────────────────┐  │  │    ┌───────────────────────────────┐      ┆                                 │                                                                           │               │
-    │             ┆                                   │              │                  │                     │                       │◀─┼──┘    │                               │      ┆                                 │                                                                           │               │
-    │             ┆                                   │ Cart Service │◀─────────────────┘                     │     Auth Service      │  └──────▶│        Catalog Service        │      ┆                                 │                                                                           │               │
-    │             ┆                                   │              │                                        │                       │─────┐    │                               │      ┆                                 │                                                                           │               │
-    │             ┆                                   └──────────────┘                                        └───────────────────────┘     │    └───────────────────────────────┘      ┆                                 │                                                                           │               │
-    │            ┌──────────────────────────────┌──┐─────┘    └───▲──────────────────────┐                                │                 └───┐  ┌───┘         │    ┌────▲─────────────────login events─────────────────┼─────────────────────────┐                                                 │               │
-    │            │┆                             │  │              │                      │                                └───┐                 │  │             └────┼────┼┐           ┆                                 │                         │                                                 │               │
-    │            │┆                             │  └──────────────┘                      │                                    │                 └──┼──────────────────┘    └┼─────────────────────────────────────────────┼──────┐                  │                                                 │               │
-    │            │┆                             ▼                                        │                                    ▼                    │                        ▼           ┆                                 │      │                  │                                                 │               │
-    │            │┆               ┌───────────────────────────┐                          │                       ┌────────────────────────┐        │              ┌──────────────────┐  ┆                                 │      │                  │                                                 │               │
-    │            │┆               │     Checkout Service      │                          │                       │     Users Service      │───────┐│              │  Search Service  │  ┆                                 │      │                  │                                                 │               │
-    │            │┆               └───────────────────────────┘                          │                       └────────────────────────┘       ││              └──────────────────┘  ┆                                 │      │                  │                                                 │               │
-    │ receipts   │┆                      │             │                                 │                                                        ││                        │           ┆                                 │      │                  │                                                 │               │
-    │            │└┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄││┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┘                                 │      │                  │                                                 │               │
-    │            │                       │             │                                 │                                                        ││                        │                                             │      │                  │                                                 │ async alerts  │
-    │            │                       │             │                                 │                                                        ││                        └─────────────────────────────────────────────┼──────┼──────────────────┼──────────────────────personalize───────┐        │               │
-    │            │                       │ authorize   │                                 │                                                        ││                                                                      │      │                  │                                        │        │               │
-    │            │                       │             │                                 │                                                        └┼──────────────────────────────────────────────────────────────────────┼──────┼──────────────────┼──────preferences──────────────────────┐│        │               │
-    │            │                       │             │                                 │ reserve stock                                           │                                                                      │      │                  │                                       ││        │               │
-    │            │                       │             │                                 │                                                         │                                                                      │      │                  │                                       ││        │               │ order updates
-    │            │                       │             └───────────────place order───────┼─────────────────────────────┐                           │                                                                      │      │                  │                                       ││        │               │
-    │            │                       │                                               │                             │                           │                                                                      │      │ featured items   │                                       ││        │               │
-   ┌┼────────────┘                       │                                               │                             │                           │                                                                      │      │                  │                                       ││        │               │
-   ││           ┌┄Commerce Platform┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄││┄┄┄┄┄┄┄┐│               │
-   ││           ┆                        │                                               │                             │                           │ live prices                                                          │      │                  │                                       ││       ┆│               │
-   ││           ┆         ┌──────────────┘                                               │                             │                           │                                                                      │      │                  │                                       ││       ┆│               │
-   ││           ┆         │                          ┌─────────────────────────────────┐ │                             │                           │                                                                      │      │                  │   ┌─────────────────────────────────┐ ││       ┆│               │
-   ││           ┆         │                          │         Config Service          │─┼────────────────┐            │                           │                                                                      │      │                  └──▶│          Audit Service          │ ││       ┆│               │
-   ││           ┆         │                          └─────────────────────────────────┘ │                │            │                           │                                                                      │      │                      └─────────────────────────────────┘ ││       ┆│               │
-   ││           ┆         │                            ┌──────────────┘                  │                │            │                           │                                                                      │      │                                                          ││       ┆│               │
-   ││           ┆         │                            │                                 │                │            │            ┌─────────┐    │                                                                      │      │                                                          ││       ┆│               │
-   ││           ┆         │                            │                                 │                │            ●            │         │    │                                                                      │      │                                                          ││       ┆│               │
-   ││           ┆         │                            │                                 │                │     ┌──────────────────────────┐  │    │                                                                      │      │                                                          ││       ┆│               │
-   ││           ┆         │                            │                                 │                └────▶│                          │  │    │                                                                      │      │                                                          ││       ┆│               │
-   ││           ┆         │                            │                                 │                      │      Orders Service      │──┼────┼───────────────────────────────────┐                                  │      │                                                          ││       ┆│               │
-   ││           ┆         │                            │       ┌─────────────────────────┼──────────────────────│                          │  │    │                                   │                                  │      │                                                          ││       ┆│               │
-   ││           ┆         │                            │       │                         │                      └──────────────────────────┘  │    │                                   │                                  │      │                                                          ││       ┆│               │
-   ││           ┆         │          ┌─────────────────┼┐      │                         │                         ┌──────────┼┐              │    │                                   │                                  │      │                                                          ││       ┆│               │
-   │└─────────────────────┼──────────┘ ┌────────────┌──┘┘      │             ┌───────────┘     ┌─────────────────┌─┘──────────┘│              │    │                          ┌───────┐│                                  │      └───────────────────────────────────────────────┐          ││       ┆│               │
-   │            ┆         │            │            │          │             │                 │                 │             │              │    │                          │       ││                                  │                               ┌──────────────────────┼──────────┘│       ┆│               │
-   │            ┆         │            ▼            │          │             │                 │                 ▼             │              │    │                          ●       ││                                  │                               │                      │           ▼       ┆│               │
-   │            ┆  ┌───────────────────────────────────────┐   │   ┌───────────────────────────────────────────────────────┐   │              │    │                   ┌────────────┐ ││   ┌─────────────────────────────────────────────────────────────┐│               ┌─────────────────────────┐┆│               │
-   │            ┆  │                                       │   │   │                                                       │   │              │    │                   │            │ ││   │                                                             │└──────────────▶│                         │┆│               │
-   │            ┆  │           Payments Service            │◀──┘   │                   Inventory Service                   │   │              │    │                   │ Event Bus  │ │└──▶│                     Fulfillment Service                     │                │ Recommendations Service │┆│               │
-   │            ┆  │                                       │       │                                                       │   │              │    │                   │            │ │    │                                                             │┌───────────────│                         │┆│               │
-   │            ┆  └───────────────────────────────────────┘       └───────────────────────────────────────────────────────┘   │              │    │                   └────────────┘ │    └─────────────────────────────────────────────────────────────┘│               └─────────────────────────┘┆│               │
-   │            ┆                   ┌──────────────────────────────────────────────────────────└────────────┐──────────────────┼────────────┐ │    │                          └───────┼────────────┐                      └────────┐                      │                                          ┆│               │
-   │            ┆                   │                                                                       │                  │            │ │    └────────────┐                     │            │                               │                      │                                          ┆│               │
-   │            ┆                   │                                                                       └──────────────────┘            │ │                 │                     │            │                               │                      │                                          ┆│               │
-   │            ┆                   │                                                                                        ┌──────────────▼─┘                 ▼               ┌─────┘            ▼                               ▼                      │                                          ┆│               │
-   │            ┆                   │                                                                                        │   ┌────────────────────────────────────────┐     │  ┌───────────────────────────────────────────────────────────────┐      │                                          ┆│               │
-   │            ┆                   │                                                                                        │   │            Pricing Service             │     │  │                       Analytics Service                       │◀─────┘                                          ┆│               │
-   │            ┆                   │                                                                                        │   └────────────────────────────────────────┘     │  └───────────────────────────────────────────────────────────────┘                                                 ┆│               │
-   │            ┆                   │                                                                                        └───────┐                                          └─────┐                                                                                                              ┆│               │
-   │            └┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘│               │
-   └────────────────stock sync──────┘                                                                                                │                                                │                                                                                                               │               │
-                                                                                                                                     │                                                └───────────────────────────────────────────────────────────────────────────────────────────────────────────────┘               │
-                                                                                                                                     └────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+                                           ┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+                                           │                                                                          ┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐               │
+                                           │                                                                          │                                                                                                                                                                    │               │
+                ┌┄Customer Experience┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┐                                                                                                             │               │
+                ┆                          │  ┌──────────────────────────────────────────────────────────────────────┐│      ┌──────────────────────────────┐                ┆                                                                                                             │               │
+                ┆                          │  │                                                                      ││      │                              │                ┆                                                                                                             │               │
+                ┆                          │  │                         Notification Service                         ││  ┌───│         API Gateway          │───────┐        ┆                                                                                                             │               │
+                ┆                          │  └──────────────────────────────────────────────────────────────────────┘│  │   └──────────────────────────────┘       │        ┆                                                                                                             │               │
+                ┆                          │           ▲                 ▲                ▲                 ▲         │  │                                          │        ┆                                                                                                             │               │
+                ┆                          │           │                 │                │                 │         │  │                                          │        ┆                                                                                                             │               │
+   ┌───────────────────────────────────────┼───────────┘                 │                │                 └─────────┼──┼──────────────────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────┐                   │               │
+   │            ┆                          └─────────────────────────────┘                └───────────────────────────┘  │                                          │        ┆                                                                                         │                   │               │
+   │            ┆                                                                                                        │                                          │        ┆                                                                                         │                   │               │
+   │            ┆                                                                      ┌───────────────────────────┐     │          ┌───────────────────────────┐   │        ┆                                                                                         │                   │               │
+   │            ┆                                                                      │                           │◀────┘          │                           │   │        ┆                                                                                         │                   │               │
+   │            ┆                                                   ┌──────────────────│          Web BFF          │            ┌───│        Mobile BFF         │◀──┘        ┆                                                                                         │                   │               │
+   │            ┆                                                   │                  │                           │─────┐      │   │                           │            ┆                                                                                         │                   │               │
+   │            ┆                                                   │                  └───────────────────────────┘     │      │   └───────────────────────────┘            ┆                                                                                         │                   │               │
+   │            ┆                                                   │                                     │              │      │                 └──┐                       ┆                                                                                         │                   │               │
+   │            ┆                                                   │                                     │              └──┐   │                    │                       ┆                                                                                         │                   │               │
+   │            ┆                                                   │                                     ▼                 │   │                    ▼                       ┆                                                                                         │                   │               │
+   │            ┆                  ┌────────────────────────────┐   │                   ┌──────────────────────────────────┐│   │    ┌───────────────────────────────┐       ┆                                                                                         │                   │               │
+   │            ┆                  │                            │   │                   │                                  │◀───┘    │                               │       ┆                                                                                         │                   │               │
+   │            ┆                  │        Cart Service        │◀──┘                   │           Auth Service           │└───────▶│        Catalog Service        │─────────────────────────────────┐                                                               │                   │               │
+   │            ┆                  └────────────────────────────┘                       └──────────────────────────────────┘         └───────────────────────────────┘       ┆                         │                                                               │                   │               │
+   │            ┆                       │         │        ▲                                              │                                │         │         ▲             ┆                         │                                                               │                   │               │
+   │            ┆                       │         │        │                                              │                                │         │         │             ┆                         │                                                               │                   │               │
+   │            ┆             ┌─────────┘         └────────┼─────────┐                                    │                                │         │         └────────────────────┐                  │                                                               │                   │               │
+   │            ┆             │                            │         │                                    └─────────┐                      │         └──────────┐            ┆      │                  │                                                               │                   │               │
+   │            ┆             │                            │         │                                              │                 ┌────┘                    │            ┆      │                  │                                                               │                   │               │
+   │            ┆             ▼                            │         │                                              ▼                 │                         ▼            ┆      │                  │                                                               │                   │               │
+   │            ┆ ┌───────────────────────┐                │         │                                   ┌────────────────────┐       │              ┌────────────────────┐  ┆      │                  │                                                               │                   │               │
+   │            ┆ │                       │                │         │                                   │                    │       │              │                    │  ┆      │                  │ login events                                                  │                   │               │
+   │            ┆ │   Checkout Service    │                │         │                                   │   Users Service    │────┐  │              │   Search Service   │  ┆      │                  │                                                               │                   │               │
+   │            ┆ └───────────────────────┘                │         │                                   └────────────────────┘    │  │              └────────────────────┘  ┆      │                  │                                                               │                   │               │
+   │            ┆       │           │                      └─────────┼───────────────────┐                                         │  │                         │            ┆      │                  │                                                               │                   │               │
+   │ receipts   ┆       │           │                                │                   │                                         │  │                         │            ┆      │                  │                                                               │                   │               │
+   │            └┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┘      │                  │                                                               │                   │               │
+   │                    │           │                                │                   │                                         │  │                         │                   │                  │                                                               │                   │ async alerts  │
+   │                    │           │                                │                   │                                         │  │                         └───────────────────┼──────────────────┼────────────────────────────────────personalize───────┐        │                   │               │
+   │                    │ authorize │                                │                   │                                         │  │                                             │                  │                                                      │        │                   │               │
+   │                    │           │                                │                   │                                         └──┼─────────────────────────────────────────────┼──────────────────┼────────────────────preferences─────────────────────┐ │        │                   │               │
+   │                    │           │                                │ reserve stock     │                                            │                                             │                  │                                                    │ │        │                   │               │
+   │                    │           │                                │                   │ stock sync                                 │                                             │                  │                                                    │ │        │                   │               │
+   │                    │           │                                │                   │                                            │                                             │ featured items   │                                                    │ │        │                   │               │
+   │                    │           │                                │                   │                                            │                                             │                  │                                                    │ │        │                   │               │ order updates
+   │                    │           │                                │                   │                                            │                                             │                  │                                                    │ │        │ shipping updates  │               │
+   │                    │           └───────────place order──────────┼───────────────────┼────────────────────┐                       │                                             │                  │                                                    │ │        │                   │               │
+   │                    │                                            │                   │                    │                       │ live prices                                 │                  │                                                    │ │        │                   │               │
+   │                 ┌──┘                                            │                   │                    │                       │                                             │                  │                                                    │ │        │                   │               │
+   │           ┌┄┄┄┄┄│┄Commerce Platform┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄│┄┄┄┄┄┄┄┐│                   │               │
+   │           ┆     │            ┌────────────────────────────────┐ │                   │                    │                       │                                             │                  │               ┌───────────────────────────────────┐│ │       ┆│                   │               │
+   │           ┆     │            │         Config Service         │ │                   │                    │                       │                                             │                  └──────────────▶│           Audit Service           ││ │       ┆│                   │               │
+   │           ┆     │            └────────────────────────────────┘ │                   │                    │                       │                                             │                                  └───────────────────────────────────┘│ │       ┆│                   │               │
+   │           ┆     │                     │               │         │                   │                    │          ┌────────┐   │                                             │                                                                       │ │       ┆│                   │               │
+   │           ┆     │                     │               │         │                   │                    │          │        │   │                                             │                                                                       │ │       ┆│                   │               │
+   │           ┆     │                     │               │         │                   │                    ●          │        │   │                                             │                                                                       │ │       ┆│                   │               │
+   │           ┆     │                     │               │         │                   │              ┌──────────────────────┐  │   │                                             │                                                                       │ │       ┆│                   │               │
+   │           ┆     │                     │               └─────────┼───────────────────┼─────────────▶│                      │  │   │                                             │                                                                       │ │       ┆│                   │               │
+   │           ┆     │                     │                         │                   │              │    Orders Service    │──┼───┼─────────────────────────────────────┐       │                                                                       │ │       ┆│                   │               │
+   │           ┆     │                     │ ┌───────────────────────┼───────────────────┼──────────────│                      │  │   │                                     │       │                                                                       │ │       ┆│                   │               │
+   │           ┆     │                     │ │                       │                   │              └──────────────────────┘  │   │                                     │       │                                                                       │ │       ┆│                   │               │
+   │           ┆     │       ┌─────────────┘ │                       │                   │             ┌────────────┘             │   │                                     │       │               ┌────────────────────┐                                  │ │       ┆│                   │               │
+   └─────────────────┼───────┼──────┐        │             ┌─────────┘           ┌───────┘             │                          │   │                         ┌────────┐  │       └───────────────┼────────────────────┼────────────────────────┐         │ │       ┆│                   │               │
+               ┆     │       │      │        │             │                     │                     │                          │   │                         │        │  │                       │                    │┌───────────────────────┼─────────┘ │       ┆│                   │               │
+               ┆     ◇       ▼      │        │             □                     │                     ▼                          │   │                         ●        │  │                       │                    ││                       │           ▼       ┆│                   │               │
+               ┆ ┌──────────────────────┐    │ ┌──────────────────────────────────────────────────────────────────┐               │   │                 ┌───────────────┐│  │   ┌───────────────────────────────────────┐││                ┌─────────────────────────┐┆│                   │               │
+               ┆ │                      │    │ │                                                                  │               │   │                 │               ││  │   │                                       │││                │                         │┆│                   │               │
+               ┆ │   Payments Service   │◀───┘ │                        Inventory Service                         │               │   │                 │   Event Bus   ││  └──▶│          Fulfillment Service          ││└───────────────▶│ Recommendations Service │┆│                   │               │
+               ┆ └──────────────────────┘      └──────────────────────────────────────────────────────────────────┘               │   │                 └───────────────┘│      └───────────────────────────────────────┘│                 └─────────────────────────┘┆│                   │               │
+               ┆                                                                 │                                                │   │                         │        │                          │                    │                              │             ┆│                   │               │
+               ┆                                                                 │                                                │   │                         └────────┼─────┐              ┌─────┘                    │                              │             ┆│                   │               │
+               ┆                                                                 └───────────────────────────────────────────────┐│   └───────────┐                      │     │              │                          │                              │             ┆│                   │               │
+               ┆                                                                                                    ┌────────────┼┘               │              ┌───────┘     │              │                          │                              │             ┆│                   │               │
+               ┆                                                                                                    │            ▼                ▼              │             ▼              ▼                          │                              │             ┆│                   │               │
+               ┆                                                                                                    │   ┌──────────────────────────────────┐     │     ┌──────────────────────────────┐                  │                              │             ┆│                   │               │
+               ┆                                                                                                    │   │         Pricing Service          │     │     │      Analytics Service       │◀─────────────────┼──────────────────────────────┘             ┆│                   │               │
+               ┆                                                                                                    │   └──────────────────────────────────┘     │     └──────────────────────────────┘                  │                                            ┆│                   │               │
+               ┆                                                                                                    └─────┐                                      └─────────┐                                             │                                            ┆│                   │               │
+               └┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄│┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┘│                   │               │
+                                                                                                                          │                                                │                                             └─────────────────────────────────────────────┘                   │               │
+                                                                                                                          │                                                └───────────────────────────────────────────────────────────────────────────────────────────────────────────────┘               │
+                                                                                                                          └────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 
 Nodes:
 - gateway: API Gateway
@@ -759,5 +747,25 @@ Edges:
 - recommendations -> catalog: featured items
 - event-bus -> notifications: async alerts
 - fulfillment -> notifications: shipping updates
+"
+`;
+
+exports[`renderToTextFromSvg > matches snapshot for minimal.yaml 1`] = `
+"
+
+
+    ┌──────────┐
+    │   API    │
+    └──────────┘
+          │
+          │
+          ▼
+    ┌──────────┐
+    │ Database │
+    └──────────┘
+
+Nodes:
+- api: API
+- db: Database
 "
 `;

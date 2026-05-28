@@ -1,4 +1,5 @@
 import type { DiagramComponent, LayoutedEdge, LayoutedNode } from '../layout-ir.js';
+import { resolveCatalogTextLayout } from './catalogTextLayout.js';
 import {
   ICON_NODE_ART_SIZE,
   iconNodeScale,
@@ -33,10 +34,6 @@ function hasNodeText(node: AnchorNode): boolean {
   return Boolean(node.text || node.subtitle);
 }
 
-function lineCount(value: unknown): number {
-  return value ? String(value).split(/\r?\n/).length : 0;
-}
-
 function textHeightForNode(node: AnchorNode, ratio: number, defaultTitleSize = DEFAULT_NODE_TITLE_SIZE): number {
   if (!hasNodeText(node)) {
     return 0;
@@ -44,11 +41,20 @@ function textHeightForNode(node: AnchorNode, ratio: number, defaultTitleSize = D
 
   const titleFontSize = (node.titleFontSize ?? defaultTitleSize) * ratio;
   const subtitleFontSize = (node.subtitleFontSize ?? Math.max(8, (node.titleFontSize ?? defaultTitleSize) - 2)) * ratio;
-  const titleLines = lineCount(node.text);
-  const subtitleLines = lineCount(node.subtitle);
+  const width = node.component === 'icon'
+    ? node.width - 16
+    : node.component === 'labelIcon'
+      ? Math.max(120, node.width * 2.5)
+      : node.width;
 
-  return titleLines * titleFontSize * 1.25 +
-    (subtitleLines > 0 ? 3 * ratio + subtitleLines * subtitleFontSize * 1.25 : 0);
+  return resolveCatalogTextLayout({
+    text: node.text ? String(node.text) : '',
+    subtitle: node.subtitle ? String(node.subtitle) : '',
+    width,
+    fontSize: titleFontSize,
+    subtitleFontSize,
+    wrapText: node.component !== 'box',
+  }).totalHeight;
 }
 
 function centeredArtworkBox(node: AnchorNode, artSize: number, artY: number): AnchorBox {
@@ -142,6 +148,10 @@ export function connectionAnchorBox(node: AnchorNode, side: Side): AnchorBox {
   return side === 'bottom'
     ? artworkAndBottomTextBox(node, artwork)
     : artwork;
+}
+
+export function connectionObstacleBox(node: LayoutedNode): AnchorBox {
+  return connectionAnchorBox(nodeAnchorInput(node), 'bottom');
 }
 
 export function chooseConnectionSides(source: AnchorBox, target: AnchorBox): { sourceSide: Side; targetSide: Side } {

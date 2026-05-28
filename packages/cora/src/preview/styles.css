@@ -246,9 +246,14 @@ textarea {
 }
 
 .ui-textarea.auto-grow {
-  min-height: 36px;
+  min-height: 32px;
   height: auto;
   resize: none;
+}
+
+.field-title-subtitle .ui-textarea {
+  min-height: 32px;
+  line-height: 1.35;
 }
 
 .ui-label {
@@ -1874,6 +1879,12 @@ body.dark .component-grid .component-tile:hover .component-icon {
 
 .preview-theme-selector .ui-select:focus {
   box-shadow: none;
+}
+
+.preview-file-message {
+  color: var(--preview-muted);
+  font-size: 12px;
+  white-space: nowrap;
 }
 
 .preview-header-action {

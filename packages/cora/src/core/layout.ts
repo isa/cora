@@ -4,7 +4,7 @@ import {
   expandLayoutForLabeledEdges,
   updateLabeledEdgePlacements,
 } from './labeledEdgeExpansion.js';
-import { applyBalancedConnectionAnchors } from './connectionAnchors.js';
+import { applyBalancedConnectionAnchors, connectionObstacleBox } from './connectionAnchors.js';
 import {
   edgeBridgeMap,
   edgePathMidpoint,
@@ -40,6 +40,7 @@ const GROUP_NODE_PADDING = 24;
 const EDGE_UNSHARE_OFFSET = 22;
 const EDGE_UNSHARE_PADDING = 8;
 const EDGE_UNSHARE_MAX_PASSES = 64;
+const MIN_PARALLEL_SEGMENT_CLEARANCE = 14;
 const EDGE_OBSTACLE_CLEARANCE = 14;
 const GROUP_BORDER_MERGE_TOLERANCE = 6;
 const MIN_EDGE_SHAFT_LENGTH = 22;
@@ -70,14 +71,19 @@ function baseLayoutOptions(diagram: Diagram): Record<string, string> {
     'elk.layered.edgeRouting': 'ORTHOGONAL',
     'elk.hierarchyHandling': 'INCLUDE_CHILDREN',
     'elk.spacing.nodeNode': String(NODE_GAP),
+    'elk.spacing.edgeEdge': String(EDGE_UNSHARE_OFFSET),
     'elk.layered.spacing.nodeNodeBetweenLayers': String(
       NODE_BETWEEN_LAYERS_GAP,
     ),
+    'elk.layered.spacing.edgeEdgeBetweenLayers': String(EDGE_UNSHARE_OFFSET),
     'elk.layered.spacing.edgeNodeBetweenLayers': String(
       EDGE_NODE_BETWEEN_LAYERS_GAP,
     ),
     'org.eclipse.elk.layered.spacing.nodeNodeBetweenLayers': String(
       NODE_BETWEEN_LAYERS_GAP,
+    ),
+    'org.eclipse.elk.layered.spacing.edgeEdgeBetweenLayers': String(
+      EDGE_UNSHARE_OFFSET,
     ),
     'org.eclipse.elk.layered.spacing.edgeNodeBetweenLayers': String(
       EDGE_NODE_BETWEEN_LAYERS_GAP,
@@ -785,6 +791,7 @@ export function cleanAllEdgePoints(
 }
 
 type EndpointSide = 'top' | 'right' | 'bottom' | 'left';
+const ENDPOINT_SIDES: EndpointSide[] = ['top', 'right', 'bottom', 'left'];
 
 function nodeCenter(node: LayoutedNode): { x: number; y: number } {
   return {
@@ -921,6 +928,153 @@ function pointOutsideNodeSide(
       return { x: point.x, y: point.y + clearance };
     case 'left':
       return { x: point.x - clearance, y: point.y };
+  }
+}
+
+function candidateRoutesForSides(
+  from: LayoutedNode,
+  to: LayoutedNode,
+  sourceSide: EndpointSide,
+  targetSide: EndpointSide,
+): Array<Array<{ x: number; y: number }>> {
+  const start = pointOnNodeSide(from, sourceSide, nodeCenter(to));
+  const end = pointOnNodeSide(to, targetSide, nodeCenter(from));
+  const startOutside = pointOutsideNodeSide(start, sourceSide);
+  const endOutside = pointOutsideNodeSide(end, targetSide);
+
+  if (
+    Math.abs(startOutside.x - endOutside.x) <= EPSILON ||
+    Math.abs(startOutside.y - endOutside.y) <= EPSILON
+  ) {
+    return [[start, startOutside, endOutside, end]];
+  }
+
+  return [
+    [
+      start,
+      startOutside,
+      { x: startOutside.x, y: endOutside.y },
+      endOutside,
+      end,
+    ],
+    [
+      start,
+      startOutside,
+      { x: endOutside.x, y: startOutside.y },
+      endOutside,
+      end,
+    ],
+  ];
+}
+
+function rerouteCrowdedEdgesViaAlternateSides(
+  edges: LayoutedEdge[],
+  nodeById: Map<string, LayoutedNode>,
+  nodes: LayoutedNode[],
+  groups: LayoutedGroup[],
+): void {
+  for (let pass = 0; pass < EDGE_UNSHARE_MAX_PASSES; pass++) {
+    let changed = false;
+
+    for (let firstIndex = 0; firstIndex < edges.length && !changed; firstIndex++) {
+      const firstSegments = edgeSegments(edges[firstIndex]!.points);
+      for (let secondIndex = firstIndex + 1; secondIndex < edges.length && !changed; secondIndex++) {
+        const secondSegments = edgeSegments(edges[secondIndex]!.points);
+        let crowded = false;
+
+        for (const firstSegment of firstSegments) {
+          if (crowded) {
+            break;
+          }
+
+          for (const secondSegment of secondSegments) {
+            if (crowdedParallelAxisRange(firstSegment, secondSegment)) {
+              crowded = true;
+              break;
+            }
+          }
+        }
+
+        if (!crowded) {
+          continue;
+        }
+
+        const candidates = [firstIndex, secondIndex];
+        for (const edgeIndex of candidates) {
+          const edge = edges[edgeIndex]!;
+          const from = nodeById.get(edge.from);
+          const to = nodeById.get(edge.to);
+          if (!from || !to || !shouldRepairEndpointNode(from) || !shouldRepairEndpointNode(to)) {
+            continue;
+          }
+
+          const original = edge.points.map((point) => ({ ...point }));
+          const baselineScore = edgeCrowdingScore(edges, edgeIndex);
+          let best:
+            | {
+                points: Array<{ x: number; y: number }>;
+                score: number;
+                pathLength: number;
+              }
+            | undefined;
+
+          for (const sourceSide of ENDPOINT_SIDES) {
+            for (const targetSide of ENDPOINT_SIDES) {
+              for (const candidatePoints of candidateRoutesForSides(from, to, sourceSide, targetSide)) {
+                const candidateEdge: LayoutedEdge = {
+                  ...edge,
+                  points: candidatePoints.map((point) => ({ ...point })),
+                };
+
+                cleanEdgePoints(candidateEdge, nodes, groups);
+                ensureEndpointRunway([candidateEdge]);
+                cleanEdgePoints(candidateEdge, nodes, groups);
+
+                if (!routeClearOfObstacles(edge, candidateEdge.points, nodes, groups)) {
+                  continue;
+                }
+
+                edge.points.splice(0, edge.points.length, ...candidateEdge.points);
+                const candidateScore = edgeCrowdingScore(edges, edgeIndex);
+                const candidatePathLength = edgePathLength(edge);
+
+                if (
+                  candidateScore + EPSILON < baselineScore &&
+                  (
+                    !best ||
+                    candidateScore < best.score - EPSILON ||
+                    (
+                      Math.abs(candidateScore - best.score) <= EPSILON &&
+                      candidatePathLength < best.pathLength - EPSILON
+                    )
+                  )
+                ) {
+                  best = {
+                    points: edge.points.map((point) => ({ ...point })),
+                    score: candidateScore,
+                    pathLength: candidatePathLength,
+                  };
+                }
+              }
+            }
+          }
+
+          edge.points.splice(0, edge.points.length, ...original);
+
+          if (!best) {
+            continue;
+          }
+
+          edge.points.splice(0, edge.points.length, ...best.points);
+          changed = true;
+          break;
+        }
+      }
+    }
+
+    if (!changed) {
+      return;
+    }
   }
 }
 
@@ -1153,6 +1307,13 @@ function overlappingAxisRange(
     return undefined;
   }
 
+  return overlappingAxisSpan(a, b);
+}
+
+function overlappingAxisSpan(
+  a: EdgeSegment,
+  b: EdgeSegment,
+): { min: number; max: number } | undefined {
   const aMin = Math.min(axisStart(a), axisEnd(a));
   const aMax = Math.max(axisStart(a), axisEnd(a));
   const bMin = Math.min(axisStart(b), axisEnd(b));
@@ -1161,6 +1322,86 @@ function overlappingAxisRange(
   const max = Math.min(aMax, bMax);
 
   return max - min > EPSILON ? { min, max } : undefined;
+}
+
+function crowdedParallelAxisRange(
+  a: EdgeSegment,
+  b: EdgeSegment,
+): { min: number; max: number } | undefined {
+  if (a.orientation !== b.orientation) {
+    return undefined;
+  }
+
+  const lineDistance = Math.abs(lineCoordinate(a) - lineCoordinate(b));
+  if (
+    lineDistance <= EPSILON ||
+    lineDistance >= MIN_PARALLEL_SEGMENT_CLEARANCE
+  ) {
+    return undefined;
+  }
+
+  const overlap = overlappingAxisSpan(a, b);
+  if (!overlap) {
+    return undefined;
+  }
+
+  const overlapLength = overlap.max - overlap.min;
+  if (overlapLength > EDGE_UNSHARE_PADDING * 2) {
+    return overlap;
+  }
+
+  const aMin = Math.min(axisStart(a), axisEnd(a));
+  const aMax = Math.max(axisStart(a), axisEnd(a));
+  const bMin = Math.min(axisStart(b), axisEnd(b));
+  const bMax = Math.max(axisStart(b), axisEnd(b));
+  const touchesBoundary =
+    Math.abs(overlap.min - aMin) <= EPSILON ||
+    Math.abs(aMax - overlap.max) <= EPSILON ||
+    Math.abs(overlap.min - bMin) <= EPSILON ||
+    Math.abs(bMax - overlap.max) <= EPSILON;
+
+  return touchesBoundary ? overlap : undefined;
+}
+
+function edgeCrowdingScore(
+  edges: LayoutedEdge[],
+  edgeIndex: number,
+): number {
+  const edge = edges[edgeIndex];
+  if (!edge) {
+    return Number.POSITIVE_INFINITY;
+  }
+
+  const segments = edgeSegments(edge.points);
+  let score = 0;
+
+  for (let otherIndex = 0; otherIndex < edges.length; otherIndex++) {
+    if (otherIndex === edgeIndex) {
+      continue;
+    }
+
+    const other = edges[otherIndex];
+    if (!other) {
+      continue;
+    }
+
+    for (const segment of segments) {
+      for (const otherSegment of edgeSegments(other.points)) {
+        const shared = overlappingAxisRange(segment, otherSegment);
+        if (shared) {
+          score += 1_000 + (shared.max - shared.min);
+          continue;
+        }
+
+        const crowded = crowdedParallelAxisRange(segment, otherSegment);
+        if (crowded) {
+          score += 100 + (crowded.max - crowded.min);
+        }
+      }
+    }
+  }
+
+  return score;
 }
 
 function detourSegmentToLineCoordinate(
@@ -1215,7 +1456,41 @@ function detourSegmentToLineCoordinate(
   edge.points.splice(0, edge.points.length, ...next);
 }
 
+function shiftSegmentToLineCoordinate(
+  edge: LayoutedEdge,
+  segmentIndex: number,
+  line: number,
+): void {
+  const segments = edgeSegments(edge.points);
+  const segment = segments.find((item) => item.index === segmentIndex);
+  if (!segment) {
+    return;
+  }
+
+  const start = edge.points[segmentIndex];
+  const end = edge.points[segmentIndex + 1];
+  if (!start || !end) {
+    return;
+  }
+
+  const delta = line - lineCoordinate(segment);
+  if (Math.abs(delta) <= EPSILON) {
+    return;
+  }
+
+  if (segment.orientation === 'horizontal') {
+    start.y += delta;
+    end.y += delta;
+    return;
+  }
+
+  start.x += delta;
+  end.x += delta;
+}
+
 function detourSharedSegment(
+  edges: LayoutedEdge[],
+  edgeIndex: number,
   edge: LayoutedEdge,
   segmentIndex: number,
   overlap: { min: number; max: number },
@@ -1229,19 +1504,75 @@ function detourSharedSegment(
   }
 
   const original = edge.points.map((point) => ({ ...point }));
-  const offsets = [offset, -offset];
+  const baselineScore = edgeCrowdingScore(edges, edgeIndex);
+  const segmentMin = Math.min(axisStart(segment), axisEnd(segment));
+  const segmentMax = Math.max(axisStart(segment), axisEnd(segment));
+  const touchesSegmentBoundary =
+    Math.abs(overlap.min - segmentMin) <= EDGE_OBSTACLE_CLEARANCE ||
+    Math.abs(segmentMax - overlap.max) <= EDGE_OBSTACLE_CLEARANCE;
+  let best:
+    | {
+        points: Array<{ x: number; y: number }>;
+        score: number;
+        pathLength: number;
+      }
+    | undefined;
+  const preferredOffsets = Array.from(
+    { length: 4 },
+    (_, index) => offset * (index + 1),
+  );
+  const offsets = [
+    ...preferredOffsets,
+    ...preferredOffsets.map((candidateOffset) => -candidateOffset),
+  ];
   for (const candidateOffset of offsets) {
-    edge.points.splice(0, edge.points.length, ...original.map((point) => ({ ...point })));
-    detourSegmentToLineCoordinate(
-      edge,
-      segmentIndex,
-      overlap,
-      lineCoordinate(segment) + candidateOffset,
-    );
+    const candidateLine = lineCoordinate(segment) + candidateOffset;
+    const attempts = touchesSegmentBoundary
+      ? [
+          () => shiftSegmentToLineCoordinate(edge, segmentIndex, candidateLine),
+          () => detourSegmentToLineCoordinate(edge, segmentIndex, overlap, candidateLine),
+        ]
+      : [
+          () => detourSegmentToLineCoordinate(edge, segmentIndex, overlap, candidateLine),
+        ];
 
-    if (!nodes || !groups || routeClearOfHardObstacles(edge, edge.points, nodes, groups)) {
-      return true;
+    for (const attempt of attempts) {
+      edge.points.splice(0, edge.points.length, ...original.map((point) => ({ ...point })));
+      attempt();
+      cleanEdgePoints(edge, nodes, groups);
+      ensureEndpointRunway([edge]);
+      cleanEdgePoints(edge, nodes, groups);
+
+      if (nodes && groups && !routeClearOfHardObstacles(edge, edge.points, nodes, groups)) {
+        continue;
+      }
+
+      const candidateScore = edgeCrowdingScore(edges, edgeIndex);
+      if (candidateScore + EPSILON >= baselineScore) {
+        continue;
+      }
+
+      const candidatePathLength = edgePathLength(edge);
+      if (
+        !best ||
+        candidateScore < best.score - EPSILON ||
+        (
+          Math.abs(candidateScore - best.score) <= EPSILON &&
+          candidatePathLength < best.pathLength - EPSILON
+        )
+      ) {
+        best = {
+          points: edge.points.map((point) => ({ ...point })),
+          score: candidateScore,
+          pathLength: candidatePathLength,
+        };
+      }
     }
+  }
+
+  if (best) {
+    edge.points.splice(0, edge.points.length, ...best.points);
+    return true;
   }
 
   edge.points.splice(0, edge.points.length, ...original);
@@ -1266,29 +1597,40 @@ function unshareOverlappingEdgeSegments(
         const secondSegments = edgeSegments(edges[secondIndex]!.points);
         for (const firstSegment of firstSegments) {
           for (const secondSegment of secondSegments) {
-            const overlap = overlappingAxisRange(firstSegment, secondSegment);
+            const overlap =
+              overlappingAxisRange(firstSegment, secondSegment) ??
+              crowdedParallelAxisRange(firstSegment, secondSegment);
             if (!overlap) {
               continue;
             }
 
             const firstIsTerminal = isTerminalSegment(edges[firstIndex]!, firstSegment);
             const secondIsTerminal = isTerminalSegment(edges[secondIndex]!, secondSegment);
-            const detourFirst = secondIsTerminal && !firstIsTerminal;
-            const candidates = detourFirst
-              ? [
-                  { edgeIndex: firstIndex, segment: firstSegment },
-                  { edgeIndex: secondIndex, segment: secondSegment },
-                ]
-              : [
-                  { edgeIndex: secondIndex, segment: secondSegment },
-                  { edgeIndex: firstIndex, segment: firstSegment },
-                ];
+            const candidates = [
+              { edgeIndex: firstIndex, segment: firstSegment, isTerminal: firstIsTerminal },
+              { edgeIndex: secondIndex, segment: secondSegment, isTerminal: secondIsTerminal },
+            ].sort((a, b) => {
+              const aPriority = a.segment.length + (a.isTerminal ? EDGE_UNSHARE_OFFSET : 0);
+              const bPriority = b.segment.length + (b.isTerminal ? EDGE_UNSHARE_OFFSET : 0);
+              return aPriority - bPriority || a.edgeIndex - b.edgeIndex;
+            });
 
             for (const candidate of candidates) {
-              const offset = ((candidate.edgeIndex + candidate.segment.index) % 2 === 0 ? 1 : -1) *
-                EDGE_UNSHARE_OFFSET;
+              const otherSegment = candidate.edgeIndex === firstIndex ? secondSegment : firstSegment;
+              const candidateLine = lineCoordinate(candidate.segment);
+              const otherLine = lineCoordinate(otherSegment);
+              const lineDistance = Math.abs(candidateLine - otherLine);
+              const offsetDirection = Math.abs(candidateLine - otherLine) <= EPSILON
+                ? ((candidate.edgeIndex + candidate.segment.index) % 2 === 0 ? 1 : -1)
+                : (candidateLine < otherLine ? -1 : 1);
+              const offsetMagnitude = lineDistance <= EPSILON
+                ? EDGE_UNSHARE_OFFSET
+                : Math.max(1, MIN_PARALLEL_SEGMENT_CLEARANCE - lineDistance);
+              const offset = offsetDirection * offsetMagnitude;
               if (
                 detourSharedSegment(
+                  edges,
+                  candidate.edgeIndex,
                   edges[candidate.edgeIndex]!,
                   candidate.segment.index,
                   overlap,
@@ -1327,12 +1669,13 @@ interface RectObstacle {
 }
 
 function inflatedNodeRect(node: LayoutedNode): RectObstacle {
+  const rect = nodeRect(node);
   return {
-    id: node.id,
-    x: node.x - EDGE_OBSTACLE_CLEARANCE,
-    y: node.y - EDGE_OBSTACLE_CLEARANCE,
-    width: node.measuredWidth + EDGE_OBSTACLE_CLEARANCE * 2,
-    height: node.measuredHeight + EDGE_OBSTACLE_CLEARANCE * 2,
+    id: rect.id,
+    x: rect.x - EDGE_OBSTACLE_CLEARANCE,
+    y: rect.y - EDGE_OBSTACLE_CLEARANCE,
+    width: rect.width + EDGE_OBSTACLE_CLEARANCE * 2,
+    height: rect.height + EDGE_OBSTACLE_CLEARANCE * 2,
   };
 }
 
@@ -1443,12 +1786,13 @@ function segmentViolatesRectBodyOrSide(
 }
 
 function nodeRect(node: LayoutedNode): RectObstacle {
+  const obstacle = connectionObstacleBox(node);
   return {
-    id: node.id,
-    x: node.x,
-    y: node.y,
-    width: node.measuredWidth,
-    height: node.measuredHeight,
+    id: obstacle.id,
+    x: obstacle.x,
+    y: obstacle.y,
+    width: obstacle.width,
+    height: obstacle.height,
   };
 }
 
@@ -1474,13 +1818,12 @@ function repairNodeBodyAndSideViolations(
         break;
       }
 
-      const obstacles = nodes.filter((node) => node.id !== edge.from && node.id !== edge.to);
       for (const segment of edgeSegments(edge.points)) {
         if (changed) {
           break;
         }
 
-        for (const node of obstacles) {
+        for (const node of nodes) {
           const rect = nodeRect(node);
           if (!segmentViolatesRectBodyOrSide(segment, rect)) {
             continue;
@@ -1874,6 +2217,9 @@ function finalizeEdgeGeometry(
   ensureEndpointRunway(edges);
   unshareOverlappingEdgeSegments(edges, nodes, groups);
   ensureEndpointRunway(edges);
+  rerouteCrowdedEdgesViaAlternateSides(edges, nodeById, nodes, groups);
+  ensureEndpointRunway(edges);
+  cleanAllEdgePoints(edges, nodes, groups);
 }
 
 function updateGroupBoundsFromContainedNodes(
@@ -2028,6 +2374,7 @@ function layoutPreserve(
   diagram: Diagram,
   measuredNodes: MeasuredNode[],
   theme: ThemeTokens,
+  options?: { offset?: boolean },
 ): LayoutedDiagram {
   const missing = measuredNodes
     .filter(
@@ -2090,7 +2437,9 @@ function layoutPreserve(
   finalizeEdgeGeometry(edges, nodeById, nodes, groups);
   updateLabeledEdgePlacements(nodes, edges);
   assertOrthogonalEdges(edges);
-  offsetDiagram(nodes, groups, edges);
+  if (options?.offset !== false) {
+    offsetDiagram(nodes, groups, edges);
+  }
   applyEdgeBridges(edges);
   const { width, height } = computeBounds(nodes, groups, edges);
 
@@ -2103,6 +2452,17 @@ function layoutPreserve(
     height,
     theme,
   };
+}
+
+export function computePreservedLayout(input: {
+  diagram: Diagram;
+  measuredNodes: MeasuredNode[];
+  theme: ThemeTokens;
+  offset?: boolean;
+}): LayoutedDiagram {
+  return layoutPreserve(input.diagram, input.measuredNodes, input.theme, {
+    offset: input.offset,
+  });
 }
 
 export async function computeLayout(input: {

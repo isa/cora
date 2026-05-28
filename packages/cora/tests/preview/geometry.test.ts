@@ -84,6 +84,36 @@ describe('preview geometry', () => {
     expect(grown.height).toBeGreaterThan(base.height);
   });
 
+  it('wraps non-box node text by growing height instead of width', () => {
+    const state = addNodeToCanvas(createDefaultWorkbenchState(), 'document', { x: 0, y: 0 });
+    const base = previewNodeSize(state.nodes[0]!);
+    const grown = previewNodeSize({
+      ...state.nodes[0]!,
+      props: {
+        ...state.nodes[0]!.props,
+        title: 'A very long document title that should wrap to new lines without stretching the node width',
+      },
+    });
+
+    expect(grown.width).toBe(base.width);
+    expect(grown.height).toBeGreaterThan(base.height);
+  });
+
+  it('wraps label text by growing height from the default label width', () => {
+    const state = addNodeToCanvas(createDefaultWorkbenchState(), 'label', { x: 0, y: 0 });
+    const base = previewNodeSize(state.nodes[0]!);
+    const grown = previewNodeSize({
+      ...state.nodes[0]!,
+      props: {
+        ...state.nodes[0]!.props,
+        title: 'A long attached label that should wrap across multiple lines instead of widening indefinitely',
+      },
+    });
+
+    expect(grown.width).toBe(base.width);
+    expect(grown.height).toBeGreaterThan(base.height);
+  });
+
   it('keeps icon and label-icon size presets proportional and aligned', () => {
     const iconState = addNodeToCanvas(createDefaultWorkbenchState(), 'icon', { x: 0, y: 0 });
     const labelIconState = addNodeToCanvas(createDefaultWorkbenchState(), 'labelIcon', { x: 0, y: 0 });

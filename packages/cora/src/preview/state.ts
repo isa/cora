@@ -2,6 +2,7 @@ import type { PackManifest, PreviewComponentDefinition } from './pack/types.js';
 import { builtInPack } from './pack/builtins.js';
 import { connectionControls, connectionDefaults, type ConnectionProps, type PreviewNodeProps } from './controls/defaults.js';
 import { isValidControlValue } from './controls/schema.js';
+import type { DiagramKind } from '../core/types.js';
 
 export interface PreviewPosition {
   x: number;
@@ -30,6 +31,7 @@ export interface CanvasConnection {
   id: string;
   fromNodeId: string;
   toNodeId: string;
+  label?: string;
   props: ConnectionProps;
 }
 
@@ -40,6 +42,10 @@ export type CanvasSelection =
 
 export interface WorkbenchState {
   pack: PackManifest;
+  diagramKind: DiagramKind;
+  diagramTheme?: string;
+  diagramDirection?: 'LR' | 'TB';
+  sourceName?: string;
   nodes: CanvasNode[];
   groups: CanvasGroup[];
   connections: CanvasConnection[];
@@ -89,6 +95,7 @@ function roundGroupPatch(patch: GroupPatch): GroupPatch {
 export function createDefaultWorkbenchState(pack = builtInPack): WorkbenchState {
   return {
     pack,
+    diagramKind: 'box-arrows',
     nodes: [],
     groups: [],
     connections: [],

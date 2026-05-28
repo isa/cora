@@ -15,6 +15,7 @@ import {
   ICON_NODE_ART_SIZE,
   iconNodeScale,
 } from '../renderer/components/styles.js';
+import { resolveCatalogTextLayout } from '../core/catalogTextLayout.js';
 import {
   chooseConnectionSides,
   connectionAnchorBox,
@@ -22,6 +23,7 @@ import {
   type AnchorNode,
   type Side,
 } from '../core/connectionAnchors.js';
+import { markerShaftTrim } from '../core/edgeMarkers.js';
 import type { ConnectionProps } from './controls/defaults.js';
 import type { CanvasConnection, CanvasNode, WorkbenchState } from './state.js';
 
@@ -45,9 +47,39 @@ export interface AttachmentSlot {
   y: number;
 }
 
+function nodeText(node: CanvasNode): string {
+  return String(node.props.title ?? node.props.text ?? '');
+}
 
-export function previewNodeSize(node: CanvasNode): { width: number; height: number } {
-  const base = node.componentId === 'app'
+function nodeSubtitle(node: CanvasNode): string {
+  return String(node.props.subtitle ?? '');
+}
+
+function nodeTitleFontSize(node: CanvasNode, fallback = 13): number {
+  return node.props.titleFontSize ?? fallback;
+}
+
+function nodeSubtitleFontSize(node: CanvasNode, fallback = 13): number {
+  return node.props.subtitleFontSize ?? Math.max(8, nodeTitleFontSize(node, fallback) - 2);
+}
+
+function wrappedTextHeight(
+  node: CanvasNode,
+  width: number,
+  titleFontSize: number,
+  subtitleFontSize: number,
+): number {
+  return resolveCatalogTextLayout({
+    text: nodeText(node),
+    subtitle: nodeSubtitle(node),
+    width,
+    fontSize: titleFontSize,
+    subtitleFontSize,
+  }).totalHeight;
+}
+
+function previewBaseSize(node: CanvasNode): { width: number; height: number } {
+  return node.componentId === 'app'
     ? resolveAppComponentSize(node.props.size, APP_SIZE_PRESETS.lg)
     : node.componentId === 'api'
       ? resolveApiComponentSize(node.props.size, API_SIZE_PRESETS.lg)
@@ -57,38 +89,121 @@ export function previewNodeSize(node: CanvasNode): { width: number; height: numb
           ? resolveDocumentComponentSize(node.props.size, DOCUMENT_SIZE_PRESETS.lg)
           : node.componentId === 'website'
             ? resolveWebsiteComponentSize(node.props.size, WEBSITE_SIZE_PRESETS.lg)
-            : resolveComponentSize(node.props.size, { width: 140, height: 56 });
-  const title = node.props.title ?? node.props.text ?? '';
-  const subtitle = node.props.subtitle ?? '';
-  const lines = title.split(/\r?\n/);
-  const subtitleLines = subtitle ? subtitle.split(/\r?\n/) : [];
-  const longestLine = Math.max(...lines.map((line) => line.length), 1);
-  const longestSubtitle = Math.max(...subtitleLines.map((line) => line.length), 0);
-  const titleFontSize = node.props.titleFontSize ?? 13;
-  const subtitleFontSize = node.props.subtitleFontSize ?? Math.max(8, titleFontSize - 2);
-  const textWidth = Math.ceil(Math.max(longestLine * titleFontSize * 0.56, longestSubtitle * subtitleFontSize * 0.56) + 16);
-  const textHeight = Math.ceil(16 + Math.max(1, lines.length) * titleFontSize * 1.25 + subtitleLines.length * subtitleFontSize * 1.25);
-  if (node.componentId === 'label') {
-    return {
-      width: Math.max(48, textWidth),
-      height: Math.max(28, textHeight),
-    };
-  }
-  if (node.componentId === 'icon' || node.componentId === 'labelIcon') {
-    return previewIconSize(node);
-  }
-
-  return {
-    width: Math.max(base.width, textWidth),
-    height: Math.max(base.height, textHeight),
-  };
+            : node.componentId === 'labelIcon'
+              ? resolveLabelIconComponentSize(node.props.size, LABEL_ICON_SIZE_PRESETS.lg)
+              : node.componentId === 'icon'
+                ? resolveAppComponentSize(node.props.size, APP_SIZE_PRESETS.lg)
+                : resolveComponentSize(node.props.size, { width: 140, height: 56 });
 }
 
-function previewIconSize(node: CanvasNode): { width: number; height: number } {
-  if (node.componentId === 'icon') {
-    return resolveAppComponentSize(node.props.size, APP_SIZE_PRESETS.lg);
+export function previewNodeSize(node: CanvasNode): { width: number; height: number } {
+  const base = previewBaseSize(node);
+  const title = nodeText(node);
+  const subtitle = nodeSubtitle(node);
+  const titleFontSize = nodeTitleFontSize(node);
+  const subtitleFontSize = nodeSubtitleFontSize(node);
+  const hasText = Boolean(title || subtitle);
+
+  if (node.componentId === 'box') {
+    const lines = title ? title.split(/\r?\n/) : [];
+    const subtitleLines = subtitle ? subtitle.split(/\r?\n/) : [];
+    const longestLine = Math.max(...lines.map((line) => line.length), 1);
+    const longestSubtitle = Math.max(...subtitleLines.map((line) => line.length), 0);
+    const textWidth = Math.ceil(Math.max(longestLine * titleFontSize * 0.56, longestSubtitle * subtitleFontSize * 0.56) + 16);
+    const textHeight = Math.ceil(
+      16 +
+      lines.length * titleFontSize * 1.25 +
+      (lines.length > 0 && subtitleLines.length > 0 ? 3 : 0) +
+      subtitleLines.length * subtitleFontSize * 1.25,
+    );
+    return {
+      width: Math.max(base.width, textWidth),
+      height: Math.max(base.height, textHeight),
+    };
   }
-  return resolveLabelIconComponentSize(node.props.size, LABEL_ICON_SIZE_PRESETS.lg);
+
+  if (node.componentId === 'label') {
+    const textHeight = Math.ceil(wrappedTextHeight(node, base.width, titleFontSize, subtitleFontSize) + 16);
+    return {
+      width: base.width,
+      height: Math.max(28, base.height, textHeight),
+    };
+  }
+
+  if (node.componentId === 'icon') {
+    const ratio = iconNodeScale(base);
+    const iconSize = ICON_NODE_ART_SIZE * ratio;
+    const textHeight = hasText
+      ? wrappedTextHeight(node, base.width - 16, titleFontSize * ratio, subtitleFontSize * ratio)
+      : 0;
+    const requiredHeight = hasText ? 6 * ratio + iconSize + 6 * ratio + textHeight : base.height;
+    return { width: base.width, height: Math.max(base.height, Math.ceil(requiredHeight)) };
+  }
+
+  if (node.componentId === 'labelIcon') {
+    if (node.props.iconType) {
+      return base;
+    }
+    const ratio = iconNodeScale(base);
+    const iconSize = ICON_NODE_ART_SIZE * ratio;
+    const textWidth = Math.max(120, base.width * 2.5);
+    const textHeight = hasText
+      ? wrappedTextHeight(node, textWidth, titleFontSize * ratio, subtitleFontSize * ratio)
+      : 0;
+    const requiredHeight = hasText ? 2 * ratio + iconSize + 4 * ratio + textHeight : base.height;
+    return { width: base.width, height: Math.max(base.height, Math.ceil(requiredHeight)) };
+  }
+
+  if (node.componentId === 'app' || node.componentId === 'database') {
+    const ratio = iconNodeScale(base);
+    const artSize = ICON_NODE_ART_SIZE * ratio;
+    const textHeight = hasText
+      ? wrappedTextHeight(node, base.width, titleFontSize * ratio, subtitleFontSize * ratio)
+      : 0;
+    const requiredHeight = hasText
+      ? 6 * ratio + artSize + 8 * ratio + textHeight + 6 * ratio
+      : base.height;
+    return { width: base.width, height: Math.max(base.height, Math.ceil(requiredHeight)) };
+  }
+
+  if (node.componentId === 'api') {
+    const ratio = base.width / API_SIZE_PRESETS.lg.width;
+    const artSize = ICON_NODE_ART_SIZE * ratio;
+    const textHeight = hasText
+      ? wrappedTextHeight(node, base.width, titleFontSize * ratio, subtitleFontSize * ratio)
+      : 0;
+    const requiredHeight = hasText
+      ? 6 * ratio + artSize + 8 * ratio + textHeight + 6 * ratio
+      : base.height;
+    return { width: base.width, height: Math.max(base.height, Math.ceil(requiredHeight)) };
+  }
+
+  if (node.componentId === 'document') {
+    const ratio = base.width / DOCUMENT_SIZE_PRESETS.lg.width;
+    const artSize = ICON_NODE_ART_SIZE * ratio;
+    const textHeight = hasText
+      ? wrappedTextHeight(node, base.width, titleFontSize * ratio, subtitleFontSize * ratio)
+      : 0;
+    const requiredHeight = hasText
+      ? 12 * ratio + artSize + 8 * ratio + textHeight + 8 * ratio
+      : base.height;
+    return { width: base.width, height: Math.max(base.height, Math.ceil(requiredHeight)) };
+  }
+
+  if (node.componentId === 'website') {
+    const width = hasText ? Math.max(base.width, 64) : base.width;
+    const titleSize = node.props.titleFontSize ?? 12;
+    const subtitleSize = node.props.subtitleFontSize ?? Math.max(8, titleSize - 2);
+    const textHeight = hasText
+      ? wrappedTextHeight(node, width, titleSize, subtitleSize)
+      : 0;
+    const requiredHeight = hasText
+      ? 6 + 24 + 8 + textHeight + 6
+      : base.height;
+    return { width, height: Math.max(base.height, Math.ceil(requiredHeight)) };
+  }
+
+  return base;
 }
 
 export function computeNodeBox(state: WorkbenchState, nodeId: string): PreviewBox | undefined {
@@ -170,13 +285,13 @@ function iconVisualBox(state: WorkbenchState, nodeId: string): PreviewBox | unde
     const artSize = ARTBOARD * scale;
 
     const hasLabel = Boolean((node.props.title ?? node.props.text) || node.props.subtitle);
-    const titleFontSize = (node.props.titleFontSize ?? 12) * ratio;
-    const subtitleFontSize = (node.props.subtitleFontSize ?? Math.max(8, (node.props.titleFontSize ?? 12) - 2)) * ratio;
-    const titleLines = (node.props.title ?? node.props.text) ? String(node.props.title ?? node.props.text).split(/\r?\n/) : [];
-    const subtitleLines = node.props.subtitle ? String(node.props.subtitle).split(/\r?\n/) : [];
     const textHeight = hasLabel
-      ? titleLines.length * titleFontSize * 1.25 +
-        (subtitleLines.length > 0 ? 3 * ratio + subtitleLines.length * subtitleFontSize * 1.25 : 0)
+      ? wrappedTextHeight(
+          node,
+          box.width,
+          (node.props.titleFontSize ?? 12) * ratio,
+          (node.props.subtitleFontSize ?? Math.max(8, (node.props.titleFontSize ?? 12) - 2)) * ratio,
+        )
       : 0;
     const labelGap = (hasLabel ? 8 : 0) * ratio;
     const topPadding = (hasLabel ? 6 : 0) * ratio;
@@ -282,33 +397,7 @@ export function applyConnectionMarkerInsets(
 }
 
 function previewMarkerInset(marker: ConnectionProps['startMarker'], markerSize: number): number {
-  const size = Math.max(4, markerSize);
-  const circleRadius = Math.max(2, size * 0.36);
-  const markerStrokeWidth = 1.5;
-  const squareSize = Math.max(3, size * 0.72);
-
-  if (marker === 'arrow') {
-    return size;
-  }
-  if (marker === 'circle') {
-    return circleRadius + markerStrokeWidth / 2;
-  }
-  if (marker === 'filledCircle') {
-    return circleRadius;
-  }
-  if (marker === 'diamond') {
-    return size / 2 + markerStrokeWidth / 2;
-  }
-  if (marker === 'filledDiamond') {
-    return size / 2;
-  }
-  if (marker === 'square') {
-    return squareSize / 2 + markerStrokeWidth / 2;
-  }
-  if (marker === 'filledSquare') {
-    return squareSize / 2;
-  }
-  return 0;
+  return markerShaftTrim(marker, markerSize);
 }
 
 function offsetPointToward(

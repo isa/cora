@@ -5,6 +5,14 @@ import type { ComponentDimensions, SizePreset } from '../../renderer/components/
 import { searchPreviewIcons } from '../iconSearch.js';
 import { Input, Select, Textarea } from './ui/index.js';
 
+function resizeTextarea(element: HTMLTextAreaElement | null) {
+  if (!element) {
+    return;
+  }
+  element.style.height = 'auto';
+  element.style.height = `${element.scrollHeight}px`;
+}
+
 function AutoGrowingTextarea({
   value,
   onChange,
@@ -17,20 +25,17 @@ function AutoGrowingTextarea({
   const ref = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    const el = ref.current;
-    if (el) {
-      el.style.height = 'auto';
-      el.style.height = `${el.scrollHeight}px`;
-    }
+    resizeTextarea(ref.current);
   }, [value]);
 
   return (
-    <textarea
+    <Textarea
       ref={ref}
       className={`ui-textarea auto-grow ${className || ''}`}
       rows={1}
       value={value}
       onChange={(event) => onChange(event.currentTarget.value)}
+      onInput={(event) => resizeTextarea(event.currentTarget)}
       style={{ overflowY: 'hidden', resize: 'none' }}
       {...props}
     />

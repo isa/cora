@@ -34,7 +34,7 @@ export function Line({
   endMarker,
   markerIdSuffix,
 }: LineProps) {
-  if (points.length < 2) {
+  if (!explicitPathData && points.length < 2) {
     return null;
   }
 

@@ -105,6 +105,7 @@ export function BoxNode(props: BoxNodeProps) {
         subtitleColor={frame.subtitleColor}
         fontSize={frame.titleFontSize}
         subtitleFontSize={frame.subtitleFontSize}
+        wrapText={false}
       />
     </CatalogFrame>
   );

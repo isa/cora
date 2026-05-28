@@ -40,6 +40,10 @@ interface GlyphSet {
   upArrow: string;
   circle: string;
   filledCircle: string;
+  square: string;
+  filledSquare: string;
+  diamond: string;
+  filledDiamond: string;
   // dashed borders for groups
   dashH: string;
   dashV: string;
@@ -64,6 +68,10 @@ const GLYPHS: Record<TextCharset, GlyphSet> = {
     upArrow: '▲',
     circle: 'O',
     filledCircle: '●',
+    square: '□',
+    filledSquare: '■',
+    diamond: '◇',
+    filledDiamond: '◆',
     dashH: '┄',
     dashV: '┆',
     junctionDown: '┬',
@@ -85,6 +93,10 @@ const GLYPHS: Record<TextCharset, GlyphSet> = {
     upArrow: '^',
     circle: 'O',
     filledCircle: '*',
+    square: '#',
+    filledSquare: '#',
+    diamond: 'D',
+    filledDiamond: 'D',
     dashH: '-',
     dashV: ':',
     junctionDown: '+',
@@ -477,8 +489,31 @@ function buildMapper(diagram: LayoutedDiagram, maxWidth: number): CoordMapper {
   // Edge arrowhead runway constraints (minimum 2-3 characters of runway before the arrowhead)
   for (const e of diagram.edges) {
     if (e.points.length < 2) continue;
-    const pEnd = e.points[e.points.length - 1]!;
-    const pPrev = e.points[e.points.length - 2]!;
+
+    const startMarker = e.startMarker ?? 'none';
+    if (startMarker !== 'none') {
+      const startSegment = firstDistinctSegment(e.points);
+      if (startSegment) {
+        const [pStart, pNext] = startSegment;
+        if (Math.abs(pStart.y - pNext.y) < 0.1) {
+          const idx1 = findClosestIndex(uniqueXs, Math.min(pStart.x, pNext.x));
+          const idx2 = findClosestIndex(uniqueXs, Math.max(pStart.x, pNext.x));
+          if (idx1 < idx2) {
+            xConstraints.push({ idx1, idx2, minGap: 4 });
+          }
+        } else if (Math.abs(pStart.x - pNext.x) < 0.1) {
+          const idy1 = findClosestIndex(uniqueYs, Math.min(pStart.y, pNext.y));
+          const idy2 = findClosestIndex(uniqueYs, Math.max(pStart.y, pNext.y));
+          if (idy1 < idy2) {
+            yConstraints.push({ idx1: idy1, idx2: idy2, minGap: 3 });
+          }
+        }
+      }
+    }
+
+    const endSegment = lastDistinctSegment(e.points);
+    if (!endSegment) continue;
+    const [pPrev, pEnd] = endSegment;
 
     if (Math.abs(pPrev.y - pEnd.y) < 0.1) {
       // Horizontal segment
@@ -645,6 +680,40 @@ interface BoxBounds {
   x1: number;
   y0: number;
   y1: number;
+}
+
+function samePoint(
+  a: { x: number; y: number },
+  b: { x: number; y: number },
+): boolean {
+  return a.x === b.x && a.y === b.y;
+}
+
+function pointInBox(x: number, y: number, box: BoxBounds): boolean {
+  return x >= box.x0 && x <= box.x1 && y >= box.y0 && y <= box.y1;
+}
+
+function pointInAnyBox(
+  x: number,
+  y: number,
+  boxes: Map<string, BoxBounds>,
+): boolean {
+  for (const box of boxes.values()) {
+    if (pointInBox(x, y, box)) return true;
+  }
+  return false;
+}
+
+function setLineGuardOutsideNodeBoxes(
+  grid: string[][],
+  x: number,
+  y: number,
+  ch: string,
+  g: GlyphSet,
+  nodeBoxes: Map<string, BoxBounds>,
+): void {
+  if (pointInAnyBox(x, y, nodeBoxes)) return;
+  setLineGuard(grid, x, y, ch, g);
 }
 
 type BoxSide = 'top' | 'bottom' | 'left' | 'right';
@@ -952,6 +1021,71 @@ function getLineCharForDirection(
     : g.vertical;
 }
 
+function stepToward(
+  from: { x: number; y: number },
+  to: { x: number; y: number },
+): { x: number; y: number } | null {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  if (dx === 0 && dy === 0) return null;
+  if (Math.abs(dx) >= Math.abs(dy)) {
+    return { x: from.x + Math.sign(dx), y: from.y };
+  }
+  return { x: from.x, y: from.y + Math.sign(dy) };
+}
+
+function findDistinctPoint(
+  pts: Array<{ x: number; y: number }>,
+  startIdx: number,
+  step: 1 | -1,
+  reference: { x: number; y: number },
+): { x: number; y: number } | null {
+  for (let i = startIdx; i >= 0 && i < pts.length; i += step) {
+    const pt = pts[i];
+    if (pt && !samePoint(pt, reference)) return pt;
+  }
+  return null;
+}
+
+function buildMarkerRunway(
+  pts: Array<{ x: number; y: number }>,
+  markerPt: { x: number; y: number },
+  startIdx: number,
+  step: 1 | -1,
+  g: GlyphSet,
+): { x: number; y: number; ch: string } | null {
+  const targetPt = findDistinctPoint(pts, startIdx, step, markerPt);
+  if (!targetPt) return null;
+  const runwayPt = stepToward(markerPt, targetPt);
+  if (!runwayPt || samePoint(runwayPt, markerPt)) return null;
+  return {
+    ...runwayPt,
+    ch: getLineCharForDirection(markerPt, targetPt, g),
+  };
+}
+
+function firstDistinctSegment<T extends { x: number; y: number }>(
+  pts: readonly T[],
+): [T, T] | null {
+  for (let i = 0; i < pts.length - 1; i++) {
+    const a = pts[i];
+    const b = pts[i + 1];
+    if (a && b && !samePoint(a, b)) return [a, b];
+  }
+  return null;
+}
+
+function lastDistinctSegment<T extends { x: number; y: number }>(
+  pts: readonly T[],
+): [T, T] | null {
+  for (let i = pts.length - 2; i >= 0; i--) {
+    const a = pts[i];
+    const b = pts[i + 1];
+    if (a && b && !samePoint(a, b)) return [a, b];
+  }
+  return null;
+}
+
 // ── Legend ──
 
 function renderLegend(diagram: LayoutedDiagram): string {
@@ -1019,6 +1153,20 @@ function getSafeLabelRow(
     }
   }
   return ly; // fallback
+}
+
+function labelOverlapsArrow(
+  lx: number,
+  ly: number,
+  len: number,
+  arrowPts: Array<{ x: number; y: number }>,
+): boolean {
+  for (const pt of arrowPts) {
+    if (pt.y === ly && pt.x >= lx && pt.x <= lx + len - 1) {
+      return true;
+    }
+  }
+  return false;
 }
 
 interface SegmentInfo {
@@ -1109,6 +1257,89 @@ function placeVerticalLabelBesideLine(
   }
 
   return Math.max(0, Math.min(gridW - len, lineX + 1));
+}
+
+function shouldersAreClear(
+  lx: number,
+  ly: number,
+  len: number,
+  nodeBoxes: Map<string, BoxBounds>,
+  arrowPts: Array<{ x: number; y: number }>,
+): boolean {
+  const leftX = lx - 1;
+  const rightX = lx + len;
+  if (pointInAnyBox(leftX, ly, nodeBoxes) || pointInAnyBox(rightX, ly, nodeBoxes)) {
+    return false;
+  }
+  for (const pt of arrowPts) {
+    if (pt.y === ly && (pt.x === leftX || pt.x === rightX)) return false;
+  }
+  return true;
+}
+
+function scanNearestCandidate(
+  minX: number,
+  maxX: number,
+  desiredX: number,
+  predicate: (candidate: number) => boolean,
+): number | null {
+  if (minX > maxX) return null;
+
+  const center = Math.max(minX, Math.min(maxX, desiredX));
+  const maxDelta = Math.max(center - minX, maxX - center);
+
+  for (let delta = 0; delta <= maxDelta; delta++) {
+    const left = center - delta;
+    if (left >= minX && predicate(left)) return left;
+    const right = center + delta;
+    if (delta > 0 && right <= maxX && predicate(right)) return right;
+  }
+
+  return null;
+}
+
+function placeHorizontalLabelAlongLine(
+  desiredX: number,
+  ly: number,
+  len: number,
+  segment: SegmentInfo,
+  gridW: number,
+  nodeBoxes: Map<string, BoxBounds>,
+  arrowPts: Array<{ x: number; y: number }>,
+): number {
+  const gridMin = 0;
+  const gridMax = Math.max(0, gridW - len);
+  const segmentMin = Math.min(segment.x0, segment.x1);
+  const segmentMax = Math.max(segment.x0, segment.x1);
+
+  const tryRange = (
+    minX: number,
+    maxX: number,
+    requireClearShoulders: boolean,
+  ): number | null =>
+    scanNearestCandidate(minX, maxX, desiredX, candidate => {
+      if (labelIntersectsBox(candidate, ly, len, nodeBoxes)) return false;
+      if (labelOverlapsArrow(candidate, ly, len, arrowPts)) return false;
+      if (requireClearShoulders && !shouldersAreClear(candidate, ly, len, nodeBoxes, arrowPts)) {
+        return false;
+      }
+      return true;
+    });
+
+  const preferredMin = Math.max(gridMin, segmentMin + 1);
+  const preferredMax = Math.min(gridMax, segmentMax - len - 1);
+  const preferred = tryRange(preferredMin, preferredMax, true);
+  if (preferred !== null) return preferred;
+
+  const relaxedMin = Math.max(gridMin, segmentMin);
+  const relaxedMax = Math.min(gridMax, segmentMax - len + 1);
+  const relaxed = tryRange(relaxedMin, relaxedMax, false);
+  if (relaxed !== null) return relaxed;
+
+  const anywhere = tryRange(gridMin, gridMax, false);
+  if (anywhere !== null) return anywhere;
+
+  return Math.max(gridMin, Math.min(gridMax, desiredX));
 }
 
 function canPlaceGroupBorderLabel(
@@ -1263,8 +1494,8 @@ export function renderToTextFromSvg(
   // Precompute arrow points to prevent collisions with labels
   const edgeMarkers: Array<{
     edgeId: string;
-    endPt?: { x: number; y: number; ch: string; lineX: number; lineY: number; lineCh: string };
-    startPt?: { x: number; y: number; ch: string; lineX: number; lineY: number; lineCh: string };
+    endPt?: { x: number; y: number; ch: string; runway?: { x: number; y: number; ch: string } | null };
+    startPt?: { x: number; y: number; ch: string; runway?: { x: number; y: number; ch: string } | null };
   }> = [];
   const arrowPts: Array<{ x: number; y: number }> = [];
 
@@ -1272,7 +1503,7 @@ export function renderToTextFromSvg(
     const pts = edgeGridPoints.get(`${edge.from}->${edge.to}`);
     if (!pts || pts.length < 2) continue;
 
-    const markerInfo: any = { edgeId: `${edge.from}->${edge.to}` };
+    const markerInfo: (typeof edgeMarkers)[number] = { edgeId: `${edge.from}->${edge.to}` };
 
     // End marker
     const endMarker = edge.endMarker ?? 'arrow';
@@ -1284,14 +1515,15 @@ export function renderToTextFromSvg(
       if (endMarker === 'arrow') ch = getArrowChar(prevPt, endPt, g);
       else if (endMarker === 'circle') ch = g.circle;
       else if (endMarker === 'filledCircle') ch = g.filledCircle;
+      else if (endMarker === 'square') ch = g.square;
+      else if (endMarker === 'filledSquare') ch = g.filledSquare;
+      else if (endMarker === 'diamond') ch = g.diamond;
+      else if (endMarker === 'filledDiamond') ch = g.filledDiamond;
       if (ch) {
-        const lineCh = getLineCharForDirection(prevPt, endPt, g);
         markerInfo.endPt = {
           ...arrowPt,
           ch,
-          lineX: arrowPt.x - Math.sign(endPt.x - prevPt.x),
-          lineY: arrowPt.y - Math.sign(endPt.y - prevPt.y),
-          lineCh,
+          runway: buildMarkerRunway(pts, arrowPt, pts.length - 2, -1, g),
         };
         arrowPts.push(arrowPt);
       }
@@ -1307,14 +1539,15 @@ export function renderToTextFromSvg(
       if (startMarker === 'arrow') ch = getArrowChar(nextPt, startPt, g);
       else if (startMarker === 'circle') ch = g.circle;
       else if (startMarker === 'filledCircle') ch = g.filledCircle;
+      else if (startMarker === 'square') ch = g.square;
+      else if (startMarker === 'filledSquare') ch = g.filledSquare;
+      else if (startMarker === 'diamond') ch = g.diamond;
+      else if (startMarker === 'filledDiamond') ch = g.filledDiamond;
       if (ch) {
-        const lineCh = getLineCharForDirection(nextPt, startPt, g);
         markerInfo.startPt = {
           ...arrowPt,
           ch,
-          lineX: arrowPt.x - Math.sign(startPt.x - nextPt.x),
-          lineY: arrowPt.y - Math.sign(startPt.y - nextPt.y),
-          lineCh,
+          runway: buildMarkerRunway(pts, arrowPt, 1, 1, g),
         };
         arrowPts.push(arrowPt);
       }
@@ -1363,29 +1596,54 @@ export function renderToTextFromSvg(
 
     const desiredLy = segment?.orientation === 'horizontal' ? segment.y0 : rawLy;
     const ly = getSafeLabelRow(lx, desiredLy, label.length, mapper.gridH, nodeBoxes, arrowPts);
+    if (segment?.orientation === 'horizontal') {
+      lx = placeHorizontalLabelAlongLine(
+        lx,
+        ly,
+        label.length,
+        segment,
+        mapper.gridW,
+        nodeBoxes,
+        arrowPts,
+      );
+    }
 
     // Clear only the label glyphs; line shoulders are restored below.
     clearRect(grid, lx, ly, label.length, 1);
     writeText(grid, lx, ly, label);
 
     if (segment?.orientation === 'horizontal') {
-      setLineGuard(grid, lx - 1, ly, g.horizontal, g);
-      setLineGuard(grid, lx + label.length, ly, g.horizontal, g);
+      setLineGuardOutsideNodeBoxes(grid, lx - 1, ly, g.horizontal, g, nodeBoxes);
+      setLineGuardOutsideNodeBoxes(grid, lx + label.length, ly, g.horizontal, g, nodeBoxes);
     } else if (segment?.orientation === 'vertical') {
-      setLineGuard(grid, segment.x0, ly - 1, g.vertical, g);
-      setLineGuard(grid, segment.x0, ly, g.vertical, g);
-      setLineGuard(grid, segment.x0, ly + 1, g.vertical, g);
+      setLineGuardOutsideNodeBoxes(grid, segment.x0, ly - 1, g.vertical, g, nodeBoxes);
+      setLineGuardOutsideNodeBoxes(grid, segment.x0, ly, g.vertical, g, nodeBoxes);
+      setLineGuardOutsideNodeBoxes(grid, segment.x0, ly + 1, g.vertical, g, nodeBoxes);
     }
   }
 
   // ── Layer 4.5: Marker runways ──
   // Labels can occupy the cell adjacent to a marker; restore one body cell first.
   for (const info of edgeMarkers) {
-    if (info.endPt) {
-      setLineGuard(grid, info.endPt.lineX, info.endPt.lineY, info.endPt.lineCh, g);
+    if (info.endPt?.runway) {
+      setLineGuardOutsideNodeBoxes(
+        grid,
+        info.endPt.runway.x,
+        info.endPt.runway.y,
+        info.endPt.runway.ch,
+        g,
+        nodeBoxes,
+      );
     }
-    if (info.startPt) {
-      setLineGuard(grid, info.startPt.lineX, info.startPt.lineY, info.startPt.lineCh, g);
+    if (info.startPt?.runway) {
+      setLineGuardOutsideNodeBoxes(
+        grid,
+        info.startPt.runway.x,
+        info.startPt.runway.y,
+        info.startPt.runway.ch,
+        g,
+        nodeBoxes,
+      );
     }
   }
 

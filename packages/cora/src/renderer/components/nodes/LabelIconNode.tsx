@@ -1,4 +1,5 @@
 import type { SvgIconComponent } from '../icons.js';
+import { resolveCatalogTextLayout } from '../../../core/catalogTextLayout.js';
 import type { BoxStyleProps } from '../types.js';
 import { CatalogFrame, CatalogIconSlot, CatalogText, resolvedCatalogFrame } from './shared.js';
 import { ICON_NODE_ART_SIZE, LABEL_ICON_SIZE_PRESETS, iconNodeScale, resolveLabelIconComponentSize } from '../styles.js';
@@ -90,17 +91,19 @@ export function LabelIconNode(props: LabelIconNodeProps) {
   }
 
   const hasText = Boolean(frame.text || frame.subtitle);
-  const titleLines = frame.text ? String(frame.text).split(/\r?\n/) : [];
-  const subtitleLines = frame.subtitle ? String(frame.subtitle).split(/\r?\n/) : [];
+  const textWidth = Math.max(120, frame.width * 2.5);
   const textHeight = hasText
-    ? titleLines.length * titleFontSize * 1.25 +
-      (subtitleLines.length > 0 ? 3 * ratio + subtitleLines.length * subtitleFontSize * 1.25 : 0)
+    ? resolveCatalogTextLayout({
+        text: frame.text,
+        subtitle: frame.subtitle,
+        width: textWidth,
+        fontSize: titleFontSize,
+        subtitleFontSize,
+      }).totalHeight
     : 0;
   const iconGap = (hasText ? 4 : 0) * ratio;
   const iconY = frame.y + (hasText ? 2 * ratio : (frame.height - iconSize) / 2);
   const textY = iconY + iconSize + iconGap;
-
-  const textWidth = Math.max(120, frame.width * 2.5);
   const textX = frame.x + frame.width / 2 - textWidth / 2;
 
   return (

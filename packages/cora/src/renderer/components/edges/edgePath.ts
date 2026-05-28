@@ -55,12 +55,18 @@ function offsetToward(from: EdgePoint, to: EdgePoint, distance: number): EdgePoi
   };
 }
 
-export function edgeLineMarkerPoints(edge: LayoutedEdge): EdgePoint[] {
-  return edgeLineAnchorPoints(edge);
+export function edgeLineMarkerPoints(
+  edge: LayoutedEdge,
+  options: { markerSize?: number } = {},
+): EdgePoint[] {
+  return edgeLineAnchorPoints(edge, options);
 }
 
-export function edgeMarkerCarrierPathData(edge: LayoutedEdge): string {
-  const points = edgeLineAnchorPoints(edge);
+export function edgeMarkerCarrierPathData(
+  edge: LayoutedEdge,
+  options: { markerSize?: number } = {},
+): string {
+  const points = edgeLineAnchorPoints(edge, options);
   if (points.length === 0) {
     return '';
   }
@@ -74,14 +80,21 @@ export function edgeMarkerCarrierPathData(edge: LayoutedEdge): string {
 }
 
 function edgeLineBasePoints(edge: LayoutedEdge): EdgePoint[] {
+  return edgeLineBasePointsWithOptions(edge, {});
+}
+
+function edgeLineBasePointsWithOptions(
+  edge: LayoutedEdge,
+  options: { markerSize?: number },
+): EdgePoint[] {
   const points = edgeShaftPoints(edge.points);
   if (points.length < 2) {
     return points;
   }
 
   const anchored = points.map((point) => ({ ...point }));
-  const startOffset = markerAnchorOffset(effectiveStartMarker(edge.startMarker));
-  const endOffset = markerAnchorOffset(effectiveEndMarker(edge.endMarker));
+  const startOffset = markerAnchorOffset(effectiveStartMarker(edge.startMarker), options.markerSize);
+  const endOffset = markerAnchorOffset(effectiveEndMarker(edge.endMarker), options.markerSize);
 
   anchored[0] = offsetToward(anchored[0]!, anchored[1]!, startOffset);
   anchored[anchored.length - 1] = offsetToward(
@@ -93,19 +106,25 @@ function edgeLineBasePoints(edge: LayoutedEdge): EdgePoint[] {
   return anchored;
 }
 
-function edgeLineAnchorPoints(edge: LayoutedEdge): EdgePoint[] {
-  return edgeLineBasePoints(edge);
+function edgeLineAnchorPoints(
+  edge: LayoutedEdge,
+  options: { markerSize?: number },
+): EdgePoint[] {
+  return edgeLineBasePointsWithOptions(edge, options);
 }
 
-function edgeLineVisiblePoints(edge: LayoutedEdge): EdgePoint[] {
-  const points = edgeLineBasePoints(edge);
+function edgeLineVisiblePoints(
+  edge: LayoutedEdge,
+  options: { markerSize?: number },
+): EdgePoint[] {
+  const points = edgeLineBasePointsWithOptions(edge, options);
   if (points.length < 2) {
     return points;
   }
 
   const visible = points.map((point) => ({ ...point }));
-  const startTrim = markerShaftTrim(effectiveStartMarker(edge.startMarker));
-  const endTrim = markerShaftTrim(effectiveEndMarker(edge.endMarker));
+  const startTrim = markerShaftTrim(effectiveStartMarker(edge.startMarker), options.markerSize);
+  const endTrim = markerShaftTrim(effectiveEndMarker(edge.endMarker), options.markerSize);
 
   visible[0] = offsetToward(visible[0]!, visible[1]!, startTrim);
   visible[visible.length - 1] = offsetToward(
@@ -206,10 +225,13 @@ function decorationBounds(
   return { min, max };
 }
 
-export function edgeLinePathData(edge: LayoutedEdge, options: { trimForMarkers?: boolean } = {}): string {
+export function edgeLinePathData(
+  edge: LayoutedEdge,
+  options: { trimForMarkers?: boolean; markerSize?: number } = {},
+): string {
   const points = options.trimForMarkers
-    ? edgeLineVisiblePoints(edge)
-    : edgeLineAnchorPoints(edge);
+    ? edgeLineVisiblePoints(edge, options)
+    : edgeLineAnchorPoints(edge, options);
   if (points.length === 0) {
     return '';
   }

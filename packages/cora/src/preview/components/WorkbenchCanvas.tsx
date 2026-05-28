@@ -1,5 +1,17 @@
 import { useEffect, useRef, useState, type DragEvent, type PointerEvent } from 'react';
 
+import type { LayoutedEdge, LayoutedNode, ThemeTokens } from '../../layout-ir.js';
+import { computePreservedLayout } from '../../core/layout.js';
+import { updateLabeledEdgePlacements } from '../../core/labeledEdgeExpansion.js';
+import { measureNodes } from '../../core/measureText.js';
+import { applyNodeStyles, resolveTheme } from '../../core/themeResolver.js';
+import { EdgeLabel } from '../../renderer/components/edges/EdgeLabel.js';
+import {
+  edgeBridgeMaskPathData,
+  edgeLinePathData,
+  edgeLineMarkerPoints,
+  edgeMarkerCarrierPathData,
+} from '../../renderer/components/edges/edgePath.js';
 import { Line, linePathData } from '../../renderer/components/lines/Line.js';
 import { LineMarkerDefs, markerUrl } from '../../renderer/components/lines/markers.js';
 import { previewIconForName } from '../iconRenderer.js';
@@ -11,6 +23,7 @@ import { toMonochrome, withoutShadow } from '../../renderer/themes/transforms.js
 import { connectionDefaults } from '../controls/defaults.js';
 import {
   applyConnectionMarkerInsets,
+  connectionCenter,
   computeConnectionCenter,
   computeConnectionPoints,
   computeNodeBox,
@@ -30,6 +43,7 @@ import {
   type CanvasNode,
   type CanvasConnection,
 } from '../state.js';
+import { serializeWorkbenchDocument } from '../persistence.js';
 import { AttachmentOverlay } from './AttachmentOverlay.js';
 
 interface WorkbenchCanvasProps {
@@ -205,6 +219,7 @@ export function previewConnectionPathData(
   state: WorkbenchState,
   connection: CanvasConnection,
   points: PreviewPoint[],
+  getNodeBox: (nodeId: string) => ReturnType<typeof computeNodeBox> = (nodeId) => computeNodeBox(state, nodeId),
 ): string {
   const gaps: Array<{ startDistance: number; endDistance: number }> = [];
 
@@ -213,7 +228,7 @@ export function previewConnectionPathData(
       continue;
     }
 
-    const box = computeNodeBox(state, node.id);
+    const box = getNodeBox(node.id);
     if (!box) {
       continue;
     }
@@ -260,19 +275,151 @@ export function previewConnectionPathData(
   return connectionPathDataWithGaps(points, gaps);
 }
 
+function resolvePreviewTheme(
+  activeTheme: 'default' | 'monochrome' | 'without-shadow',
+): ThemeTokens {
+  if (activeTheme === 'monochrome') {
+    return toMonochrome(defaultTheme);
+  }
+
+  if (activeTheme === 'without-shadow') {
+    return withoutShadow(defaultTheme);
+  }
+
+  return defaultTheme;
+}
+
+function previewLayoutNodes(state: WorkbenchState): LayoutedNode[] {
+  return state.nodes
+    .filter((node) => !node.attachedConnectionId)
+    .flatMap((node) => {
+      const box = computeNodeBox(state, node.id);
+      if (!box) {
+        return [];
+      }
+
+      return [{
+        id: node.id,
+        label: String(node.props.title ?? node.props.text ?? ''),
+        component: node.componentId as LayoutedNode['component'],
+        x: box.x,
+        y: box.y,
+        measuredWidth: box.width,
+        measuredHeight: box.height,
+      }];
+    });
+}
+
+function previewLayoutEdge(
+  state: WorkbenchState,
+  connection: CanvasConnection,
+  nodes: LayoutedNode[],
+): LayoutedEdge {
+  const edge: LayoutedEdge = {
+    from: connection.fromNodeId,
+    to: connection.toNodeId,
+    label: connection.label,
+    startMarker: connection.props.startMarker,
+    endMarker: connection.props.endMarker,
+    points: computeConnectionPoints(state, connection).map((point) => ({ ...point })),
+  };
+
+  if (edge.label) {
+    updateLabeledEdgePlacements(nodes, [edge]);
+  }
+
+  return edge;
+}
+
+function layoutedNodeBox(node: LayoutedNode): ReturnType<typeof computeNodeBox> {
+  return {
+    id: node.id,
+    x: node.x,
+    y: node.y,
+    width: node.measuredWidth,
+    height: node.measuredHeight,
+  };
+}
+
+function sharedPreviewLayout(state: WorkbenchState) {
+  if (state.nodes.length === 0 || state.connections.length === 0) {
+    return undefined;
+  }
+
+  const document = serializeWorkbenchDocument(state);
+  const attachedNodeIds = new Set(
+    state.nodes
+      .filter((node) => node.attachedConnectionId)
+      .map((node) => node.id),
+  );
+
+  document.diagram.nodes = document.diagram.nodes.filter((node) => !attachedNodeIds.has(node.id));
+  if (document.diagram.groups) {
+    document.diagram.groups = document.diagram.groups
+      .map((group) => ({
+        ...group,
+        contains: group.contains?.filter((nodeId) => !attachedNodeIds.has(nodeId)),
+      }))
+      .filter((group) => (group.contains?.length ?? 0) > 0);
+  }
+
+  const { nodeStyles, theme } = resolveTheme(document.diagram, defaultTheme);
+
+  return computePreservedLayout({
+    diagram: document.diagram,
+    measuredNodes: applyNodeStyles(measureNodes(document.diagram.nodes), nodeStyles),
+    theme,
+    // Keep preview geometry in the same canvas coordinate space as the live nodes.
+    offset: false,
+  });
+}
+
+function renderedNodeBox(
+  state: WorkbenchState,
+  nodeId: string,
+  renderedEdgesByConnectionId: Map<string, LayoutedEdge>,
+  renderedNodesById: Map<string, LayoutedNode>,
+): ReturnType<typeof computeNodeBox> {
+  const node = state.nodes.find((item) => item.id === nodeId);
+  if (!node) {
+    return undefined;
+  }
+
+  if (!node.attachedConnectionId) {
+    const renderedNode = renderedNodesById.get(node.id);
+    return renderedNode ? layoutedNodeBox(renderedNode) : computeNodeBox(state, nodeId);
+  }
+
+  if (node.componentId === 'labelIcon') {
+    return computeNodeBox(state, nodeId);
+  }
+
+  const edge = renderedEdgesByConnectionId.get(node.attachedConnectionId);
+  if (!edge) {
+    return computeNodeBox(state, nodeId);
+  }
+
+  const size = previewNodeSize(node);
+  const center = connectionCenter(edge.points);
+  if (!center) {
+    return computeNodeBox(state, nodeId);
+  }
+
+  return {
+    id: node.id,
+    x: center.x - size.width / 2,
+    y: center.y - size.height / 2,
+    width: size.width,
+    height: size.height,
+  };
+}
+
 function getEffectiveNodeProps(
   node: CanvasNode,
   activeTheme: 'default' | 'monochrome' | 'without-shadow',
 ) {
   const defaultProps = catalogDefaultProps(node.componentId as any) || {};
-
-  // Resolve theme tokens
-  let themeTokens = defaultTheme;
-  if (activeTheme === 'monochrome') {
-    themeTokens = toMonochrome(themeTokens);
-  } else if (activeTheme === 'without-shadow') {
-    themeTokens = withoutShadow(themeTokens);
-  }
+  const themeTokens = resolvePreviewTheme(activeTheme);
 
   const shapeStyle = themeTokens.shapes[node.componentId] ?? themeTokens.shapes.box!;
   const effective = { ...node.props };
@@ -327,12 +474,17 @@ function getEffectiveNodeProps(
   return effective;
 }
 
-function renderNode(state: WorkbenchState, nodeId: string, activeTheme: 'default' | 'monochrome' | 'without-shadow' = 'default') {
+function renderNode(
+  state: WorkbenchState,
+  nodeId: string,
+  activeTheme: 'default' | 'monochrome' | 'without-shadow' = 'default',
+  boxOverride?: NonNullable<ReturnType<typeof computeNodeBox>>,
+) {
   const node = state.nodes.find((item) => item.id === nodeId);
   if (!node) {
     return null;
   }
-  const box = computeNodeBox(state, node.id);
+  const box = boxOverride ?? computeNodeBox(state, node.id);
   if (!box) {
     return null;
   }
@@ -345,7 +497,7 @@ function renderNode(state: WorkbenchState, nodeId: string, activeTheme: 'default
       : {};
   const props = {
     ...effectiveProps,
-    size: previewNodeSize(node),
+    size: { width: box.width, height: box.height },
     x: box.x,
     y: box.y,
     ...iconProps,
@@ -406,20 +558,21 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
     }
 
     const handleWheel = (event: WheelEvent) => {
-      event.preventDefault();
       const currentZoom = zoomRef.current;
+      const isZoomGesture = event.ctrlKey || event.metaKey;
 
-      if (event.ctrlKey) {
-        // Pinch-to-zoom
+      event.preventDefault();
+
+      if (isZoomGesture) {
         const delta = -event.deltaY * 0.01;
         setZoom((value) => Math.min(2, Math.max(0.65, Number((value + delta).toFixed(2)))));
-      } else {
-        // Two-finger pan
-        setPan((prev) => ({
-          x: prev.x + event.deltaX / currentZoom,
-          y: prev.y + event.deltaY / currentZoom,
-        }));
+        return;
       }
+
+      setPan((prev) => ({
+        x: prev.x + event.deltaX / currentZoom,
+        y: prev.y + event.deltaY / currentZoom,
+      }));
     };
 
     svg.addEventListener('wheel', handleWheel, { passive: false });
@@ -427,11 +580,79 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
       svg.removeEventListener('wheel', handleWheel);
     };
   }, []);
+  const themeTokens = resolvePreviewTheme(activeTheme);
+  const labelLayoutNodes = previewLayoutNodes(state);
+  const sharedLayout = sharedPreviewLayout(state);
+  const sharedGroupsById = new Map((sharedLayout?.groups ?? []).map((group) => [group.id, group]));
+  const renderedNodesById = new Map((sharedLayout?.nodes ?? []).map((node) => [node.id, node]));
+  const renderedEdgesByConnectionId = new Map(
+    state.connections.flatMap((connection, index) => {
+      const edge = sharedLayout?.edges[index];
+      return edge ? [[connection.id, edge] as const] : [];
+    }),
+  );
+  const renderedNodeBoxesById = new Map(
+    state.nodes.flatMap((node) => {
+      const box = renderedNodeBox(state, node.id, renderedEdgesByConnectionId, renderedNodesById);
+      return box ? [[node.id, box] as const] : [];
+    }),
+  );
   const slots = computeSceneAttachmentSlots(state);
   const boxes = state.nodes
     .filter((node) => node.componentId !== 'label' && node.componentId !== 'labelIcon')
-    .map((node) => computeNodeBox(state, node.id))
+    .map((node) => renderedNodeBoxesById.get(node.id) ?? computeNodeBox(state, node.id))
     .filter(Boolean) as NonNullable<ReturnType<typeof computeNodeBox>>[];
+  const renderedConnections = state.connections.map((connection, index) => {
+    const edge = sharedLayout?.edges[index] ?? previewLayoutEdge(state, connection, labelLayoutNodes);
+    const markerCarrierPoints = edgeLineMarkerPoints(edge, {
+      markerSize: connection.props.arrowSize,
+    });
+    const markerCarrierPath = edgeMarkerCarrierPathData(edge, {
+      markerSize: connection.props.arrowSize,
+    });
+    const shaftPoints = applyConnectionMarkerInsets(markerCarrierPoints, connection.props);
+    const hasAttachedLabelNode = state.nodes.some(
+      (node) => node.attachedConnectionId === connection.id && node.componentId === 'label',
+    );
+    const shaftPath = hasAttachedLabelNode && !edge.label
+      ? previewConnectionPathData(
+          state,
+          connection,
+          shaftPoints,
+          (nodeId) => renderedNodeBoxesById.get(nodeId) ?? computeNodeBox(state, nodeId),
+        )
+      : edgeLinePathData(edge, {
+          trimForMarkers: true,
+          markerSize: connection.props.arrowSize,
+        });
+    const hitPath = linePathData(edge.points);
+    const bridgeMaskPath = edgeBridgeMaskPathData(edge);
+    const hasMarkers =
+      connection.props.startMarker !== 'none' || connection.props.endMarker !== 'none';
+    const selected = state.selected?.kind === 'connection' && state.selected.id === connection.id;
+    const isSameColor = (c1: string, c2: string) => {
+      if (c1 === c2) return true;
+      if (!c1 || !c2) return false;
+      return c1.toLowerCase() === c2.toLowerCase();
+    };
+    const connectionStrokeColor =
+      activeTheme === 'monochrome' && isSameColor(connection.props.strokeColor, connectionDefaults.strokeColor)
+        ? '#000000'
+        : connection.props.strokeColor;
+
+    return {
+      connection,
+      edge,
+      shaftPoints,
+      shaftPath,
+      hitPath,
+      bridgeMaskPath,
+      markerCarrierPath,
+      hasMarkers,
+      selected,
+      connectionStrokeColor,
+    };
+  });
 
   useEffect(() => {
     const region = canvasRegionRef.current;
@@ -699,6 +920,13 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
           })}
         </defs>
         {state.groups.map((group) => {
+          const layoutGroup = sharedGroupsById.get(group.id);
+          const groupPosition = layoutGroup
+            ? { x: layoutGroup.x, y: layoutGroup.y }
+            : group.position;
+          const groupSize = layoutGroup
+            ? { width: layoutGroup.width, height: layoutGroup.height }
+            : group.size;
           const isMonochrome = activeTheme === 'monochrome';
           const groupStyle = isMonochrome ? {
             fill: 'none',
@@ -713,20 +941,20 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
             <g
               key={group.id}
               className={state.selected?.kind === 'group' && state.selected.id === group.id ? 'preview-group selected' : 'preview-group'}
-              onPointerDown={(event) => beginDrag(event, { kind: 'group', id: group.id }, group.position)}
+              onPointerDown={(event) => beginDrag(event, { kind: 'group', id: group.id }, groupPosition)}
             >
               <rect
-                x={group.position.x}
-                y={group.position.y}
-                width={group.size.width}
-                height={group.size.height}
+                x={groupPosition.x}
+                y={groupPosition.y}
+                width={groupSize.width}
+                height={groupSize.height}
                 rx="8"
                 className="group-box"
                 style={groupStyle}
               />
               <text
-                x={group.position.x + 12}
-                y={group.position.y + 22}
+                x={groupPosition.x + 12}
+                y={groupPosition.y + 22}
                 className="group-label"
                 style={{
                   fill: isMonochrome ? '#000000' : group.labelColor,
@@ -736,8 +964,8 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
                 {group.label}
               </text>
               <rect
-                x={group.position.x + group.size.width - 12}
-                y={group.position.y + group.size.height - 12}
+                x={groupPosition.x + groupSize.width - 12}
+                y={groupPosition.y + groupSize.height - 12}
                 width="12"
                 height="12"
                 rx="2"
@@ -748,26 +976,10 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
           );
         })}
         <AttachmentOverlay slots={slots} boxes={boxes} showLabels={false} />
-        {state.connections.map((connection) => {
-          const points = computeConnectionPoints(state, connection);
-          const shaftPoints = applyConnectionMarkerInsets(points, connection.props);
-          const shaftPath = previewConnectionPathData(state, connection, shaftPoints);
-          const hitPath = linePathData(points);
-          const hasMarkers =
-            connection.props.startMarker !== 'none' || connection.props.endMarker !== 'none';
-          const selected = state.selected?.kind === 'connection' && state.selected.id === connection.id;
-          const isSameColor = (c1: string, c2: string) => {
-            if (c1 === c2) return true;
-            if (!c1 || !c2) return false;
-            return c1.toLowerCase() === c2.toLowerCase();
-          };
-          const connectionStrokeColor =
-            activeTheme === 'monochrome' && isSameColor(connection.props.strokeColor, connectionDefaults.strokeColor)
-              ? '#000000'
-              : connection.props.strokeColor;
-          return (
-          <g key={connection.id} className={selected ? 'preview-connection selected' : 'preview-connection'}>
+        <g id="preview-edge-shafts">
+          {renderedConnections.map(({ connection, shaftPoints, shaftPath, connectionStrokeColor }) => (
             <Line
+              key={`shaft-${connection.id}`}
               points={shaftPoints}
               pathData={shaftPath}
               lineStyle={connection.props.lineStyle}
@@ -776,21 +988,64 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
               startMarker="none"
               endMarker="none"
             />
-            {hasMarkers ? (
+          ))}
+        </g>
+        <g id="preview-edge-markers">
+          {renderedConnections.map(({ connection, hasMarkers, markerCarrierPath }) => (
+            hasMarkers ? (
               <path
-                d={hitPath}
+                key={`markers-${connection.id}`}
+                d={markerCarrierPath}
                 fill="none"
                 stroke="transparent"
                 strokeWidth="0.01"
                 pointerEvents="none"
-                markerStart={markerUrl(connection.props.startMarker, connection.id)}
-                markerEnd={markerUrl(connection.props.endMarker, connection.id)}
+                markerStart={markerUrl(connection.props.startMarker, 'start', connection.id)}
+                markerEnd={markerUrl(connection.props.endMarker, 'end', connection.id)}
               />
-            ) : null}
-            {selected ? (
-              <path d={shaftPath} className="connection-selection" />
-            ) : null}
+            ) : null
+          ))}
+        </g>
+        <g id="preview-edge-bridge-masks">
+          {renderedConnections.map(({ connection, bridgeMaskPath }) => (
+            bridgeMaskPath ? (
+              <Line
+                key={`bridge-mask-${connection.id}`}
+                points={[]}
+                pathData={bridgeMaskPath}
+                strokeColor={themeTokens.background}
+                strokeWidth={connection.props.strokeWidth + 3}
+              />
+            ) : null
+          ))}
+        </g>
+        <g id="preview-edge-bridges">
+          {renderedConnections.map(({ connection, bridgeMaskPath, connectionStrokeColor }) => (
+            bridgeMaskPath ? (
+              <Line
+                key={`bridge-${connection.id}`}
+                points={[]}
+                pathData={bridgeMaskPath}
+                strokeColor={connectionStrokeColor}
+                strokeWidth={connection.props.strokeWidth}
+              />
+            ) : null
+          ))}
+        </g>
+        <g id="preview-edge-labels">
+          {renderedConnections.map(({ connection, edge }) => (
+            edge.label ? <EdgeLabel key={`label-${connection.id}`} edge={edge} theme={themeTokens} /> : null
+          ))}
+        </g>
+        <g id="preview-edge-selections">
+          {renderedConnections.map(({ connection, selected, shaftPath }) => (
+            selected ? <path key={`selection-${connection.id}`} d={shaftPath} className="connection-selection" /> : null
+          ))}
+        </g>
+        <g id="preview-edge-hits">
+          {renderedConnections.map(({ connection, hitPath }) => (
             <path
+              key={`hit-${connection.id}`}
               d={hitPath}
               className="connection-hit"
               onPointerDown={(event) => {
@@ -798,11 +1053,10 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
                 onStateChange(selectCanvasItem(state, { kind: 'connection', id: connection.id }));
               }}
             />
-          </g>
-          );
-        })}
+          ))}
+        </g>
         {state.nodes.map((node) => {
-          const box = computeNodeBox(state, node.id);
+          const box = renderedNodeBoxesById.get(node.id) ?? computeNodeBox(state, node.id);
           if (!box) {
             return null;
           }
@@ -828,7 +1082,7 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
                   className="selection-outline"
                 />
               ) : null}
-              {renderNode(state, node.id, activeTheme)}
+              {renderNode(state, node.id, activeTheme, box)}
             </g>
           );
         })}

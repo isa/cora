@@ -1,4 +1,5 @@
 import type { BoxStyleProps } from '../types.js';
+import { resolveCatalogTextLayout } from '../../../core/catalogTextLayout.js';
 import { resolveWebsiteComponentSize, WEBSITE_SIZE_PRESETS } from '../styles.js';
 import {
   CatalogShadow,
@@ -84,11 +85,14 @@ export function WebsiteNode(props: WebsiteNodeProps) {
   const hasLabel = Boolean(frame.text || frame.subtitle);
   const titleFontSize = frame.titleFontSize ?? 12;
   const subtitleFontSize = frame.subtitleFontSize ?? Math.max(8, titleFontSize - 2);
-  const titleLines = frame.text ? String(frame.text).split(/\r?\n/) : [];
-  const subtitleLines = frame.subtitle ? String(frame.subtitle).split(/\r?\n/) : [];
   const textHeight = hasLabel
-    ? titleLines.length * titleFontSize * 1.25 +
-      (subtitleLines.length > 0 ? 3 + subtitleLines.length * subtitleFontSize * 1.25 : 0)
+    ? resolveCatalogTextLayout({
+        text: frame.text,
+        subtitle: frame.subtitle,
+        width: frame.width,
+        fontSize: titleFontSize,
+        subtitleFontSize,
+      }).totalHeight
     : 0;
   const labelGap = hasLabel ? 8 : 0;
   const topPadding = hasLabel ? 6 : 0;

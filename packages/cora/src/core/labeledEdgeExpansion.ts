@@ -14,7 +14,7 @@ import { measureLabel } from './measureText.js';
 import type { Diagram, LayoutedEdge, LayoutedNode, LayoutedGroup } from './types.js';
 
 export const LABELED_EDGE_LABEL_PADDING = 3;
-export const EDGE_LABEL_RUNWAY = 11;
+export const EDGE_LABEL_RUNWAY = 3;
 export const MIN_LABELED_EDGE_STUB = 11;
 const LABEL_NODE_CLEARANCE = 4;
 
@@ -91,6 +91,11 @@ interface Rect {
   bottom: number;
 }
 
+interface ScalarInterval {
+  min: number;
+  max: number;
+}
+
 function paddedNodeRect(node: LayoutedNode): Rect {
   return {
     left: node.x - LABEL_NODE_CLEARANCE,
@@ -123,6 +128,152 @@ function overlapArea(a: Rect, b: Rect): number {
   const width = Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left));
   const height = Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
   return width * height;
+}
+
+function rangeOverlaps(
+  aMin: number,
+  aMax: number,
+  bMin: number,
+  bMax: number,
+): boolean {
+  return Math.min(aMax, bMax) - Math.max(aMin, bMin) > 0;
+}
+
+function mergeIntervals(intervals: ScalarInterval[]): ScalarInterval[] {
+  if (intervals.length === 0) {
+    return [];
+  }
+
+  const sorted = intervals
+    .slice()
+    .sort((a, b) => a.min - b.min || a.max - b.max);
+  const merged: ScalarInterval[] = [{ ...sorted[0]! }];
+
+  for (const interval of sorted.slice(1)) {
+    const previous = merged.at(-1)!;
+    if (interval.min <= previous.max) {
+      previous.max = Math.max(previous.max, interval.max);
+      continue;
+    }
+    merged.push({ ...interval });
+  }
+
+  return merged;
+}
+
+function blockedLabelCenterIntervals(
+  nodes: LayoutedNode[],
+  orientation: 'horizontal' | 'vertical',
+  fixedLineCoord: number,
+  boxWidth: number,
+  boxHeight: number,
+): ScalarInterval[] {
+  const halfWidth = boxWidth / 2;
+  const halfHeight = boxHeight / 2;
+
+  return nodes.flatMap((node) => {
+    const rect = paddedNodeRect(node);
+
+    if (orientation === 'horizontal') {
+      if (
+        !rangeOverlaps(
+          fixedLineCoord - halfHeight,
+          fixedLineCoord + halfHeight,
+          rect.top,
+          rect.bottom,
+        )
+      ) {
+        return [];
+      }
+
+      return [
+        {
+          min: rect.left - halfWidth,
+          max: rect.right + halfWidth,
+        },
+      ];
+    }
+
+    if (
+      !rangeOverlaps(
+        fixedLineCoord - halfWidth,
+        fixedLineCoord + halfWidth,
+        rect.left,
+        rect.right,
+      )
+    ) {
+      return [];
+    }
+
+    return [
+      {
+        min: rect.top - halfHeight,
+        max: rect.bottom + halfHeight,
+      },
+    ];
+  });
+}
+
+function nearestFreeScalar(
+  current: number,
+  min: number,
+  max: number,
+  blocked: ScalarInterval[],
+): number | undefined {
+  if (min > max) {
+    return undefined;
+  }
+
+  const clampedCurrent = Math.max(min, Math.min(max, current));
+  const mergedBlocked = mergeIntervals(
+    blocked
+      .map((interval) => ({
+        min: Math.max(min, interval.min),
+        max: Math.min(max, interval.max),
+      }))
+      .filter((interval) => interval.max - interval.min > 0),
+  );
+
+  const isBlocked = mergedBlocked.some(
+    (interval) => clampedCurrent >= interval.min && clampedCurrent <= interval.max,
+  );
+  if (!isBlocked) {
+    return clampedCurrent;
+  }
+
+  const freeIntervals: ScalarInterval[] = [];
+  let cursor = min;
+
+  for (const interval of mergedBlocked) {
+    if (interval.min > cursor) {
+      freeIntervals.push({ min: cursor, max: interval.min });
+    }
+    cursor = Math.max(cursor, interval.max);
+  }
+
+  if (cursor < max) {
+    freeIntervals.push({ min: cursor, max });
+  }
+
+  let best: { scalar: number; distance: number } | undefined;
+  for (const interval of freeIntervals) {
+    const scalar = clampedCurrent < interval.min
+      ? interval.min
+      : clampedCurrent > interval.max
+        ? interval.max
+        : clampedCurrent;
+    const distance = Math.abs(scalar - clampedCurrent);
+
+    if (
+      !best ||
+      distance < best.distance ||
+      (distance === best.distance && scalar < best.scalar)
+    ) {
+      best = { scalar, distance };
+    }
+  }
+
+  return best?.scalar;
 }
 
 function totalNodeOverlap(rect: Rect, nodes: LayoutedNode[]): number {
@@ -275,7 +426,10 @@ function rerouteLabeledEdgesAroundNodes(
   }
 }
 
-function updateEdgeLabelPlacement(edge: LayoutedEdge): void {
+function updateEdgeLabelPlacement(
+  edge: LayoutedEdge,
+  nodes: LayoutedNode[] = [],
+): void {
   if (!edge.label) {
     return;
   }
@@ -308,21 +462,36 @@ function updateEdgeLabelPlacement(edge: LayoutedEdge): void {
       clampedY = mid.y;
     }
 
+    const clampMin = visible.min + minRequired;
+    const clampMax = visible.max - minRequired;
+    const allowedMin = clampMin > clampMax ? segmentMidScalar : clampMin;
+    const allowedMax = clampMin > clampMax ? segmentMidScalar : clampMax;
+
     if (segment.orientation === 'horizontal') {
-      const clampMin = visible.min + minRequired;
-      const clampMax = visible.max - minRequired;
-      if (clampMin > clampMax) {
-        clampedX = segmentMidScalar;
-      } else {
-        clampedX = Math.max(clampMin, Math.min(clampMax, clampedX));
-      }
+      clampedX = Math.max(allowedMin, Math.min(allowedMax, clampedX));
     } else {
-      const clampMin = visible.min + minRequired;
-      const clampMax = visible.max - minRequired;
-      if (clampMin > clampMax) {
-        clampedY = segmentMidScalar;
+      clampedY = Math.max(allowedMin, Math.min(allowedMax, clampedY));
+    }
+
+    const labelBox = labelBoxSize(segment.orientation, labelSize.width, labelSize.height);
+    const fixedLineCoord = segment.orientation === 'horizontal'
+      ? clampedY + labelBox.renderYOffset
+      : clampedX;
+    const blocked = blockedLabelCenterIntervals(
+      nodes,
+      segment.orientation,
+      fixedLineCoord,
+      labelBox.width,
+      labelBox.height,
+    );
+    const currentScalar = segment.orientation === 'horizontal' ? clampedX : clampedY;
+    const safeScalar = nearestFreeScalar(currentScalar, allowedMin, allowedMax, blocked);
+
+    if (safeScalar !== undefined) {
+      if (segment.orientation === 'horizontal') {
+        clampedX = safeScalar;
       } else {
-        clampedY = Math.max(clampMin, Math.min(clampMax, clampedY));
+        clampedY = safeScalar;
       }
     }
   }
@@ -340,14 +509,14 @@ function updateEdgeLabelPlacement(edge: LayoutedEdge): void {
 }
 
 function refreshShiftedEdgeLabels(
+  nodes: LayoutedNode[],
   edges: LayoutedEdge[],
-  
   shiftedNodeIds: Set<string>,
 ): void {
   for (const edge of edges) {
     if (!edge.label) continue;
     if (!shiftedNodeIds.has(edge.from) && !shiftedNodeIds.has(edge.to)) continue;
-    updateEdgeLabelPlacement(edge);
+    updateEdgeLabelPlacement(edge, nodes);
   }
 }
 
@@ -358,7 +527,7 @@ export function updateLabeledEdgePlacements(
 ): void {
   rerouteLabeledEdgesAroundNodes(nodes, edges);
   for (const edge of edges) {
-    updateEdgeLabelPlacement(edge);
+    updateEdgeLabelPlacement(edge, nodes);
   }
 }
 
@@ -437,8 +606,8 @@ export function expandLayoutForLabeledEdges(
       }
     }
 
-    refreshShiftedEdgeLabels(edges, shiftedNodeIds);
-    updateEdgeLabelPlacement(edge);
+    refreshShiftedEdgeLabels(nodes, edges, shiftedNodeIds);
+    updateEdgeLabelPlacement(edge, nodes);
   }
 
   updateLabeledEdgePlacements(nodes, edges);

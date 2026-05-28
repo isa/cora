@@ -1,5 +1,9 @@
 import type { ReactNode } from 'react';
 
+import {
+  CATALOG_TEXT_SUBTITLE_GAP,
+  resolveCatalogTextLayout,
+} from '../../../core/catalogTextLayout.js';
 import { baselineYForVisualCenter } from '../../../core/measureText.js';
 import { LOOK } from '../../themes/lookTokens.js';
 import { NODE_TITLE_SIZE, NODE_SUBTITLE_SIZE } from '../../themes/fontTokens.js';
@@ -291,6 +295,7 @@ export function CatalogText({
   paddingX = 4,
   minFontSize = 9,
   fontWeight = 600,
+  wrapText = true,
 }: {
   x: number;
   y: number;
@@ -305,24 +310,24 @@ export function CatalogText({
   paddingX?: number;
   minFontSize?: number;
   fontWeight?: number | string;
+  wrapText?: boolean;
 }) {
   if (!text && !subtitle) return null;
 
-  const lines = (text ?? '').split(/\r?\n/);
-  const subtitleLines = subtitle ? subtitle.split(/\r?\n/) : [];
-  const longestLine = lines.reduce((longest, line) => line.length > longest.length ? line : longest, '');
-  const maxTextWidth = Math.max(1, width - paddingX * 2);
-  const estimatedWidth = longestLine.length * fontSize * 0.56;
-  const fittedFontSize = estimatedWidth > maxTextWidth
-    ? Math.max(minFontSize, (maxTextWidth / Math.max(longestLine.length * 0.56, 1)))
-    : fontSize;
-  const stillTooWide = longestLine.length * fittedFontSize * 0.56 > maxTextWidth;
-  const lineHeight = fittedFontSize * 1.25;
-  const resolvedSubtitleFontSize = subtitleFontSize ?? Math.max(8, fittedFontSize - (NODE_TITLE_SIZE - NODE_SUBTITLE_SIZE));
-  const subtitleLineHeight = resolvedSubtitleFontSize * 1.25;
-  const totalHeight = (lines.length * lineHeight) + (subtitleLines.length > 0 ? 3 + subtitleLines.length * subtitleLineHeight : 0);
-  const firstLineCenter = y + height / 2 - totalHeight / 2 + lineHeight / 2;
-  const firstBaseline = baselineYForVisualCenter(firstLineCenter, fittedFontSize, 'node');
+  const layout = resolveCatalogTextLayout({
+    text,
+    subtitle,
+    width,
+    fontSize,
+    subtitleFontSize,
+    paddingX,
+    minFontSize,
+    wrapText,
+  });
+  const firstLineHeight = layout.titleLines.length > 0 ? layout.lineHeight : layout.subtitleLineHeight;
+  const firstLineFontSize = layout.titleLines.length > 0 ? layout.titleFontSize : layout.subtitleFontSize;
+  const firstLineCenter = y + height / 2 - layout.totalHeight / 2 + firstLineHeight / 2;
+  const firstBaseline = baselineYForVisualCenter(firstLineCenter, firstLineFontSize, 'node');
 
   return (
     <text
@@ -330,23 +335,27 @@ export function CatalogText({
       y={firstBaseline}
       textAnchor="middle"
       fontFamily={FONT_FAMILY}
-      fontSize={fittedFontSize}
+      fontSize={layout.titleFontSize}
       fontWeight={fontWeight}
       fill={color}
-      textLength={stillTooWide ? maxTextWidth : undefined}
-      lengthAdjust={stillTooWide ? 'spacingAndGlyphs' : undefined}
+      textLength={layout.stillTooWide ? layout.maxTextWidth : undefined}
+      lengthAdjust={layout.stillTooWide ? 'spacingAndGlyphs' : undefined}
     >
-      {lines.map((line, index) => (
-        <tspan key={index} x={x + width / 2} dy={index === 0 ? 0 : lineHeight}>
+      {layout.titleLines.map((line, index) => (
+        <tspan key={index} x={x + width / 2} dy={index === 0 ? 0 : layout.lineHeight}>
           {line}
         </tspan>
       ))}
-      {subtitleLines.map((line, index) => (
+      {layout.subtitleLines.map((line, index) => (
         <tspan
           key={`subtitle-${index}`}
           x={x + width / 2}
-          dy={index === 0 ? subtitleLineHeight + 3 : subtitleLineHeight}
-          fontSize={resolvedSubtitleFontSize}
+          dy={index === 0
+            ? layout.titleLines.length > 0
+              ? layout.subtitleLineHeight + CATALOG_TEXT_SUBTITLE_GAP
+              : 0
+            : layout.subtitleLineHeight}
+          fontSize={layout.subtitleFontSize}
           fontWeight={500}
           fill={subtitleColor}
         >

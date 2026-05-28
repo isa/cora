@@ -67,6 +67,14 @@ describe('cora render text output', () => {
     expect(result.stdout).not.toMatch(/[┌┐└┘─│]/u);
   });
 
+  it('uses the svg text engine by default', () => {
+    const defaultResult = runCli(['render', validFixture]);
+    const svgResult = runCli(['render', validFixture, '--ascii-engine', 'svg']);
+
+    expect(defaultResult.status).toBe(0);
+    expect(defaultResult.stdout).toBe(svgResult.stdout);
+  });
+
   it('uses svg engine when --ascii-engine svg is specified', () => {
     const result = runCli(['render', validFixture, '--ascii-engine', 'svg']);
 

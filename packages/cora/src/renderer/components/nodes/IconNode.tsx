@@ -1,4 +1,5 @@
 import type { SvgIconComponent } from '../icons.js';
+import { resolveCatalogTextLayout } from '../../../core/catalogTextLayout.js';
 import type { BoxStyleProps, ComponentSize } from '../types.js';
 import { CatalogIconSlot, CatalogShadow, CatalogText, resolvedCatalogFrame } from './shared.js';
 import { APP_SIZE_PRESETS, ICON_NODE_ART_SIZE, iconNodeScale, resolveAppComponentSize } from '../styles.js';
@@ -30,11 +31,14 @@ export function IconNode({
   const hasText = Boolean(frame.text || frame.subtitle);
   const titleFontSize = (frame.titleFontSize ?? 13) * ratio;
   const subtitleFontSize = (frame.subtitleFontSize ?? Math.max(8, (frame.titleFontSize ?? 13) - 2)) * ratio;
-  const titleLines = frame.text ? String(frame.text).split(/\r?\n/) : [];
-  const subtitleLines = frame.subtitle ? String(frame.subtitle).split(/\r?\n/) : [];
   const textHeight = hasText
-    ? titleLines.length * titleFontSize * 1.25 +
-      (subtitleLines.length > 0 ? 3 * ratio + subtitleLines.length * subtitleFontSize * 1.25 : 0)
+    ? resolveCatalogTextLayout({
+        text: frame.text,
+        subtitle: frame.subtitle,
+        width: frame.width - 16,
+        fontSize: titleFontSize,
+        subtitleFontSize,
+      }).totalHeight
     : 0;
   const iconGap = (hasText ? 6 : 0) * ratio;
 

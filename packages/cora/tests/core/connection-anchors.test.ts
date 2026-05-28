@@ -8,7 +8,7 @@ import {
   updateLabeledEdgePlacements,
 } from '../../src/core/labeledEdgeExpansion.js';
 import { measureNodes } from '../../src/core/measureText.js';
-import { edgeSegments } from '../../src/core/edgeGeometry.js';
+import { edgeBridgeMap, edgeSegments } from '../../src/core/edgeGeometry.js';
 import {
   effectiveEndMarker,
   effectiveStartMarker,
@@ -98,6 +98,43 @@ describe('connection anchors', () => {
               const overlap = Math.min(Math.max(first.a.y, first.b.y), Math.max(second.a.y, second.b.y)) -
                 Math.max(Math.min(first.a.y, first.b.y), Math.min(second.a.y, second.b.y));
               if (overlap > 0.001) count++;
+            }
+          }
+        }
+      }
+    }
+
+    return count;
+  }
+
+  function crowdedParallelSegmentCount(
+    edges: Awaited<ReturnType<typeof computeLayout>>['edges'],
+  ): number {
+    let count = 0;
+    const clearance = 14;
+
+    for (let firstIndex = 0; firstIndex < edges.length; firstIndex++) {
+      const firstSegments = edgeSegments(edges[firstIndex]!.points);
+      for (let secondIndex = firstIndex + 1; secondIndex < edges.length; secondIndex++) {
+        const secondSegments = edgeSegments(edges[secondIndex]!.points);
+        for (const first of firstSegments) {
+          for (const second of secondSegments) {
+            if (first.orientation !== second.orientation) {
+              continue;
+            }
+
+            const lineDistance = first.orientation === 'horizontal'
+              ? Math.abs(first.a.y - second.a.y)
+              : Math.abs(first.a.x - second.a.x);
+            if (lineDistance <= EPSILON || lineDistance >= clearance) {
+              continue;
+            }
+
+            const overlap = first.orientation === 'horizontal'
+              ? overlapRange(first.a.x, first.b.x, second.a.x, second.b.x)
+              : overlapRange(first.a.y, first.b.y, second.a.y, second.b.y);
+            if (overlap > EPSILON) {
+              count++;
             }
           }
         }
@@ -205,6 +242,94 @@ describe('connection anchors', () => {
     orientation: 'horizontal' | 'vertical',
   ): number {
     return orientation === 'horizontal' ? point.x : point.y;
+  }
+
+  function edgeLabelRect(
+    edge: Awaited<ReturnType<typeof computeLayout>>['edges'][number],
+  ): { left: number; right: number; top: number; bottom: number } | undefined {
+    if (!edge.labelPlacement) {
+      return undefined;
+    }
+
+    const boxWidth = edge.labelPlacement.width + 6;
+    const boxHeight = edge.labelPlacement.height + 3;
+    const renderY = edge.labelPlacement.orientation === 'horizontal'
+      ? edge.labelPlacement.y - 1
+      : edge.labelPlacement.y;
+
+    return {
+      left: edge.labelPlacement.x - boxWidth / 2,
+      right: edge.labelPlacement.x + boxWidth / 2,
+      top: renderY - boxHeight / 2,
+      bottom: renderY + boxHeight / 2,
+    };
+  }
+
+  function rectOverlap(
+    a: { left: number; right: number; top: number; bottom: number },
+    b: { left: number; right: number; top: number; bottom: number },
+  ): number {
+    return Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left)) *
+      Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+  }
+
+  function crowdedParallelSegments(
+    edges: Awaited<ReturnType<typeof computeLayout>>['edges'],
+  ): Array<{
+    first: string;
+    second: string;
+    orientation: 'horizontal' | 'vertical';
+    distance: number;
+    overlap: number;
+  }> {
+    const crowded: Array<{
+      first: string;
+      second: string;
+      orientation: 'horizontal' | 'vertical';
+      distance: number;
+      overlap: number;
+    }> = [];
+
+    for (let firstIndex = 0; firstIndex < edges.length; firstIndex++) {
+      const firstSegments = edgeSegments(edges[firstIndex]!.points);
+      for (let secondIndex = firstIndex + 1; secondIndex < edges.length; secondIndex++) {
+        const secondSegments = edgeSegments(edges[secondIndex]!.points);
+        for (const first of firstSegments) {
+          for (const second of secondSegments) {
+            if (first.orientation !== second.orientation) {
+              continue;
+            }
+
+            const firstLine = first.orientation === 'horizontal' ? first.a.y : first.a.x;
+            const secondLine = second.orientation === 'horizontal' ? second.a.y : second.a.x;
+            const distance = Math.abs(firstLine - secondLine);
+            if (distance <= EPSILON || distance >= 14) {
+              continue;
+            }
+
+            const overlap = overlapRange(
+              axisValue(first.a, first.orientation),
+              axisValue(first.b, first.orientation),
+              axisValue(second.a, second.orientation),
+              axisValue(second.b, second.orientation),
+            );
+            if (overlap <= 16) {
+              continue;
+            }
+
+            crowded.push({
+              first: `${edges[firstIndex]!.from}->${edges[firstIndex]!.to}`,
+              second: `${edges[secondIndex]!.from}->${edges[secondIndex]!.to}`,
+              orientation: first.orientation,
+              distance,
+              overlap,
+            });
+          }
+        }
+      }
+    }
+
+    return crowded;
   }
 
   function pointIsInteriorOnSegment(value: number, start: number, end: number): boolean {
@@ -351,6 +476,53 @@ describe('connection anchors', () => {
     expect(failures).toEqual([]);
   });
 
+  it('keeps edge labels clear of node bodies in every valid fixture', async () => {
+    const failures: string[] = [];
+
+    for (const fixture of VALID_FIXTURES) {
+      const layout = await layoutFixture(fixture);
+
+      for (const edge of layout.edges) {
+        const labelRect = edgeLabelRect(edge);
+        if (!labelRect) {
+          continue;
+        }
+
+        for (const node of layout.nodes) {
+          const nodeRect = {
+            left: node.x,
+            right: node.x + node.measuredWidth,
+            top: node.y,
+            bottom: node.y + node.measuredHeight,
+          };
+
+          if (rectOverlap(labelRect, nodeRect) > EPSILON) {
+            failures.push(`${fixture}: ${edge.from}->${edge.to} label overlaps ${node.id}`);
+          }
+        }
+      }
+    }
+
+    expect(failures).toEqual([]);
+  });
+
+  it('keeps valid fixtures free of nearly merged parallel lanes', async () => {
+    const failures: string[] = [];
+
+    for (const fixture of VALID_FIXTURES) {
+      const layout = await layoutFixture(fixture);
+      const crowded = crowdedParallelSegments(layout.edges);
+
+      for (const pair of crowded) {
+        failures.push(
+          `${fixture}: ${pair.first} near-merges ${pair.second} (${pair.orientation} ${pair.distance.toFixed(2)}px)`,
+        );
+      }
+    }
+
+    expect(failures).toEqual([]);
+  });
+
   it('adds a bridge for every perpendicular edge crossing in valid fixtures', async () => {
     const failures: string[] = [];
 
@@ -388,6 +560,37 @@ describe('connection anchors', () => {
     }
 
     expect(failures).toEqual([]);
+  });
+
+  it('puts the crossing gap on the other line when a crossing touches marker runway', () => {
+    const protectedArrow = {
+      from: 'source',
+      to: 'target',
+      points: [
+        { x: 50, y: 0 },
+        { x: 50, y: 100 },
+      ],
+    };
+    const crossingLine = {
+      from: 'other',
+      to: 'next',
+      points: [
+        { x: 50, y: 90 },
+        { x: 110, y: 90 },
+      ],
+    };
+
+    const bridges = edgeBridgeMap([protectedArrow, crossingLine]);
+
+    expect(bridges.get(0)).toBeUndefined();
+    expect(bridges.get(1)).toEqual([
+      {
+        x: 50,
+        y: 90,
+        segmentIndex: 0,
+        orientation: 'horizontal',
+      },
+    ]);
   });
 
   it('normalizes fallback center-to-center routes into orthogonal elbows', async () => {
@@ -644,8 +847,8 @@ describe('connection anchors', () => {
     const nodeB = layout.nodes.find((n) => n.id === 'b')!;
     const minX = nodeA.x + nodeA.measuredWidth;
     const maxX = nodeB.x;
-    expect(placement.x).toBeGreaterThanOrEqual(minX + 11);
-    expect(placement.x).toBeLessThanOrEqual(maxX - 11);
+    expect(placement.x).toBeGreaterThanOrEqual(minX + EDGE_LABEL_RUNWAY);
+    expect(placement.x).toBeLessThanOrEqual(maxX - EDGE_LABEL_RUNWAY);
   });
 
   it('moves labels off tiny elbow-adjacent segments onto a real carrier segment', () => {
@@ -717,8 +920,8 @@ describe('connection anchors', () => {
     const horizontal = segments.filter(([start, end]) => Math.abs(start.y - end.y) < 0.001);
 
     expect(horizontal).toHaveLength(2);
-    expect(Math.abs(horizontal[0]![1].x - horizontal[0]![0].x)).toBeGreaterThanOrEqual(11);
-    expect(Math.abs(horizontal[1]![1].x - horizontal[1]![0].x)).toBeGreaterThanOrEqual(11);
+    expect(Math.abs(horizontal[0]![1].x - horizontal[0]![0].x)).toBeGreaterThanOrEqual(EDGE_LABEL_RUNWAY);
+    expect(Math.abs(horizontal[1]![1].x - horizontal[1]![0].x)).toBeGreaterThanOrEqual(EDGE_LABEL_RUNWAY);
   });
 
   it('keeps trimmed edge strokes orthogonal after label and marker processing', async () => {
@@ -777,5 +980,16 @@ describe('connection anchors', () => {
     });
 
     expect(sharedSegmentCount(layout.edges)).toBe(0);
+  });
+
+  it('keeps the microservice fixture free of crowded near-parallel lanes', async () => {
+    const diagram = loadFixtureDiagram('microservice');
+    const layout = await computeLayout({
+      diagram,
+      measuredNodes: measureNodes(diagram.nodes),
+      theme: defaultTheme,
+    });
+
+    expect(crowdedParallelSegmentCount(layout.edges)).toBe(0);
   });
 });

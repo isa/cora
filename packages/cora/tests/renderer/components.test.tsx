@@ -255,7 +255,8 @@ describe('renderer catalog nodes', () => {
 
     expect(markup).toContain('data-icon="test"');
     expect(markup).toContain('stroke="#abcdef"');
-    expect(markup).toContain('Hidden label');
+    expect(markup).toContain('Hidde');
+    expect(markup).toContain('label');
   });
 
   it('renders Iconify icons through the existing SVG icon slot contract', () => {
@@ -374,6 +375,23 @@ describe('renderer catalog nodes', () => {
 
     expect(markup).toContain('font-size="11"');
     expect(markup).toContain('font-size="10"');
+  });
+
+  it('wraps long non-box titles into multiple tspans', () => {
+    const markup = renderToStaticMarkup(
+      <DocumentNode text="A very long document title that should wrap instead of squeezing into one line" />,
+    );
+
+    expect((markup.match(/<tspan/g) ?? []).length).toBeGreaterThan(1);
+    expect(markup).not.toContain('textLength=');
+  });
+
+  it('wraps long label titles into multiple lines', () => {
+    const markup = renderToStaticMarkup(
+      <LabelNode title="A very long label title that should wrap into multiple lines in the preview workbench" />,
+    );
+
+    expect((markup.match(/<tspan/g) ?? []).length).toBeGreaterThan(1);
   });
 
   it('renders LabelNode and LabelIconNode as bold only when subtitle is present', () => {
@@ -538,7 +556,7 @@ describe('edge labels', () => {
       },
     });
 
-    expect(pathData).toContain('M 79 0');
+    expect(pathData).toContain('M 71 0');
   });
 
   it('keeps the marker carrier path continuous when labels split the visible stroke', () => {
@@ -560,7 +578,7 @@ describe('edge labels', () => {
       },
     };
 
-    expect(edgeLinePathData(edge)).toContain('M 79 0');
+    expect(edgeLinePathData(edge)).toContain('M 71 0');
     expect(edgeMarkerCarrierPathData(edge)).toBe('M 2 0 L 98 0');
   });
 
@@ -734,7 +752,7 @@ describe('edge labels', () => {
       ],
     });
 
-    expect(pathData).toContain('L 47 0 L 53 0');
+    expect(pathData).toContain('L 45 0 L 55 0');
     expect(pathData).not.toContain('Q 50');
   });
 
@@ -756,7 +774,39 @@ describe('edge labels', () => {
       ],
     });
 
-    expect(maskPathData).toBe('M 47 0 L 53 0');
+    expect(maskPathData).toBe('M 45 0 L 55 0');
+  });
+
+  it('puts the bridge on the segment with more room near compact elbows', () => {
+    const bridges = edgeBridgeMap([
+      {
+        from: 'a',
+        to: 'b',
+        points: [
+          { x: 0, y: 0 },
+          { x: 40, y: 0 },
+          { x: 40, y: 20 },
+        ],
+      },
+      {
+        from: 'c',
+        to: 'd',
+        points: [
+          { x: 38, y: -20 },
+          { x: 38, y: 40 },
+        ],
+      },
+    ]);
+
+    expect(bridges.get(0)).toBeUndefined();
+    expect(bridges.get(1)).toEqual([
+      {
+        x: 38,
+        y: 0,
+        segmentIndex: 0,
+        orientation: 'vertical',
+      },
+    ]);
   });
 
   it('keeps bridge masks when the edge label is on a different segment', () => {
@@ -787,7 +837,7 @@ describe('edge labels', () => {
       ],
     });
 
-    expect(maskPathData).toBe('M 47 0 L 53 0');
+    expect(maskPathData).toBe('M 45 0 L 55 0');
   });
 
   it('adds bridges when a segment endpoint touches another segment interior', () => {

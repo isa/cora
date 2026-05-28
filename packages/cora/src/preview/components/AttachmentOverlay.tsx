@@ -19,7 +19,7 @@ export function AttachmentOverlay({ slots, boxes, showLabels }: AttachmentOverla
       ))}
       {slots.map((slot) => (
         <g key={`${slot.nodeId}-${slot.label}`}>
-          <circle cx={slot.x} cy={slot.y} r="2.75" className="slot-dot" />
+          {showLabels ? <circle cx={slot.x} cy={slot.y} r="2.75" className="slot-dot" /> : null}
           {showLabels ? (
             <text x={slot.x + 8} y={slot.y - 8} className="slot-label">
               {slot.label}

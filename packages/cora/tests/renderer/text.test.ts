@@ -138,6 +138,41 @@ describe('renderToTextFromSvg', () => {
     expect(output).not.toContain('┼');
   });
 
+  it('keeps horizontal label shoulders outside node borders in box-arrows output', async () => {
+    const layouted = await buildLayouted('box-arrows.yaml');
+
+    const unicode = renderToTextFromSvg(layouted, { charset: 'unicode' });
+    expect(unicode).not.toContain('┼enqueue');
+    expect(unicode).not.toContain('┼write');
+    expect(unicode).toMatch(/API Server │O[─]+□│ Async Worker/u);
+    expect(unicode).toMatch(/Async Worker │─write──◇│ Audit Log/u);
+
+    const ascii = renderToTextFromSvg(layouted, { charset: 'ascii' });
+    expect(ascii).not.toContain('+enqueue');
+    expect(ascii).not.toContain('+write');
+    expect(ascii).toMatch(/API Server \|O[-]+#\| Async Worker/u);
+    expect(ascii).toMatch(/Async Worker \|-write--D\| Audit Log/u);
+  });
+
+  it('keeps start markers attached through the first bend in database output', async () => {
+    const layouted = await buildLayouted('database.yaml');
+    const output = renderToTextFromSvg(layouted, { charset: 'unicode' });
+    const lines = output.split('\n');
+    const bendLineIndex = lines.findIndex(line => /□[─]+┐/u.test(line));
+
+    expect(bendLineIndex).toBeGreaterThan(-1);
+
+    const bendLine = lines[bendLineIndex]!;
+    expect(
+      lines.slice(Math.max(0, bendLineIndex - 2), bendLineIndex + 1).join('\n'),
+    ).toContain('PostgreSQL Primary');
+    expect(bendLine).toMatch(/□[─]+┐/u);
+
+    const cornerX = bendLine.indexOf('┐');
+    expect(cornerX).toBeGreaterThan(-1);
+    expect(lines[bendLineIndex + 1]?.[cornerX]).toBe('│');
+  });
+
   it.each([
     'minimal.yaml',
     'box-arrows.yaml',
@@ -151,4 +186,3 @@ describe('renderToTextFromSvg', () => {
     expect(output).toMatchSnapshot();
   });
 });
-

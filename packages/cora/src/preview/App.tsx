@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
+import './registerElkWorker.js';
 import { CatalogSidebar } from './components/CatalogSidebar.js';
 import { ConnectionPanel } from './components/ConnectionPanel.js';
 import { GroupPanel } from './components/GroupPanel.js';
@@ -19,6 +20,28 @@ import {
   updateConnectionProps,
   updateNodeProps,
 } from './state.js';
+import {
+  deserializeWorkbenchState,
+  serializeWorkbenchYaml,
+} from './persistence.js';
+
+type SaveFilePickerHandle = {
+  name?: string;
+  createWritable(): Promise<{
+    write(data: string): Promise<void>;
+    close(): Promise<void>;
+  }>;
+};
+
+type WindowWithSavePicker = Window & {
+  showSaveFilePicker?: (options?: {
+    suggestedName?: string;
+    types?: Array<{
+      description?: string;
+      accept: Record<string, string[]>;
+    }>;
+  }) => Promise<SaveFilePickerHandle>;
+};
 
 function getContrastColor(hex: string): string {
   if (!hex || hex.startsWith('var')) return '#18181b';
@@ -54,7 +77,9 @@ export function App() {
   const [componentSearch, setComponentSearch] = useState('');
   const [isIconSearchLoading, setIsIconSearchLoading] = useState(false);
   const [activeTheme, setActiveTheme] = useState<'default' | 'monochrome' | 'without-shadow'>('default');
+  const [fileMessage, setFileMessage] = useState<string>('');
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -84,6 +109,77 @@ export function App() {
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [componentSearch, state.selected]);
+
+  useEffect(() => {
+    if (!fileMessage) {
+      return;
+    }
+    const timeout = window.setTimeout(() => setFileMessage(''), 4000);
+    return () => window.clearTimeout(timeout);
+  }, [fileMessage]);
+
+  const handleLoadFile = async (file: File | undefined) => {
+    if (!file) {
+      return;
+    }
+
+    try {
+      const content = await file.text();
+      const result = await deserializeWorkbenchState(file.name, content);
+      if ('errors' in result) {
+        const first = result.errors[0];
+        setFileMessage(first ? `${first.code}: ${first.message}` : 'Could not load file.');
+        return;
+      }
+
+      setState(result.state);
+      setFileMessage(`Loaded ${file.name}`);
+    } catch (error) {
+      setFileMessage(error instanceof Error ? error.message : 'Could not load file.');
+    }
+  };
+
+  const handleSave = async () => {
+    const yaml = serializeWorkbenchYaml(state);
+    const suggestedName = state.sourceName?.replace(/\.(json|yaml|yml)$/i, '.yml') || 'diagram.yml';
+
+    try {
+      const pickerWindow = window as WindowWithSavePicker;
+      if (typeof pickerWindow.showSaveFilePicker === 'function') {
+        const handle = await pickerWindow.showSaveFilePicker({
+          suggestedName,
+          types: [
+            {
+              description: 'YAML diagram',
+              accept: { 'application/x-yaml': ['.yml', '.yaml'] },
+            },
+          ],
+        });
+        const writable = await handle.createWritable();
+        await writable.write(yaml);
+        await writable.close();
+        const savedName = handle.name ?? suggestedName;
+        setState((current) => ({ ...current, sourceName: savedName }));
+        setFileMessage(`Saved ${savedName}`);
+        return;
+      }
+
+      const blob = new Blob([yaml], { type: 'application/x-yaml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = suggestedName;
+      anchor.click();
+      URL.revokeObjectURL(url);
+      setState((current) => ({ ...current, sourceName: suggestedName }));
+      setFileMessage(`Downloaded ${suggestedName}`);
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
+      setFileMessage(error instanceof Error ? error.message : 'Could not save file.');
+    }
+  };
 
   const selectedNode =
     state.selected?.kind === 'node'
@@ -138,6 +234,37 @@ export function App() {
             <option value="monochrome">Monochrome</option>
             <option value="without-shadow">No Shadows</option>
           </Select>
+        </div>
+        <button
+          type="button"
+          className="preview-header-action"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <span className="material-symbols-outlined" aria-hidden="true">folder_open</span>
+          Load YML
+        </button>
+        <button
+          type="button"
+          className="preview-header-action"
+          onClick={() => void handleSave()}
+        >
+          <span className="material-symbols-outlined" aria-hidden="true">save</span>
+          Save YML
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".yml,.yaml,.json,application/x-yaml,application/json"
+          hidden
+          onChange={(event) => {
+            void handleLoadFile(event.currentTarget.files?.[0]);
+            event.currentTarget.value = '';
+          }}
+        />
+        <div className="preview-theme-selector" aria-live="polite">
+          <span className="material-symbols-outlined" aria-hidden="true">description</span>
+          <span>{state.sourceName ?? 'Unsaved canvas'}</span>
+          {fileMessage ? <span className="preview-file-message">{fileMessage}</span> : null}
         </div>
       </header>
       <WorkbenchCanvas

@@ -1,4 +1,9 @@
 import type { LayoutedEdge } from '../layout-ir.js';
+import {
+  effectiveEndMarker,
+  effectiveStartMarker,
+  markerVisibleTrim,
+} from './edgeMarkers.js';
 
 export interface EdgePoint {
   x: number;
@@ -19,6 +24,7 @@ export interface EdgePosition extends EdgePoint {
 }
 
 const EPSILON = 0.001;
+const MIN_VISIBLE_ENDPOINT_RUNWAY = 11;
 
 export function edgeSegments(points: EdgePoint[]): EdgeSegment[] {
   const segments: EdgeSegment[] = [];
@@ -148,6 +154,115 @@ function overlaps(aStart: number, aEnd: number, bStart: number, bEnd: number): b
     Math.min(Math.max(aStart, aEnd), Math.max(bStart, bEnd)) - EPSILON;
 }
 
+function segmentAxisValue(
+  point: EdgePoint,
+  orientation: EdgeSegment['orientation'],
+): number {
+  return orientation === 'horizontal' ? point.x : point.y;
+}
+
+function markerProtectionSpanForEndpoint(
+  marker: ReturnType<typeof effectiveStartMarker>,
+  anchor: EdgePoint,
+  toward: EdgePoint,
+  orientation: EdgeSegment['orientation'],
+): { min: number; max: number } | undefined {
+  if (marker === 'none') {
+    return undefined;
+  }
+
+  const protectedLength =
+    markerVisibleTrim(marker) + MIN_VISIBLE_ENDPOINT_RUNWAY + EDGE_ENDPOINT_CLEARANCE;
+  const anchorScalar = segmentAxisValue(anchor, orientation);
+  const towardScalar = segmentAxisValue(toward, orientation);
+  const direction = towardScalar >= anchorScalar ? 1 : -1;
+  const protectedEnd = anchorScalar + direction * protectedLength;
+
+  return {
+    min: Math.min(anchorScalar, protectedEnd),
+    max: Math.max(anchorScalar, protectedEnd),
+  };
+}
+
+function markerProtectionSpans(
+  edge: LayoutedEdge,
+  segment: EdgeSegment,
+): Array<{ min: number; max: number }> {
+  const spans: Array<{ min: number; max: number }> = [];
+  const isFirst = segment.index === 0;
+  const isLast = segment.index >= edge.points.length - 2;
+
+  if (isFirst) {
+    const span = markerProtectionSpanForEndpoint(
+      effectiveStartMarker(edge.startMarker),
+      segment.a,
+      segment.b,
+      segment.orientation,
+    );
+    if (span) {
+      spans.push(span);
+    }
+  }
+
+  if (isLast) {
+    const span = markerProtectionSpanForEndpoint(
+      effectiveEndMarker(edge.endMarker),
+      segment.b,
+      segment.a,
+      segment.orientation,
+    );
+    if (span) {
+      spans.push(span);
+    }
+  }
+
+  return spans;
+}
+
+function pointInsideMarkerProtection(
+  edge: LayoutedEdge,
+  segment: EdgeSegment,
+  crossing: EdgePoint,
+): boolean {
+  const spans = markerProtectionSpans(edge, segment);
+  if (spans.length === 0) {
+    return false;
+  }
+
+  const scalar = segmentAxisValue(crossing, segment.orientation);
+  return spans.some((span) => scalar > span.min + EPSILON && scalar < span.max - EPSILON);
+}
+
+function bridgeRoomAroundCrossing(
+  edge: LayoutedEdge,
+  segment: EdgeSegment,
+  crossing: EdgePoint,
+): number {
+  const scalar = segmentAxisValue(crossing, segment.orientation);
+  let min = Math.min(
+    segmentAxisValue(segment.a, segment.orientation),
+    segmentAxisValue(segment.b, segment.orientation),
+  );
+  let max = Math.max(
+    segmentAxisValue(segment.a, segment.orientation),
+    segmentAxisValue(segment.b, segment.orientation),
+  );
+
+  for (const span of markerProtectionSpans(edge, segment)) {
+    if (Math.abs(span.min - min) < EPSILON) {
+      min = Math.max(min, span.max);
+    }
+    if (Math.abs(span.max - max) < EPSILON) {
+      max = Math.min(max, span.min);
+    }
+  }
+
+  return Math.min(
+    Math.max(0, scalar - min),
+    Math.max(0, max - scalar),
+  );
+}
+
 export function edgeBridgeMap(edges: LayoutedEdge[]): Map<number, LayoutedEdge['bridges']> {
   const bridges = new Map<number, NonNullable<LayoutedEdge['bridges']>>();
   const segmentsByEdge = edges.map((edge) => edgeSegments(edge.points));
@@ -184,8 +299,42 @@ export function edgeBridgeMap(edges: LayoutedEdge[]): Map<number, LayoutedEdge['
             continue;
           }
 
-          const bridgeSegment = horizontalInterior ? horizontal : vertical;
-          const bridgeIndex = bridgeSegment === overSegment ? overIndex : underIndex;
+          const crossing = { x: crossingX, y: crossingY };
+          const horizontalIndex = horizontal === overSegment ? overIndex : underIndex;
+          const verticalIndex = vertical === overSegment ? overIndex : underIndex;
+          const horizontalProtected = pointInsideMarkerProtection(
+            edges[horizontalIndex]!,
+            horizontal,
+            crossing,
+          );
+          const verticalProtected = pointInsideMarkerProtection(
+            edges[verticalIndex]!,
+            vertical,
+            crossing,
+          );
+          const horizontalRoom = bridgeRoomAroundCrossing(
+            edges[horizontalIndex]!,
+            horizontal,
+            crossing,
+          );
+          const verticalRoom = bridgeRoomAroundCrossing(
+            edges[verticalIndex]!,
+            vertical,
+            crossing,
+          );
+          let bridgeSegment: EdgeSegment;
+          if (verticalProtected && crossesHorizontal) {
+            bridgeSegment = horizontal;
+          } else if (horizontalProtected && crossesVertical) {
+            bridgeSegment = vertical;
+          } else if (verticalRoom > horizontalRoom + EPSILON) {
+            bridgeSegment = vertical;
+          } else if (horizontalRoom > verticalRoom + EPSILON) {
+            bridgeSegment = horizontal;
+          } else {
+            bridgeSegment = horizontalInterior ? horizontal : vertical;
+          }
+          const bridgeIndex = bridgeSegment === horizontal ? horizontalIndex : verticalIndex;
           const edgeBridges = bridges.get(bridgeIndex) ?? [];
           const alreadyCovered = edgeBridges.some(
             (bridge) =>

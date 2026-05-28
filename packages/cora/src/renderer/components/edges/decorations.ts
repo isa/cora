@@ -8,7 +8,7 @@ import type { EdgeBridge, EdgeLabelPlacement } from '../../../layout-ir.js';
 export const EDGE_LABEL_PADDING = LABELED_EDGE_LABEL_PADDING;
 export { EDGE_LABEL_RUNWAY, MIN_LABELED_EDGE_STUB };
 export const EDGE_LABEL_OFFSET = 10;
-export const EDGE_BRIDGE_RADIUS = 3;
+export const EDGE_BRIDGE_RADIUS = 5;
 
 // Half-span of the shaft cut-out reserved for the label: text half-size plus a
 // compact runway so a clean shaft is still visible on each side of the text.
