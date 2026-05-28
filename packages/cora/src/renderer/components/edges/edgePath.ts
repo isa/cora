@@ -5,6 +5,12 @@ import {
   type EdgePoint,
   type EdgeSegment,
 } from '../../../core/edgeGeometry.js';
+import {
+  effectiveEndMarker,
+  effectiveStartMarker,
+  markerAnchorOffset,
+  markerShaftTrim,
+} from '../../../core/edgeMarkers.js';
 import type { LayoutedEdge } from '../../../layout-ir.js';
 import {
   bridgeHalfSpan,
@@ -13,20 +19,7 @@ import {
   MIN_LABELED_EDGE_STUB,
 } from './decorations.js';
 
-const EDGE_ELBOW_RADIUS = 4;
-const EDGE_MARKER_RUNWAY = 24;
-const EDGE_TERMINAL_CORNER_RUNWAY = 6;
-const MIN_VISIBLE_ELBOW_RADIUS = 3;
-const EDGE_ARROW_MARKER_DEPTH = 8;
-const EDGE_MARKER_SIZE = 8;
-const EDGE_CIRCLE_FILL_RADIUS = EDGE_MARKER_SIZE * 0.36;
-const EDGE_CIRCLE_STROKE_WIDTH = 1.5;
-const EDGE_CIRCLE_OUTER_RADIUS = EDGE_CIRCLE_FILL_RADIUS + EDGE_CIRCLE_STROKE_WIDTH / 2;
-const EDGE_FILLED_CIRCLE_RADIUS = EDGE_CIRCLE_FILL_RADIUS;
-const EDGE_DIAMOND_OUTER_RADIUS = EDGE_MARKER_SIZE / 2 + EDGE_CIRCLE_STROKE_WIDTH / 2;
-const EDGE_FILLED_DIAMOND_RADIUS = EDGE_MARKER_SIZE / 2;
-const EDGE_SQUARE_OUTER_RADIUS = EDGE_MARKER_SIZE * 0.36 + EDGE_CIRCLE_STROKE_WIDTH / 2;
-const EDGE_FILLED_SQUARE_RADIUS = EDGE_MARKER_SIZE * 0.36;
+const EDGE_MARKER_RUNWAY = 11;
 
 type SegmentDecoration =
   | { kind: 'gap'; center: number; halfSpan: number }
@@ -49,17 +42,13 @@ function samePoint(a: EdgePoint, b: EdgePoint): boolean {
   return Math.abs(a.x - b.x) < 0.001 && Math.abs(a.y - b.y) < 0.001;
 }
 
-function segmentLength(a: EdgePoint, b: EdgePoint): number {
-  return Math.hypot(b.x - a.x, b.y - a.y);
-}
-
 function offsetToward(from: EdgePoint, to: EdgePoint, distance: number): EdgePoint {
   const length = Math.hypot(to.x - from.x, to.y - from.y);
   if (length === 0 || distance <= 0) {
     return from;
   }
 
-  const t = Math.min(distance / length, 0.49);
+  const t = Math.min(distance / length, 0.95);
   return {
     x: from.x + (to.x - from.x) * t,
     y: from.y + (to.y - from.y) * t,
@@ -70,75 +59,29 @@ export function edgeLineMarkerPoints(edge: LayoutedEdge): EdgePoint[] {
   return edgeLineAnchorPoints(edge);
 }
 
-function markerAnchorOffset(marker: LayoutedEdge['startMarker']): number {
-  if (marker === 'circle') {
-    return EDGE_CIRCLE_OUTER_RADIUS;
+export function edgeMarkerCarrierPathData(edge: LayoutedEdge): string {
+  const points = edgeLineAnchorPoints(edge);
+  if (points.length === 0) {
+    return '';
   }
 
-  if (marker === 'filledCircle') {
-    return EDGE_FILLED_CIRCLE_RADIUS;
+  const commands = [`M ${points[0]!.x} ${points[0]!.y}`];
+  for (const point of points.slice(1)) {
+    commands.push(`L ${point.x} ${point.y}`);
   }
 
-  if (marker === 'diamond') {
-    return EDGE_DIAMOND_OUTER_RADIUS;
-  }
-
-  if (marker === 'filledDiamond') {
-    return EDGE_FILLED_DIAMOND_RADIUS;
-  }
-
-  if (marker === 'square') {
-    return EDGE_SQUARE_OUTER_RADIUS;
-  }
-
-  if (marker === 'filledSquare') {
-    return EDGE_FILLED_SQUARE_RADIUS;
-  }
-
-  return 0;
+  return commands.join(' ');
 }
 
-function markerShaftTrim(marker: LayoutedEdge['startMarker']): number {
-  if (marker === 'arrow') {
-    return EDGE_ARROW_MARKER_DEPTH;
-  }
-
-  if (marker === 'circle') {
-    return EDGE_CIRCLE_OUTER_RADIUS;
-  }
-
-  if (marker === 'filledCircle') {
-    return EDGE_FILLED_CIRCLE_RADIUS;
-  }
-
-  if (marker === 'diamond') {
-    return EDGE_DIAMOND_OUTER_RADIUS;
-  }
-
-  if (marker === 'filledDiamond') {
-    return EDGE_FILLED_DIAMOND_RADIUS;
-  }
-
-  if (marker === 'square') {
-    return EDGE_SQUARE_OUTER_RADIUS;
-  }
-
-  if (marker === 'filledSquare') {
-    return EDGE_FILLED_SQUARE_RADIUS;
-  }
-
-  return 0;
-}
-
-function edgeLineAnchorPoints(edge: LayoutedEdge): EdgePoint[] {
+function edgeLineBasePoints(edge: LayoutedEdge): EdgePoint[] {
   const points = edgeShaftPoints(edge.points);
   if (points.length < 2) {
     return points;
   }
 
   const anchored = points.map((point) => ({ ...point }));
-  const startOffset = markerAnchorOffset(edge.startMarker ?? 'none');
-  const endOffset = markerAnchorOffset(edge.endMarker ?? 'arrow');
+  const startOffset = markerAnchorOffset(effectiveStartMarker(edge.startMarker));
+  const endOffset = markerAnchorOffset(effectiveEndMarker(edge.endMarker));
 
   anchored[0] = offsetToward(anchored[0]!, anchored[1]!, startOffset);
   anchored[anchored.length - 1] = offsetToward(
@@ -150,15 +93,19 @@ function edgeLineAnchorPoints(edge: LayoutedEdge): EdgePoint[] {
   return anchored;
 }
 
+function edgeLineAnchorPoints(edge: LayoutedEdge): EdgePoint[] {
+  return edgeLineBasePoints(edge);
+}
+
 function edgeLineVisiblePoints(edge: LayoutedEdge): EdgePoint[] {
-  const points = edgeLineAnchorPoints(edge);
+  const points = edgeLineBasePoints(edge);
   if (points.length < 2) {
     return points;
   }
 
   const visible = points.map((point) => ({ ...point }));
-  const startTrim = markerShaftTrim(edge.startMarker ?? 'none');
-  const endTrim = markerShaftTrim(edge.endMarker ?? 'arrow');
+  const startTrim = markerShaftTrim(effectiveStartMarker(edge.startMarker));
+  const endTrim = markerShaftTrim(effectiveEndMarker(edge.endMarker));
 
   visible[0] = offsetToward(visible[0]!, visible[1]!, startTrim);
   visible[visible.length - 1] = offsetToward(
@@ -204,6 +151,9 @@ function segmentDecorations(edge: LayoutedEdge, segment: EdgeSegment): SegmentDe
     const bridgeCenter = axisValue(bridge, bridge.orientation);
     const bridgeHalfWidth = bridgeHalfSpan(bridge);
     if (
+      labelPlacement &&
+      labelPlacement.segmentIndex === segment.index &&
+      labelPlacement.orientation === segment.orientation &&
       labelCenter !== undefined &&
       labelHalfSpan !== undefined &&
       edgeLabelGapIntersectsBridge(
@@ -232,36 +182,6 @@ function segmentDecorations(edge: LayoutedEdge, segment: EdgeSegment): SegmentDe
     const bT = segmentDelta === 0 ? 0 : (b.center - segmentStart) / segmentDelta;
     return aT - bT;
   });
-}
-
-function cornerRadius(prev: EdgeSegment, next: EdgeSegment, nextEndsAtMarker: boolean): number {
-  if (prev.orientation === next.orientation) {
-    return 0;
-  }
-
-  const nextLimit = nextEndsAtMarker
-    ? Math.max(0, next.length - EDGE_TERMINAL_CORNER_RUNWAY)
-    : next.length / 2;
-
-  const radius = Math.min(EDGE_ELBOW_RADIUS, prev.length / 2, nextLimit);
-  return radius >= MIN_VISIBLE_ELBOW_RADIUS ? radius : 0;
-}
-
-function roundedSegmentPoints(
-  segment: EdgeSegment,
-  previous: EdgeSegment | undefined,
-  next: EdgeSegment | undefined,
-  nextEndsAtMarker: boolean,
-): { a: EdgePoint; b: EdgePoint; nextStart?: EdgePoint } {
-  const segmentEndsAtMarker = !next;
-  const startRadius = previous ? cornerRadius(previous, segment, segmentEndsAtMarker) : 0;
-  const endRadius = next ? cornerRadius(segment, next, nextEndsAtMarker) : 0;
-
-  return {
-    a: startRadius > 0 ? offsetToward(segment.a, segment.b, startRadius) : segment.a,
-    b: endRadius > 0 ? offsetToward(segment.b, segment.a, endRadius) : segment.b,
-    nextStart: next && endRadius > 0 ? offsetToward(segment.b, next.b, endRadius) : undefined,
-  };
 }
 
 function decorationBounds(
@@ -298,21 +218,8 @@ export function edgeLinePathData(edge: LayoutedEdge, options: { trimForMarkers?:
   const segments = edgeSegments(points);
 
   for (let index = 0; index < segments.length; index++) {
-    const originalSegment = segments[index]!;
-    const previous = segments[index - 1];
+    const segment = segments[index]!;
     const next = segments[index + 1];
-    const rounded = roundedSegmentPoints(
-      originalSegment,
-      previous,
-      next,
-      index + 1 === segments.length - 1,
-    );
-    const segment: EdgeSegment = {
-      ...originalSegment,
-      a: rounded.a,
-      b: rounded.b,
-      length: segmentLength(rounded.a, rounded.b),
-    };
 
     let cursor = segment.a;
     const { min, max } = decorationBounds(segment, !next);
@@ -321,23 +228,41 @@ export function edgeLinePathData(edge: LayoutedEdge, options: { trimForMarkers?:
       commands.push(`L ${segment.a.x} ${segment.a.y}`);
     }
 
+    const segmentStartScalar = axisValue(segment.a, segment.orientation);
+    const segmentEndScalar = axisValue(segment.b, segment.orientation);
+    const segmentMin = Math.min(segmentStartScalar, segmentEndScalar);
+    const segmentMax = Math.max(segmentStartScalar, segmentEndScalar);
+    const isReversed = segmentEndScalar < segmentStartScalar;
+
     for (const decoration of segmentDecorations(edge, segment)) {
-      const effectiveHalfSpan = Math.max(
-        0,
-        Math.min(
-          decoration.halfSpan,
-          segment.length / 2 - MIN_LABELED_EDGE_STUB,
-        ),
-      );
+      // Labels always use their full half-span (clamped only to segment bounds)
+      // so the shaft is never drawn inside the visual label pill, even on short
+      // segments where the marker runway / stub would otherwise eat the gap.
+      const effectiveHalfSpan = decoration.kind === 'gap'
+        ? decoration.halfSpan
+        : Math.max(
+            0,
+            Math.min(
+              decoration.halfSpan,
+              segment.length / 2 - MIN_LABELED_EDGE_STUB,
+            ),
+          );
       if (effectiveHalfSpan <= 0) {
         continue;
       }
 
-      const startScalar = Math.max(min, decoration.center - effectiveHalfSpan);
-      const endScalar = Math.min(max, decoration.center + effectiveHalfSpan);
-      if (endScalar <= startScalar) {
+      const lowerBound = decoration.kind === 'gap' ? segmentMin : min;
+      const upperBound = decoration.kind === 'gap' ? segmentMax : max;
+      const lowScalar = Math.max(lowerBound, decoration.center - effectiveHalfSpan);
+      const highScalar = Math.min(upperBound, decoration.center + effectiveHalfSpan);
+      if (highScalar <= lowScalar) {
         continue;
       }
+      // Direction-aware: startScalar must be closer to segment.a, endScalar
+      // closer to segment.b. Segments with a > b (e.g., upward verticals or
+      // right-to-left horizontals) flip the natural [low, high] ordering.
+      const startScalar = isReversed ? highScalar : lowScalar;
+      const endScalar = isReversed ? lowScalar : highScalar;
       const startPoint = pointOnSegment(segment, startScalar);
       const endPoint = pointOnSegment(segment, endScalar);
 
@@ -357,12 +282,6 @@ export function edgeLinePathData(edge: LayoutedEdge, options: { trimForMarkers?:
     if (!samePoint(cursor, segment.b)) {
       commands.push(`L ${segment.b.x} ${segment.b.y}`);
     }
-
-    if (rounded.nextStart) {
-      commands.push(
-        `Q ${originalSegment.b.x} ${originalSegment.b.y} ${rounded.nextStart.x} ${rounded.nextStart.y}`,
-      );
-    }
   }
 
   return commands.join(' ');
@@ -378,21 +297,8 @@ export function edgeBridgeMaskPathData(edge: LayoutedEdge): string {
   const segments = edgeSegments(points);
 
   for (let index = 0; index < segments.length; index++) {
-    const originalSegment = segments[index]!;
-    const previous = segments[index - 1];
+    const segment = segments[index]!;
     const next = segments[index + 1];
-    const rounded = roundedSegmentPoints(
-      originalSegment,
-      previous,
-      next,
-      index + 1 === segments.length - 1,
-    );
-    const segment: EdgeSegment = {
-      ...originalSegment,
-      a: rounded.a,
-      b: rounded.b,
-      length: segmentLength(rounded.a, rounded.b),
-    };
     const { min, max } = decorationBounds(segment, !next);
 
     for (const decoration of segmentDecorations(edge, segment)) {

@@ -5,8 +5,10 @@ diagram:
   nodes:
     - id: api
       label: API
+      component: box
     - id: db
       label: Database
+      component: box
   edges:
     - from: api
       to: db

@@ -77,11 +77,11 @@ describe('preview drag canvas state', () => {
     const medium = updateNodeProps(small, state.nodes[0]!.id, 'size', 'md');
     const large = updateNodeProps(medium, state.nodes[0]!.id, 'size', 'lg');
 
-    expect(state.nodes[0]?.props.size).toEqual({ width: 144, height: 160 });
-    expect(previewNodeSize(state.nodes[0]!)).toEqual({ width: 144, height: 160 });
-    expect(previewNodeSize(small.nodes[0]!)).toEqual({ width: 64, height: 71 });
-    expect(previewNodeSize(medium.nodes[0]!)).toEqual({ width: 96, height: 107 });
-    expect(previewNodeSize(large.nodes[0]!)).toEqual({ width: 144, height: 160 });
+    expect(state.nodes[0]?.props.size).toBe('lg');
+    expect(previewNodeSize(state.nodes[0]!)).toEqual({ width: 108, height: 120 });
+    expect(previewNodeSize(small.nodes[0]!)).toEqual({ width: 64, height: 60 });
+    expect(previewNodeSize(medium.nodes[0]!)).toEqual({ width: 81, height: 90 });
+    expect(previewNodeSize(large.nodes[0]!)).toEqual({ width: 108, height: 120 });
   });
 
   it('attaches label components to the selected connection without creating a node connection', () => {

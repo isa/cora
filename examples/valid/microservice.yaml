@@ -8,46 +8,66 @@ diagram:
     # Customer experience domain
     - id: gateway
       label: API Gateway
+      component: box
     - id: web-bff
       label: Web BFF
+      component: box
     - id: mobile-bff
       label: Mobile BFF
+      component: box
     - id: auth
       label: Auth Service
+      component: box
     - id: users
       label: Users Service
+      component: box
     - id: catalog
       label: Catalog Service
+      component: box
     - id: search
       label: Search Service
+      component: box
     - id: cart
       label: Cart Service
+      component: box
     - id: checkout
       label: Checkout Service
+      component: box
     - id: notifications
       label: Notification Service
+      component: box
 
     # Commerce platform domain
     - id: orders
       label: Orders Service
+      component: box
     - id: payments
       label: Payments Service
+      component: box
     - id: inventory
       label: Inventory Service
+      component: box
     - id: pricing
       label: Pricing Service
+      component: box
     - id: fulfillment
       label: Fulfillment Service
+      component: box
     - id: analytics
       label: Analytics Service
+      component: box
     - id: recommendations
       label: Recommendations Service
+      component: box
     - id: event-bus
       label: Event Bus
+      component: box
     - id: config
       label: Config Service
+      component: box
     - id: audit
       label: Audit Service
+      component: box
 
   edges:
     # Customer domain — ingress and internal flows
@@ -96,12 +116,15 @@ diagram:
     - from: checkout
       to: orders
       label: place order
+      endMarker: filledCircle
     - from: checkout
       to: payments
       label: authorize
+      endMarker: diamond
     - from: cart
       to: inventory
       label: reserve stock
+      endMarker: square
     - from: catalog
       to: pricing
       label: live prices
@@ -131,6 +154,7 @@ diagram:
     - from: event-bus
       to: notifications
       label: async alerts
+      startMarker: filledCircle
     - from: fulfillment
       to: notifications
       label: shipping updates

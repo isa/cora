@@ -14,6 +14,8 @@ export type DiagramComponent =
   | 'labelIcon'
   | 'website'
   | 'document'
+  | 'api'
+  | 'database'
   | 'app';
 
 export type ErrorCode =

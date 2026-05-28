@@ -1,10 +1,16 @@
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 
 import {
+  ApiNode,
   borderDasharray,
   AppNode,
   BoxNode,
+  DatabaseNode,
   DocumentNode,
   IconNode,
   Group,
@@ -13,21 +19,32 @@ import {
   Line,
   LineMarkerDefs,
   linePathData,
+  APP_SIZE_PRESETS,
+  DOCUMENT_SIZE_PRESETS,
+  ICON_NODE_SIZE_PRESETS,
+  LABEL_ICON_SIZE_PRESETS,
+  WEBSITE_SIZE_PRESETS,
+  resolveAppComponentSize,
   resolveComponentSize,
   type SvgIconProps,
   WebsiteNode,
 } from '../../src/renderer/components/index.js';
-import { baselineYForVisualCenter } from '../../src/core/measureText.js';
+import { baselineYForVisualCenter, measureNodes } from '../../src/core/measureText.js';
 import { edgeBridgeMap } from '../../src/core/edgeGeometry.js';
 import { EdgeLabel } from '../../src/renderer/components/edges/EdgeLabel.js';
 import {
   edgeBridgeMaskPathData,
   edgeLineMarkerPoints,
   edgeLinePathData,
+  edgeMarkerCarrierPathData,
 } from '../../src/renderer/components/edges/edgePath.js';
 import { defaultTheme } from '../../src/renderer/themes/default.js';
 import { Diagram } from '../../src/renderer/Diagram.js';
 import { iconifyIcon } from '../../src/renderer/iconify.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const rendererSourceRoot = join(__dirname, '../../src/renderer/components/nodes');
+const previewGeometryPath = join(__dirname, '../../src/preview/geometry.ts');
 
 function TestIcon({ x = 0, y = 0, size, color }: SvgIconProps) {
   return (
@@ -47,6 +64,74 @@ describe('renderer component primitives', () => {
       width: 123,
       height: 45,
     });
+  });
+
+  it('uses the shared 50% preset ladder for icon-like render components', () => {
+    expect(ICON_NODE_SIZE_PRESETS).toEqual({
+      sm: { width: 48, height: 48 },
+      md: { width: 72, height: 72 },
+      lg: { width: 96, height: 96 },
+      xl: { width: 144, height: 144 },
+      xxl: { width: 192, height: 192 },
+    });
+    expect(resolveAppComponentSize('lg', { width: 1, height: 1 })).toEqual(APP_SIZE_PRESETS.lg);
+    expect(DOCUMENT_SIZE_PRESETS.lg).toEqual({ width: 72, height: 96 });
+    expect(LABEL_ICON_SIZE_PRESETS.lg).toEqual(ICON_NODE_SIZE_PRESETS.lg);
+    expect(WEBSITE_SIZE_PRESETS).toMatchObject({
+      sm: { width: 54, height: 60 },
+      lg: { width: 108, height: 120 },
+      xxl: { width: 216, height: 240 },
+    });
+  });
+
+  it('measures rendered diagram icon nodes with lg defaults', () => {
+    const measured = measureNodes([
+      { id: 'icon', label: 'Icon', component: 'icon' },
+      { id: 'document', label: 'Doc', component: 'document' },
+      { id: 'app', label: 'App', component: 'app' },
+      { id: 'api', label: 'API', component: 'api' },
+      { id: 'database', label: 'DB', component: 'database' },
+      { id: 'label-icon', label: 'Icon', component: 'labelIcon' },
+      { id: 'website', label: 'Website', component: 'website' },
+    ]);
+
+    expect(Object.fromEntries(measured.map((node) => [
+      node.id,
+      { width: node.measuredWidth, height: node.measuredHeight },
+    ]))).toMatchObject({
+      icon: ICON_NODE_SIZE_PRESETS.lg,
+      document: DOCUMENT_SIZE_PRESETS.lg,
+      app: APP_SIZE_PRESETS.lg,
+      api: APP_SIZE_PRESETS.lg,
+      database: APP_SIZE_PRESETS.lg,
+      'label-icon': LABEL_ICON_SIZE_PRESETS.lg,
+      website: WEBSITE_SIZE_PRESETS.lg,
+    });
+  });
+
+  it('keeps icon-like nodes on the shared icon scale contract', () => {
+    const iconLikeFiles = [
+      'IconNode.tsx',
+      'LabelIconNode.tsx',
+      'AppNode.tsx',
+      'ApiNode.tsx',
+      'DatabaseNode.tsx',
+    ];
+
+    for (const file of iconLikeFiles) {
+      const source = readFileSync(join(rendererSourceRoot, file), 'utf8');
+      expect(source).toContain('iconNodeScale');
+      expect(source).not.toMatch(/frame\.width\s*\/\s*(?:40|160|192)/);
+      expect(source).not.toContain('remainingTextHeight');
+    }
+
+    const documentSource = readFileSync(join(rendererSourceRoot, 'DocumentNode.tsx'), 'utf8');
+    expect(documentSource).toContain('DOCUMENT_SIZE_PRESETS.lg.width');
+    expect(documentSource).not.toContain('remainingTextHeight');
+
+    const previewGeometry = readFileSync(previewGeometryPath, 'utf8');
+    expect(previewGeometry).toContain('iconNodeScale');
+    expect(previewGeometry).not.toMatch(/(?:box|size)\.width\s*\/\s*(?:40|160)/);
   });
 
   it('maps border styles to SVG dash arrays', () => {
@@ -73,23 +158,25 @@ describe('renderer component primitives', () => {
     expect(markup).toContain('M 0 0 L 20 10');
     expect(markup).toContain('stroke="#123456"');
     expect(markup).toContain('stroke-width="2"');
-    expect(markup).toContain('marker-end="url(#cora-marker-arrow)"');
+    expect(markup).toContain('marker-end="url(#cora-marker-arrow-end)"');
   });
 
-  it('rounds orthogonal line elbows', () => {
+  it('renders orthogonal line elbows without curves', () => {
     const pathData = linePathData([
       { x: 0, y: 0 },
       { x: 40, y: 0 },
       { x: 40, y: 40 },
     ]);
 
-    expect(pathData).toContain('Q 40 0 40 8');
+    expect(pathData).toBe('M 0 0 L 40 0 L 40 40');
+    expect(pathData).not.toContain('Q');
   });
 
   it('renders centralized line marker definitions', () => {
     const markup = renderToStaticMarkup(<LineMarkerDefs color="#123456" />);
 
-    expect(markup).toContain('id="cora-marker-arrow"');
+    expect(markup).toContain('id="cora-marker-arrow-start"');
+    expect(markup).toContain('id="cora-marker-arrow-end"');
     expect(markup).toContain('refX="8"');
     expect(markup).toContain('id="cora-marker-circle"');
     expect(markup).toContain('id="cora-marker-filled-circle"');
@@ -97,7 +184,7 @@ describe('renderer component primitives', () => {
     expect(markup).toContain('id="cora-marker-filled-diamond"');
     expect(markup).toContain('id="cora-marker-square"');
     expect(markup).toContain('id="cora-marker-filled-square"');
-    expect(markup).toContain('orient="auto-start-reverse"');
+    expect(markup).toContain('orient="auto"');
   });
 
   it('renders diagram edge marker choices from the layout IR', () => {
@@ -301,7 +388,7 @@ describe('renderer catalog nodes', () => {
     expect(regularLabelIcon).toContain('font-weight="400"');
   });
 
-  it('renders DocumentNode with glyph fill and border-colored contour', () => {
+  it('renders DocumentNode from the Solar documents duotone paths', () => {
     const markup = renderToStaticMarkup(
       <DocumentNode
         backgroundColor="#ffffff"
@@ -310,18 +397,104 @@ describe('renderer catalog nodes', () => {
       />,
     );
 
-    expect(markup).toContain('fill="#ffffff"');
-    expect(markup).toContain('stroke="#112233"');
+    expect(markup).toContain('M5.879 2.879C5 3.757 5 5.172 5 8v8c0 2.828');
+    expect(markup).toContain('opacity="0.5"');
+    expect(markup).toContain('color="#112233"');
     expect(markup).not.toContain('<rect');
     expect(markup).toContain('Proposal');
   });
 
+  it('renders ApiNode from the Phosphor cube duotone paths', () => {
+    const markup = renderToStaticMarkup(
+      <ApiNode
+        iconColor="#7c3aed"
+        text="API"
+      />,
+    );
+
+    expect(markup).toContain('M128 129.09V232');
+    expect(markup).toContain('opacity="0.2"');
+    expect(markup).toContain('color="#7c3aed"');
+    expect(markup).toContain('API');
+  });
+
+  it('renders api diagram nodes with the catalog icon color', () => {
+    const markup = renderToStaticMarkup(
+      <Diagram
+        diagram={{
+          kind: 'box-arrows',
+          nodes: [
+            {
+              id: 'api',
+              label: 'API',
+              component: 'api',
+              measuredWidth: 160,
+              measuredHeight: 128,
+              x: 0,
+              y: 0,
+            },
+          ],
+          edges: [],
+          width: 160,
+          height: 128,
+          theme: defaultTheme,
+        }}
+      />,
+    );
+
+    expect(markup).toContain('color="#8b5cf6"');
+  });
+
+  it('renders DatabaseNode from the Lets Icons database duotone paths', () => {
+    const markup = renderToStaticMarkup(
+      <DatabaseNode
+        iconColor="#7c3aed"
+        text="Database"
+      />,
+    );
+
+    expect(markup).toContain('M5 8a12.04 12.04 0 0 0 14 0v10a14.11 14.11 0 0 1-14 0z');
+    expect(markup).toContain('fill-opacity="0.25"');
+    expect(markup).toContain('stroke-width="1.2"');
+    expect(markup).toContain('color="#7c3aed"');
+    expect(markup).toContain('Database');
+  });
+
+  it('renders database diagram nodes with the catalog icon color', () => {
+    const markup = renderToStaticMarkup(
+      <Diagram
+        diagram={{
+          kind: 'box-arrows',
+          nodes: [
+            {
+              id: 'database',
+              label: 'Database',
+              component: 'database',
+              measuredWidth: 160,
+              measuredHeight: 128,
+              x: 0,
+              y: 0,
+            },
+          ],
+          edges: [],
+          width: 160,
+          height: 128,
+          theme: defaultTheme,
+        }}
+      />,
+    );
+
+    expect(markup).toContain('color="#8b5cf6"');
+  });
+
   it('renders product node shadows with the shared cast footprint', () => {
     const documentMarkup = renderToStaticMarkup(<DocumentNode shadow="cast" />);
+    const apiMarkup = renderToStaticMarkup(<ApiNode shadow="cast" />);
+    const databaseMarkup = renderToStaticMarkup(<DatabaseNode shadow="cast" />);
     const appMarkup = renderToStaticMarkup(<AppNode shadow="cast" />);
     const websiteMarkup = renderToStaticMarkup(<WebsiteNode shadow="cast" />);
 
-    for (const markup of [documentMarkup, appMarkup, websiteMarkup]) {
+    for (const markup of [documentMarkup, apiMarkup, databaseMarkup, appMarkup, websiteMarkup]) {
       expect(markup).toContain('data-shadow="cast"');
       expect(markup).toContain('opacity="0.28"');
     }
@@ -365,10 +538,33 @@ describe('edge labels', () => {
       },
     });
 
-    expect(pathData).toContain('M 71 0');
+    expect(pathData).toContain('M 79 0');
   });
 
-  it('rounds orthogonal edge elbows', () => {
+  it('keeps the marker carrier path continuous when labels split the visible stroke', () => {
+    const edge = {
+      from: 'a',
+      to: 'b',
+      label: 'request',
+      points: [
+        { x: 0, y: 0 },
+        { x: 100, y: 0 },
+      ],
+      labelPlacement: {
+        x: 50,
+        y: 0,
+        width: 36,
+        height: 8,
+        segmentIndex: 0,
+        orientation: 'horizontal' as const,
+      },
+    };
+
+    expect(edgeLinePathData(edge)).toContain('M 79 0');
+    expect(edgeMarkerCarrierPathData(edge)).toBe('M 2 0 L 98 0');
+  });
+
+  it('renders orthogonal edge elbows without curves', () => {
     const pathData = edgeLinePathData({
       from: 'a',
       to: 'b',
@@ -379,7 +575,8 @@ describe('edge labels', () => {
       ],
     });
 
-    expect(pathData).toContain('Q 50 0 50 4');
+    expect(pathData).toBe('M 2 0 L 50 0 L 50 48');
+    expect(pathData).not.toContain('Q');
   });
 
   it('keeps a straight runway before arrowheads on short terminal segments', () => {
@@ -396,7 +593,7 @@ describe('edge labels', () => {
     expect(pathData).not.toContain('Q 50 0');
   });
 
-  it('rounds terminal bends while preserving visible arrow runway', () => {
+  it('keeps terminal bends square while preserving visible arrow runway', () => {
     const pathData = edgeLinePathData({
       from: 'a',
       to: 'b',
@@ -407,8 +604,8 @@ describe('edge labels', () => {
       ],
     });
 
-    expect(pathData).toContain('Q 50 0 50 4');
-    expect(pathData).toMatch(/L 50 2\d(?:\.\d+)?/);
+    expect(pathData).toBe('M 2 0 L 50 0 L 50 28');
+    expect(pathData).not.toContain('Q');
   });
 
   it('keeps arrow marker tips just outside the target anchor', () => {
@@ -504,7 +701,7 @@ describe('edge labels', () => {
     expect(pathXs[2]).toBeCloseTo(92.24, 2);
   });
 
-  it('keeps rounded elbows when the terminal segment leaves room for the runway', () => {
+  it('keeps square elbows when the terminal segment leaves room for the runway', () => {
     const pathData = edgeLinePathData({
       from: 'a',
       to: 'b',
@@ -515,8 +712,8 @@ describe('edge labels', () => {
       ],
     });
 
-    expect(pathData).toContain('Q 50 0 50 4');
-    expect(pathData).toMatch(/L 50 4\d(?:\.\d+)?/);
+    expect(pathData).toBe('M 2 0 L 50 0 L 50 48');
+    expect(pathData).not.toContain('Q');
   });
 
   it('keeps overlap bridge crossings straight', () => {
@@ -549,6 +746,37 @@ describe('edge labels', () => {
         { x: 0, y: 0 },
         { x: 100, y: 0 },
       ],
+      bridges: [
+        {
+          x: 50,
+          y: 0,
+          segmentIndex: 0,
+          orientation: 'horizontal',
+        },
+      ],
+    });
+
+    expect(maskPathData).toBe('M 47 0 L 53 0');
+  });
+
+  it('keeps bridge masks when the edge label is on a different segment', () => {
+    const maskPathData = edgeBridgeMaskPathData({
+      from: 'a',
+      to: 'b',
+      points: [
+        { x: 0, y: 0 },
+        { x: 100, y: 0 },
+        { x: 100, y: 60 },
+        { x: 160, y: 60 },
+      ],
+      labelPlacement: {
+        x: 130,
+        y: 60,
+        width: 80,
+        height: 14,
+        segmentIndex: 2,
+        orientation: 'horizontal',
+      },
       bridges: [
         {
           x: 50,

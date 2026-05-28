@@ -22,54 +22,18 @@ const PREFIX_RANK = [
 
 const prefixRank = new Map(PREFIX_RANK.map((prefix, index) => [prefix, index]));
 
-function fuzzyScore(candidate: string, term: string): number {
-  let termIndex = 0;
-  let firstMatch = -1;
-  let previousMatch = -1;
-  let gaps = 0;
-  let contiguous = 0;
-
-  for (let index = 0; index < candidate.length && termIndex < term.length; index++) {
-    if (candidate[index] !== term[termIndex]) {
-      continue;
-    }
-
-    if (firstMatch === -1) {
-      firstMatch = index;
-    }
-    if (previousMatch !== -1) {
-      const gap = index - previousMatch - 1;
-      gaps += gap;
-      if (gap === 0) {
-        contiguous++;
-      }
-    }
-
-    previousMatch = index;
-    termIndex++;
-  }
-
-  if (termIndex !== term.length) {
-    return 0;
-  }
-
-  return Math.max(8, 30 - firstMatch * 2 - gaps + contiguous * 3);
-}
-
 function searchScore(iconName: string, terms: string[]): number {
   const normalized = iconName.toLowerCase();
   const baseName = normalized
     .replace(/-(outline|outlined|rounded|round|sharp|filled|fill|solid|bold|light|thin|regular)$/, '')
     .replace(/^(baseline|outline|outlined|round|sharp|twotone)-/, '');
-  const compact = normalized.replace(/[^a-z0-9]/g, '');
-  const compactBase = baseName.replace(/[^a-z0-9]/g, '');
   const parts = baseName.split(/[^a-z0-9]+/).filter(Boolean);
   const matchedPartIndexes = new Set<number>();
 
   let score = 0;
   for (const term of terms) {
     const partMatches = parts
-      .map((part, index) => ({ index, score: part === term ? 120 : part.startsWith(term) ? 75 : part.includes(term) ? 40 : fuzzyScore(part, term) }))
+      .map((part, index) => ({ index, score: part === term ? 120 : part.startsWith(term) ? 75 : part.includes(term) ? 40 : 0 }))
       .filter((match) => match.score > 0)
       .sort((a, b) => b.score - a.score);
 
@@ -87,12 +51,6 @@ function searchScore(iconName: string, terms: string[]): number {
       score += 70;
     } else if (normalized.includes(term)) {
       score += 35;
-    } else if (compact.includes(term)) {
-      score += 32;
-    } else if (fuzzyScore(compactBase, term)) {
-      score += fuzzyScore(compactBase, term);
-    } else if (fuzzyScore(compact, term)) {
-      score += fuzzyScore(compact, term);
     } else {
       return 0;
     }

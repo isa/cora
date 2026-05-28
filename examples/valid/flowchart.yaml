@@ -2,32 +2,45 @@ version: 1
 
 diagram:
   kind: flowchart
+  direction: TB
   nodes:
     - id: start
       label: Start
+      component: box
     - id: load
-      label: Load Input
+      label: Load Config
+      component: box
     - id: check
       label: Valid?
+      component: box
     - id: process
-      label: Process
+      label: Generate Plan
+      component: box
     - id: reject
       label: Reject
+      component: box
     - id: end
       label: Done
+      component: box
   edges:
     - from: start
       to: load
+      startMarker: filledCircle
     - from: load
       to: check
     - from: check
       to: process
       label: yes
+      endMarker: filledCircle
     - from: check
       to: reject
       label: no
+      endMarker: diamond
     - from: process
       to: end
+      endMarker: filledSquare
     - from: reject
       to: load
       label: retry
+      startMarker: circle
+      endMarker: arrow

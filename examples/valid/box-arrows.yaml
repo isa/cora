@@ -5,13 +5,20 @@ diagram:
   direction: LR
   nodes:
     - id: client
-      label: Client
-      component: document
+      label: Browser Client
+      component: box
     - id: proxy
       label: Edge Proxy
+      component: box
     - id: server
-      label: Server
-      component: app
+      label: API Server
+      component: box
+    - id: worker
+      label: Async Worker
+      component: box
+    - id: audit
+      label: Audit Log
+      component: box
   edges:
     - from: client
       to: proxy
@@ -19,6 +26,17 @@ diagram:
     - from: proxy
       to: server
       label: forward
+      endMarker: filledCircle
+    - from: server
+      to: worker
+      label: enqueue
+      startMarker: circle
+      endMarker: square
+    - from: worker
+      to: audit
+      label: write
+      endMarker: diamond
     - from: server
       to: client
       label: response
+      startMarker: filledSquare

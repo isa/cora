@@ -1,6 +1,8 @@
 import type { DiagramComponent, LayoutedDiagram, LayoutedNode, ThemeShapeStyle } from '../layout-ir.js';
 import {
+  ApiNode,
   AppNode,
+  DatabaseNode,
   EdgeLabel,
   Group,
   IconNode,
@@ -56,6 +58,10 @@ function renderNode(node: LayoutedNode, diagram: LayoutedDiagram) {
       return <WebsiteNode key={node.id} {...catalogProps} />;
     case 'document':
       return <DocumentNode key={node.id} {...catalogProps} />;
+    case 'api':
+      return <ApiNode key={node.id} {...catalogProps} />;
+    case 'database':
+      return <DatabaseNode key={node.id} {...catalogProps} />;
     case 'app':
       return <AppNode key={node.id} {...catalogProps} />;
     case 'box':
@@ -94,6 +100,7 @@ function nodeCatalogProps(
     titleFontSize: defaults.titleFontSize,
     subtitleFontSize: defaults.subtitleFontSize,
     skeletonColor: defaults.skeletonColor,
+    iconColor: defaults.iconColor,
     shadow: style.shadow ? ('cast' as const) : ('none' as const),
     shadowColor: style.shadow,
   };

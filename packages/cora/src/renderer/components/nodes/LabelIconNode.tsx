@@ -1,7 +1,7 @@
 import type { SvgIconComponent } from '../icons.js';
 import type { BoxStyleProps } from '../types.js';
 import { CatalogFrame, CatalogIconSlot, CatalogText, resolvedCatalogFrame } from './shared.js';
-import { resolveLabelIconComponentSize } from '../styles.js';
+import { ICON_NODE_ART_SIZE, LABEL_ICON_SIZE_PRESETS, iconNodeScale, resolveLabelIconComponentSize } from '../styles.js';
 
 export interface LabelIconNodeProps extends BoxStyleProps {
   x?: number;
@@ -53,13 +53,13 @@ function StatusIcon({
 }
 
 export function LabelIconNode(props: LabelIconNodeProps) {
-  const resolvedSize = resolveLabelIconComponentSize(props.size, { width: 40, height: 40 });
+  const resolvedSize = resolveLabelIconComponentSize(props.size, LABEL_ICON_SIZE_PRESETS.lg);
   const frame = resolvedCatalogFrame({
     ...props,
     size: resolvedSize,
   });
-  const ratio = frame.width / 40;
-  const iconSize = props.iconType ? Math.min(frame.width, frame.height) * 0.62 : 24 * ratio;
+  const ratio = iconNodeScale(frame);
+  const iconSize = props.iconType ? Math.min(frame.width, frame.height) * 0.62 : ICON_NODE_ART_SIZE * ratio;
   const iconColor = props.iconColor ?? frame.textColor;
   const filledBackground = props.backgroundColor && props.backgroundColor !== 'transparent'
     ? props.backgroundColor
@@ -99,7 +99,6 @@ export function LabelIconNode(props: LabelIconNodeProps) {
   const iconGap = (hasText ? 4 : 0) * ratio;
   const iconY = frame.y + (hasText ? 2 * ratio : (frame.height - iconSize) / 2);
   const textY = iconY + iconSize + iconGap;
-  const remainingTextHeight = Math.max(textHeight, frame.y + frame.height - textY);
 
   const textWidth = Math.max(120, frame.width * 2.5);
   const textX = frame.x + frame.width / 2 - textWidth / 2;
@@ -124,7 +123,7 @@ export function LabelIconNode(props: LabelIconNodeProps) {
           x={textX}
           y={textY}
           width={textWidth}
-          height={remainingTextHeight}
+          height={textHeight}
           text={frame.text}
           subtitle={frame.subtitle}
           color={frame.textColor}

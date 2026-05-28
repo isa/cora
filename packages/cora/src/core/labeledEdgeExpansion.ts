@@ -1,19 +1,80 @@
 import {
+  edgeSegments,
   edgePathLength,
   edgeShaftMidpoint,
   edgeShaftPoints,
+  type EdgeSegment,
 } from './edgeGeometry.js';
+import {
+  effectiveEndMarker,
+  effectiveStartMarker,
+  markerVisibleTrim,
+} from './edgeMarkers.js';
 import { measureLabel } from './measureText.js';
 import type { Diagram, LayoutedEdge, LayoutedNode, LayoutedGroup } from './types.js';
 
 export const LABELED_EDGE_LABEL_PADDING = 3;
-export const MIN_LABELED_EDGE_STUB = 18;
+export const EDGE_LABEL_RUNWAY = 11;
+export const MIN_LABELED_EDGE_STUB = 11;
 const LABEL_NODE_CLEARANCE = 4;
+
+function labelTextHalfSize(
+  width: number,
+  height: number,
+  orientation: 'horizontal' | 'vertical',
+): number {
+  return orientation === 'horizontal'
+    ? width / 2
+    : height / 2;
+}
 
 function labeledGapHalfSpan(label: string, direction: Diagram['direction']): number {
   const { width, height } = measureLabel(label, 'edge');
-  const along = direction === 'LR' ? width : height;
-  return along / 2 + LABELED_EDGE_LABEL_PADDING;
+  const orientation = direction === 'LR' ? 'horizontal' : 'vertical';
+  return labelTextHalfSize(width, height, orientation) + EDGE_LABEL_RUNWAY;
+}
+
+function labeledSegmentGapHalfSpan(
+  label: string,
+  orientation: 'horizontal' | 'vertical',
+): number {
+  const { width, height } = measureLabel(label, 'edge');
+  return labelTextHalfSize(width, height, orientation) + EDGE_LABEL_RUNWAY;
+}
+
+function minimumLabeledSegmentLength(
+  label: string,
+  orientation: 'horizontal' | 'vertical',
+): number {
+  return 2 * MIN_LABELED_EDGE_STUB + 2 * labeledSegmentGapHalfSpan(label, orientation);
+}
+
+function segmentVisibleScalarBounds(
+  segment: EdgeSegment,
+  edge: LayoutedEdge,
+  segments: EdgeSegment[],
+): { start: number; end: number; min: number; max: number; length: number } {
+  let start = segment.orientation === 'horizontal' ? segment.a.x : segment.a.y;
+  let end = segment.orientation === 'horizontal' ? segment.b.x : segment.b.y;
+  const direction = end >= start ? 1 : -1;
+  const first = segments[0];
+  const last = segments.at(-1);
+
+  if (first && segment.index === first.index) {
+    start += direction * markerVisibleTrim(effectiveStartMarker(edge.startMarker));
+  }
+
+  if (last && segment.index === last.index) {
+    end -= direction * markerVisibleTrim(effectiveEndMarker(edge.endMarker));
+  }
+
+  return {
+    start,
+    end,
+    min: Math.min(start, end),
+    max: Math.max(start, end),
+    length: Math.abs(end - start),
+  };
 }
 
 export function minimumLabeledShaftLength(
@@ -168,6 +229,38 @@ function shiftLabelSegment(edge: LayoutedEdge, axis: 'x' | 'y', delta: number): 
   end[axis] += delta;
 }
 
+function preferredLabelCarrierSegment(edge: LayoutedEdge): EdgeSegment | undefined {
+  if (!edge.label) {
+    return undefined;
+  }
+
+  const shaftPoints = edgeShaftPoints(edge.points);
+  const segments = edgeSegments(shaftPoints);
+  if (segments.length === 0) {
+    return undefined;
+  }
+
+  const midpointDistance = edgePathLength(shaftPoints) / 2;
+  let walked = 0;
+  let best: { segment: EdgeSegment; score: number } | undefined;
+
+  for (const segment of segments) {
+    const requiredLength = minimumLabeledSegmentLength(edge.label, segment.orientation);
+    const visible = segmentVisibleScalarBounds(segment, edge, segments);
+    const shortage = Math.max(0, requiredLength - visible.length);
+    const centerDistance = walked + segment.length / 2;
+    const score = shortage * 10_000 + Math.abs(centerDistance - midpointDistance) - segment.length * 0.01;
+
+    if (!best || score < best.score) {
+      best = { segment, score };
+    }
+
+    walked += segment.length;
+  }
+
+  return best?.segment;
+}
+
 function rerouteLabeledEdgesAroundNodes(
   nodes: LayoutedNode[],
   edges: LayoutedEdge[],
@@ -187,17 +280,62 @@ function updateEdgeLabelPlacement(edge: LayoutedEdge): void {
     return;
   }
 
-  const mid = edgeShaftMidpoint(edge.points);
   const labelSize = measureLabel(edge.label, 'edge');
-  edge.labelX = mid.x;
-  edge.labelY = mid.y;
+  const shaftPoints = edgeShaftPoints(edge.points);
+  const segments = edgeSegments(shaftPoints);
+  const mid = edgeShaftMidpoint(edge.points);
+  const preferredSegment = preferredLabelCarrierSegment(edge);
+  const fallbackSegment = segments.find((segment) => segment.index === mid.segmentIndex);
+  const segment = preferredSegment ?? fallbackSegment;
+
+  let clampedX = mid.x;
+  let clampedY = mid.y;
+  let segmentIndex = mid.segmentIndex;
+  let orientation = mid.orientation;
+
+  if (segment) {
+    segmentIndex = segment.index;
+    orientation = segment.orientation;
+    const halfSpan = labeledSegmentGapHalfSpan(edge.label, segment.orientation);
+    const minRequired = MIN_LABELED_EDGE_STUB + halfSpan;
+    const visible = segmentVisibleScalarBounds(segment, edge, segments);
+    const segmentMidScalar = (visible.start + visible.end) / 2;
+    clampedX = segment.orientation === 'horizontal' ? segmentMidScalar : segment.a.x;
+    clampedY = segment.orientation === 'vertical' ? segmentMidScalar : segment.a.y;
+
+    if (segment.index === mid.segmentIndex && segment.orientation === mid.orientation) {
+      clampedX = mid.x;
+      clampedY = mid.y;
+    }
+
+    if (segment.orientation === 'horizontal') {
+      const clampMin = visible.min + minRequired;
+      const clampMax = visible.max - minRequired;
+      if (clampMin > clampMax) {
+        clampedX = segmentMidScalar;
+      } else {
+        clampedX = Math.max(clampMin, Math.min(clampMax, clampedX));
+      }
+    } else {
+      const clampMin = visible.min + minRequired;
+      const clampMax = visible.max - minRequired;
+      if (clampMin > clampMax) {
+        clampedY = segmentMidScalar;
+      } else {
+        clampedY = Math.max(clampMin, Math.min(clampMax, clampedY));
+      }
+    }
+  }
+
+  edge.labelX = clampedX;
+  edge.labelY = clampedY;
   edge.labelPlacement = {
-    x: mid.x,
-    y: mid.y,
+    x: clampedX,
+    y: clampedY,
     width: labelSize.width,
     height: labelSize.height,
-    segmentIndex: mid.segmentIndex,
-    orientation: mid.orientation,
+    segmentIndex,
+    orientation,
   };
 }
 
@@ -240,12 +378,25 @@ export function expandLayoutForLabeledEdges(
 
   for (const edge of labeledEdges) {
     const minShaft = minimumLabeledShaftLength(edge.label!, direction);
-    const shaftLength = edgePathLength(edgeShaftPoints(edge.points));
-    if (shaftLength >= minShaft) {
+    const shaftPoints = edgeShaftPoints(edge.points);
+    const shaftLength = edgePathLength(shaftPoints);
+    const labelSegments = edgeSegments(shaftPoints);
+    const bestSegmentSlack = labelSegments.reduce((best, segment) => (
+      Math.max(
+        best,
+        segmentVisibleScalarBounds(segment, edge, labelSegments).length -
+          minimumLabeledSegmentLength(edge.label!, segment.orientation),
+      )
+    ), Number.NEGATIVE_INFINITY);
+    const shaftDeficit = Math.max(0, minShaft - shaftLength);
+    const segmentDeficit = Number.isFinite(bestSegmentSlack)
+      ? Math.max(0, -bestSegmentSlack)
+      : 0;
+    const delta = Math.max(shaftDeficit, segmentDeficit);
+    if (delta <= 0) {
       continue;
     }
 
-    const delta = minShaft - shaftLength;
     const toNode = nodeById.get(edge.to);
     if (!toNode) {
       continue;

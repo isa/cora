@@ -15,6 +15,8 @@ describe('built-in preview pack', () => {
         'Icon',
         'Website',
         'Document',
+        'API',
+        'Database',
         'App',
       ]),
     );
@@ -27,6 +29,8 @@ describe('built-in preview pack', () => {
     const labelNode = builtInPack.components.find((component) => component.id === 'label');
     const labelIconNode = builtInPack.components.find((component) => component.id === 'labelIcon');
     const websiteNode = builtInPack.components.find((component) => component.id === 'website');
+    const apiNode = builtInPack.components.find((component) => component.id === 'api');
+    const databaseNode = builtInPack.components.find((component) => component.id === 'database');
 
     expect(labelNode?.defaultProps).toMatchObject({
       titleFontSize: 11,
@@ -41,7 +45,31 @@ describe('built-in preview pack', () => {
       backgroundColor: TAILWIND.white,
       borderColor: TAILWIND.slate[700],
       skeletonColor: TAILWIND.slate[200],
-      size: { width: 144, height: 160 },
+      size: 'lg',
     });
+    expect(apiNode?.defaultProps).toMatchObject({
+      backgroundColor: TAILWIND.white,
+      iconColor: TAILWIND.violet[500],
+      title: 'API',
+      size: 'lg',
+    });
+    expect(apiNode?.defaultProps).not.toHaveProperty('borderColor');
+    expect(apiNode?.defaultProps).not.toHaveProperty('borderWidth');
+    expect(apiNode?.defaultProps).not.toHaveProperty('borderStyle');
+    expect(apiNode?.defaultProps).not.toHaveProperty('radius');
+    expect(apiNode?.controls.map((control) => control.key)).not.toContain('borderColor');
+    expect(apiNode?.controls.map((control) => control.key)).not.toContain('radius');
+    expect(databaseNode?.defaultProps).toMatchObject({
+      backgroundColor: TAILWIND.white,
+      iconColor: TAILWIND.violet[500],
+      title: 'Database',
+      size: 'lg',
+    });
+    expect(databaseNode?.defaultProps).not.toHaveProperty('borderColor');
+    expect(databaseNode?.defaultProps).not.toHaveProperty('borderWidth');
+    expect(databaseNode?.defaultProps).not.toHaveProperty('borderStyle');
+    expect(databaseNode?.defaultProps).not.toHaveProperty('radius');
+    expect(databaseNode?.controls.map((control) => control.key)).not.toContain('borderColor');
+    expect(databaseNode?.controls.map((control) => control.key)).not.toContain('radius');
   });
 });

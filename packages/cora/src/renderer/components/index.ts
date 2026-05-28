@@ -12,13 +12,22 @@ export type {
 } from './types.js';
 export {
   borderDasharray,
+  iconNodeScale,
   isNoBorder,
   resolveComponentSize,
   SIZE_PRESETS,
+  ICON_NODE_ART_SIZE,
+  ICON_NODE_BASE_SIZE,
+  ICON_NODE_SIZE_PRESETS,
+  WEBSITE_SIZE_PRESETS,
   APP_SIZE_PRESETS,
+  API_SIZE_PRESETS,
+  DATABASE_SIZE_PRESETS,
   DOCUMENT_SIZE_PRESETS,
   LABEL_ICON_SIZE_PRESETS,
   resolveAppComponentSize,
+  resolveApiComponentSize,
+  resolveDatabaseComponentSize,
   resolveDocumentComponentSize,
   resolveLabelIconComponentSize,
 } from './styles.js';
@@ -54,4 +63,6 @@ export { IconNode } from './nodes/IconNode.js';
 export { LabelIconNode } from './nodes/LabelIconNode.js';
 export { WebsiteNode } from './nodes/WebsiteNode.js';
 export { DocumentNode } from './nodes/DocumentNode.js';
+export { ApiNode } from './nodes/ApiNode.js';
+export { DatabaseNode } from './nodes/DatabaseNode.js';
 export { AppNode } from './nodes/AppNode.js';

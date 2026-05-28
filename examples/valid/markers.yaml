@@ -6,16 +6,19 @@ diagram:
   nodes:
     - id: intake
       label: Intake
-      component: document
+      component: box
     - id: review
       label: Review
+      component: box
     - id: queue
       label: Queue
-      component: app
+      component: box
     - id: archive
       label: Archive
-      component: icon
-      icon: material-symbols:database
+      component: box
+    - id: alert
+      label: Alert
+      component: box
   edges:
     - from: intake
       to: review
@@ -30,9 +33,14 @@ diagram:
     - from: review
       to: archive
       label: rejected
-      startMarker: circle
+      startMarker: diamond
       endMarker: filledCircle
     - from: queue
       to: archive
       label: store
       endMarker: circle
+    - from: archive
+      to: alert
+      label: retention event
+      startMarker: square
+      endMarker: filledSquare

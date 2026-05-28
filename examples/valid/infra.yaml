@@ -6,51 +6,77 @@ diagram:
   nodes:
     - id: dns
       label: Global DNS
-      component: website
+      component: box
     - id: vpc-east
       label: VPC East
-      component: app
+      component: box
     - id: compute-east
       label: Compute East
-      component: app
+      component: box
     - id: db-east
       label: DB East
+      component: box
+    - id: queue-east
+      label: Queue East
+      component: box
     - id: vpc-west
       label: VPC West
-      component: app
+      component: box
     - id: compute-west
       label: Compute West
-      component: app
+      component: box
     - id: db-west
       label: DB West
+      component: box
+    - id: queue-west
+      label: Queue West
+      component: box
   edges:
     - from: dns
       to: vpc-east
       label: route
+      endMarker: filledCircle
     - from: dns
       to: vpc-west
       label: route
+      endMarker: filledCircle
     - from: vpc-east
       to: compute-east
+      label: private ingress
     - from: compute-east
+      to: queue-east
+      label: jobs
+      endMarker: square
+    - from: queue-east
       to: db-east
+      label: persist
     - from: vpc-west
       to: compute-west
+      label: private ingress
     - from: compute-west
+      to: queue-west
+      label: jobs
+      endMarker: square
+    - from: queue-west
       to: db-west
+      label: persist
     - from: db-east
       to: db-west
       label: replicate
+      startMarker: filledDiamond
+      endMarker: filledDiamond
   groups:
     - id: region-east
       label: us-east
       contains:
         - vpc-east
         - compute-east
+        - queue-east
         - db-east
     - id: region-west
       label: us-west
       contains:
         - vpc-west
         - compute-west
+        - queue-west
         - db-west

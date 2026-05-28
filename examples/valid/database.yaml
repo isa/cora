@@ -2,26 +2,48 @@ version: 1
 
 diagram:
   kind: database
+  direction: LR
   nodes:
     - id: app
       label: Application
-      component: app
+      component: box
     - id: cache
       label: Redis
+      component: box
     - id: primary
       label: PostgreSQL Primary
+      component: box
     - id: replica
       label: PostgreSQL Replica
+      component: box
+    - id: analytics
+      label: Analytics View
+      component: box
+    - id: catalog
+      label: Dataset Catalog
+      component: box
   edges:
     - from: app
       to: cache
       label: session lookup
+      endMarker: circle
     - from: app
       to: primary
       label: writes
+      endMarker: filledCircle
     - from: app
       to: replica
       label: reads
     - from: primary
       to: replica
       label: streaming
+      startMarker: square
+      endMarker: square
+    - from: replica
+      to: analytics
+      label: snapshots
+      endMarker: diamond
+    - from: primary
+      to: catalog
+      label: schema changes
+      startMarker: filledDiamond

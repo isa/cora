@@ -1,5 +1,5 @@
 import type { BoxStyleProps } from '../types.js';
-import { resolveAppComponentSize } from '../styles.js';
+import { APP_SIZE_PRESETS, ICON_NODE_ART_SIZE, iconNodeScale, resolveAppComponentSize } from '../styles.js';
 import {
   CatalogShadow,
   CatalogText,
@@ -16,12 +16,12 @@ const PHONE_IPHONE_PATH =
   'M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75A2.25 2.25 0 0 0 15.75 1.5H13.5M10.5 1.5H13.5M10.5 1.5V3H13.5V1.5M12 21.75V21.75';
 
 export function AppNode(props: AppNodeProps) {
-  const resolvedSize = resolveAppComponentSize(props.size, { width: 160, height: 128 });
+  const resolvedSize = resolveAppComponentSize(props.size, APP_SIZE_PRESETS.lg);
   const frame = resolvedCatalogFrame({
     ...props,
     size: resolvedSize,
   });
-  const ratio = frame.width / 160;
+  const ratio = iconNodeScale(frame);
 
   const hasLabel = Boolean(frame.text || frame.subtitle);
   const titleFontSize = (frame.titleFontSize ?? 12) * ratio;
@@ -36,13 +36,12 @@ export function AppNode(props: AppNodeProps) {
   const topPadding = (hasLabel ? 6 : 0) * ratio;
   const bottomPadding = (hasLabel ? 6 : 0) * ratio;
 
-  const scale = 3.875 * ratio;
+  const scale = (ICON_NODE_ART_SIZE / ARTBOARD) * ratio;
   const artWidth = ARTBOARD * scale;
   const scaledArtHeight = ARTBOARD * scale;
   const offsetX = frame.x + (frame.width - artWidth) / 2;
   const offsetY = frame.y + topPadding + (frame.height - scaledArtHeight - textHeight - labelGap - topPadding - bottomPadding) / 2;
   const textY = offsetY + 23 * scale + labelGap;
-  const remainingTextHeight = Math.max(textHeight, frame.y + frame.height - textY - bottomPadding);
   const chassisColor = frame.borderColor ?? '#000000';
   const screenFill = frame.backgroundColor;
 
@@ -73,7 +72,7 @@ export function AppNode(props: AppNodeProps) {
         x={frame.x}
         y={textY}
         width={frame.width}
-        height={remainingTextHeight}
+        height={textHeight}
         text={frame.text}
         subtitle={frame.subtitle}
         color={frame.textColor}

@@ -1,5 +1,5 @@
 import type { ControlDefinition } from './schema.js';
-import { APP_SIZE_PRESETS, DOCUMENT_SIZE_PRESETS, WEBSITE_SIZE_PRESETS, LABEL_ICON_SIZE_PRESETS } from '../../renderer/components/styles.js';
+import { API_SIZE_PRESETS, APP_SIZE_PRESETS, DATABASE_SIZE_PRESETS, DOCUMENT_SIZE_PRESETS, WEBSITE_SIZE_PRESETS, LABEL_ICON_SIZE_PRESETS } from '../../renderer/components/styles.js';
 import { catalogDefaultProps } from '../../renderer/themes/componentDefaults.js';
 import { LOOK } from '../../renderer/themes/lookTokens.js';
 import type { MarkerType } from '../../renderer/components/lines/markers.js';
@@ -68,6 +68,18 @@ export const appNodeDefaults: PreviewNodeProps = {
   size: 'lg',
 };
 
+export const apiNodeDefaults: PreviewNodeProps = {
+  ...catalogDefaultProps('api'),
+  title: 'API',
+  size: 'lg',
+};
+
+export const databaseNodeDefaults: PreviewNodeProps = {
+  ...catalogDefaultProps('database'),
+  title: 'Database',
+  size: 'lg',
+};
+
 export const connectionDefaults: ConnectionProps = {
   lineStyle: 'solid',
   strokeColor: LOOK.edge.stroke,
@@ -118,7 +130,7 @@ export const iconNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
     key: 'size',
     label: 'Size',
     presets: [...sizePresets],
-    explicit: { width: 160, height: 128 },
+    explicit: APP_SIZE_PRESETS.lg,
     presetSizes: APP_SIZE_PRESETS,
   },
   { kind: 'number', key: 'radius', label: 'Radius', min: 0, max: 24, step: 1 },
@@ -139,7 +151,7 @@ export const labelIconNodeControls: Array<ControlDefinition<PreviewNodeProps>> =
     key: 'size',
     label: 'Size',
     presets: [...sizePresets],
-    explicit: { width: 40, height: 40 },
+    explicit: LABEL_ICON_SIZE_PRESETS.lg,
     presetSizes: LABEL_ICON_SIZE_PRESETS,
   },
 ];
@@ -173,6 +185,46 @@ export const appNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
         }
       : control,
   ),
+];
+
+export const apiNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
+  ...baseNodeControls
+    .filter((control) =>
+      control.key !== 'radius' &&
+      control.key !== 'borderStyle' &&
+      control.key !== 'borderColor' &&
+      control.key !== 'borderWidth'
+    )
+    .map((control): ControlDefinition<PreviewNodeProps> =>
+      control.kind === 'size'
+        ? {
+            ...control,
+            explicit: API_SIZE_PRESETS.lg,
+            presetSizes: API_SIZE_PRESETS,
+          }
+        : control,
+    ),
+  { kind: 'color', key: 'iconColor', label: 'Icon color' },
+];
+
+export const databaseNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
+  ...baseNodeControls
+    .filter((control) =>
+      control.key !== 'radius' &&
+      control.key !== 'borderStyle' &&
+      control.key !== 'borderColor' &&
+      control.key !== 'borderWidth'
+    )
+    .map((control): ControlDefinition<PreviewNodeProps> =>
+      control.kind === 'size'
+        ? {
+            ...control,
+            explicit: DATABASE_SIZE_PRESETS.lg,
+            presetSizes: DATABASE_SIZE_PRESETS,
+          }
+        : control,
+    ),
+  { kind: 'color', key: 'iconColor', label: 'Icon color' },
 ];
 
 export const websiteNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [

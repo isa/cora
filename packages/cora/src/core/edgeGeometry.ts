@@ -103,7 +103,7 @@ function offsetToward(from: EdgePoint, to: EdgePoint, distance: number): EdgePoi
     return from;
   }
 
-  const t = Math.min(distance / length, 0.49);
+  const t = Math.min(distance / length, 0.95);
   return {
     x: from.x + (to.x - from.x) * t,
     y: from.y + (to.y - from.y) * t,

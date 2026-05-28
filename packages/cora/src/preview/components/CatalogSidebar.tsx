@@ -162,8 +162,10 @@ export function CatalogSidebar({ state, searchQuery = '', onSelectItem, isOpen, 
 
 function componentIcon(id: string): ReactNode {
   const icons: Record<string, string> = {
+    api: 'deployed_code',
     app: 'apps',
     box: 'check_box_outline_blank',
+    database: 'database',
     document: 'description',
     group: 'workspaces',
     icon: 'category',

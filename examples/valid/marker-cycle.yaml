@@ -5,13 +5,19 @@ diagram:
   nodes:
     - id: draft
       label: Draft
+      component: box
     - id: validate
       label: Validate
+      component: box
     - id: publish
       label: Publish
-      component: app
+      component: box
     - id: revise
       label: Revise
+      component: box
+    - id: archive
+      label: Release Notes
+      component: box
   edges:
     - from: draft
       to: validate
@@ -25,9 +31,14 @@ diagram:
       to: revise
       label: fail
       startMarker: circle
-      endMarker: arrow
+      endMarker: diamond
     - from: revise
       to: draft
       label: retry
       startMarker: circle
       endMarker: circle
+    - from: publish
+      to: archive
+      label: record
+      startMarker: filledSquare
+      endMarker: square

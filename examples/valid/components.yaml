@@ -1,0 +1,55 @@
+version: 1
+
+diagram:
+  kind: box-arrows
+  layout: preserve
+  nodes:
+    - id: website
+      label: Website
+      component: box
+      position: { x: 40, y: 80 }
+    - id: document
+      label: Design Doc
+      component: box
+      position: { x: 280, y: 80 }
+    - id: app
+      label: Mobile App
+      component: box
+      position: { x: 520, y: 80 }
+    - id: box-node
+      label: Box Node
+      component: box
+      position: { x: 760, y: 80 }
+    - id: box-node-alt
+      label: Secondary Box
+      component: box
+      position: { x: 1000, y: 80 }
+    - id: note
+      label: Standalone Label
+      component: box
+      position: { x: 516, y: 240 }
+  edges:
+    - from: website
+      to: document
+      label: capture
+      startMarker: circle
+      endMarker: arrow
+    - from: document
+      to: app
+      label: implement
+      endMarker: filledCircle
+    - from: app
+      to: box-node
+      label: package
+      startMarker: square
+      endMarker: diamond
+    - from: box-node
+      to: box-node-alt
+      label: publish
+      startMarker: filledDiamond
+      endMarker: filledSquare
+    - from: note
+      to: app
+      label: annotation
+      startMarker: none
+      endMarker: arrow

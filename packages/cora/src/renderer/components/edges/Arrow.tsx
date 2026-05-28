@@ -4,6 +4,7 @@ import {
   edgeBridgeMaskPathData,
   edgeLineMarkerPoints,
   edgeLinePathData,
+  edgeMarkerCarrierPathData,
 } from './edgePath.js';
 
 export function Arrow({ edge, theme }: EdgeComponentProps) {
@@ -13,6 +14,7 @@ export function Arrow({ edge, theme }: EdgeComponentProps) {
 
   const pathData = edgeLinePathData(edge);
   const bridgeMaskPathData = edgeBridgeMaskPathData(edge);
+  const markerCarrierPathData = edgeMarkerCarrierPathData(edge);
   const points = edgeLineMarkerPoints(edge);
 
   return (
@@ -25,7 +27,7 @@ export function Arrow({ edge, theme }: EdgeComponentProps) {
       />
       <Line
         points={points}
-        pathData={pathData}
+        pathData={markerCarrierPathData}
         strokeColor="transparent"
         strokeWidth={0.001}
         startMarker={edge.startMarker ?? 'none'}

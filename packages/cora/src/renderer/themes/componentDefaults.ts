@@ -51,6 +51,7 @@ export function catalogDefaultProps(component: DiagramComponent): Record<string,
         borderColor: 'transparent',
         borderWidth: 0,
         iconColor: LOOK.components.icon.iconColor,
+        size: 'lg' as const,
       };
 
     case 'labelIcon':
@@ -62,7 +63,7 @@ export function catalogDefaultProps(component: DiagramComponent): Record<string,
         borderWidth: 0,
         radius: 0,
         iconColor: LOOK.components.labelIcon.iconColor,
-        size: 'md' as const,
+        size: 'lg' as const,
       };
 
     case 'website':
@@ -71,6 +72,7 @@ export function catalogDefaultProps(component: DiagramComponent): Record<string,
         backgroundColor: LOOK.components.website.fill,
         borderColor: LOOK.components.website.stroke,
         skeletonColor: LOOK.components.website.skeleton,
+        size: 'lg' as const,
       };
 
     case 'app':
@@ -78,6 +80,7 @@ export function catalogDefaultProps(component: DiagramComponent): Record<string,
         ...common,
         backgroundColor: LOOK.components.app.fill,
         borderColor: LOOK.components.app.stroke,
+        size: 'lg' as const,
       };
 
     case 'document':
@@ -86,6 +89,31 @@ export function catalogDefaultProps(component: DiagramComponent): Record<string,
         backgroundColor: LOOK.components.document.fill,
         borderColor: LOOK.components.document.stroke,
         iconColor: LOOK.components.document.stroke,
+        size: 'lg' as const,
+      };
+
+    case 'api':
+      return {
+        backgroundColor: LOOK.components.api.fill,
+        textColor: LOOK.text.primary,
+        subtitleColor: LOOK.text.muted,
+        titleFontSize: NODE_TITLE_SIZE,
+        subtitleFontSize: NODE_SUBTITLE_SIZE,
+        shadow: 'none' as const,
+        size: 'lg' as const,
+        iconColor: LOOK.components.api.iconColor,
+      };
+
+    case 'database':
+      return {
+        backgroundColor: LOOK.components.database.fill,
+        textColor: LOOK.text.primary,
+        subtitleColor: LOOK.text.muted,
+        titleFontSize: NODE_TITLE_SIZE,
+        subtitleFontSize: NODE_SUBTITLE_SIZE,
+        shadow: 'none' as const,
+        size: 'lg' as const,
+        iconColor: LOOK.components.database.iconColor,
       };
 
     default:

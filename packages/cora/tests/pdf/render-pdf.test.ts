@@ -137,7 +137,6 @@ describe('renderToPDF default path', () => {
     // We assert per-node by extracting Tj operator positions from the
     // content stream — pdf-lib doesn't expose a typed API for that,
     // so we resort to parsing the raw stream text.
-    const rawPdf = Buffer.from(bytes).toString('binary');
     // Sanity that BASELINE_FACTOR is a finite number > 0
     expect(BASELINE_FACTOR).toBeGreaterThan(0);
     expect(BASELINE_FACTOR).toBeLessThan(1);
@@ -153,8 +152,10 @@ describe('renderToPDF default path', () => {
       expect(expectedY).toBeGreaterThan(0);
       expect(expectedY).toBeLessThan(pageH);
     }
-    // Ensure pdf raw stream actually contains a Tm operator (text positioning)
-    expect(rawPdf).toMatch(/Tm|Tj|TJ/);
+    const text = await extractPdfText(bytes);
+    for (const node of layouted.nodes) {
+      expect(text).toContain(node.label);
+    }
     await terminateElkWorker();
   });
 });

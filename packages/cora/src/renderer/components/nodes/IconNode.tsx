@@ -1,7 +1,7 @@
 import type { SvgIconComponent } from '../icons.js';
 import type { BoxStyleProps, ComponentSize } from '../types.js';
 import { CatalogIconSlot, CatalogShadow, CatalogText, resolvedCatalogFrame } from './shared.js';
-import { resolveAppComponentSize } from '../styles.js';
+import { APP_SIZE_PRESETS, ICON_NODE_ART_SIZE, iconNodeScale, resolveAppComponentSize } from '../styles.js';
 
 export interface IconNodeProps extends BoxStyleProps {
   x?: number;
@@ -20,12 +20,12 @@ export function IconNode({
   strokeColor = 'currentColor',
   ...props
 }: IconNodeProps) {
-  const resolvedSize = resolveAppComponentSize(props.size, { width: 160, height: 128 });
+  const resolvedSize = resolveAppComponentSize(props.size, APP_SIZE_PRESETS.lg);
   const frame = resolvedCatalogFrame({
     ...props,
     size: resolvedSize,
   });
-  const ratio = frame.width / 160;
+  const ratio = iconNodeScale(frame);
 
   const hasText = Boolean(frame.text || frame.subtitle);
   const titleFontSize = (frame.titleFontSize ?? 13) * ratio;
@@ -36,14 +36,12 @@ export function IconNode({
     ? titleLines.length * titleFontSize * 1.25 +
       (subtitleLines.length > 0 ? 3 * ratio + subtitleLines.length * subtitleFontSize * 1.25 : 0)
     : 0;
-  const iconGap = (hasText ? 8 : 0) * ratio;
-  const verticalPadding = 18 * ratio;
+  const iconGap = (hasText ? 6 : 0) * ratio;
 
-  const iconSize = 87 * ratio;
+  const iconSize = ICON_NODE_ART_SIZE * ratio;
   const iconX = frame.x + (frame.width - iconSize) / 2;
-  const iconY = frame.y + (hasText ? 9 * ratio : (frame.height - iconSize) / 2);
+  const iconY = frame.y + (hasText ? 6 * ratio : (frame.height - iconSize) / 2);
   const textY = iconY + iconSize + iconGap;
-  const remainingTextHeight = Math.max(textHeight, frame.y + frame.height - textY - 6 * ratio);
   const shadowFill = frame.backgroundColor === 'transparent' ? '#ffffff' : frame.backgroundColor;
 
   return (
@@ -71,7 +69,7 @@ export function IconNode({
           x={frame.x + 8}
           y={textY}
           width={frame.width - 16}
-          height={remainingTextHeight}
+          height={textHeight}
           text={frame.text}
           subtitle={frame.subtitle}
           color={frame.textColor}

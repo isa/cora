@@ -12,10 +12,12 @@ Open-source diagram tool for AI coding agents and the humans who review their ou
 | 2 — Renderer + SVG | Complete | `cora render` → `.svg` / `.png`, ELK layout, pure SVG renderer, default theme |
 | 3 — PDF Export | Complete | `cora render -o diagram.pdf` |
 | 3.3 — Component Preview Canvas | Complete | `cora preview` local component workbench |
-| 3.4 — Text Export + SKILL.md | In progress | `cora render` stdout text, `.txt`, `--charset ascii`, agent skill guide |
-| 4+ | Planned | `cora serve`, extensions (`cora ext`), `cora doctor` |
+| 3.4 — Text Export + SKILL.md | Complete | `cora render` stdout text, `.txt`, `--charset ascii`, agent skill guide |
+| 3.5 — Preview Visual Beauty | Complete | Polished preview workbench UI and interaction pass |
+| 3.6 — Default Component Look Lockdown | Complete | Shared renderer/preview component defaults and look tokens |
+| 3.7+ | Planned | Component/icon package surface, grid expansion, `cora serve`, extensions (`cora ext`), `cora doctor` |
 
-**Today:** validate any diagram, export schema, render all five v1 diagram kinds to SVG, PNG, PDF, or simplified graph-like text, and run `cora preview` as a local workbench for built-in renderer components. Icon nodes support bundled offline Iconify Material Symbols.
+**Today:** validate any diagram, export schema, render all five v1 diagram kinds to SVG, PNG, PDF, or simplified graph-like text, and run `cora preview` as a local workbench for built-in renderer components. Built-in component defaults are shared by the renderer and preview controls. Icon nodes support bundled offline Iconify Material Symbols.
 
 ## Install
 
@@ -123,6 +125,9 @@ Parse, validate, layout, and render to **SVG**, **PNG**, **PDF**, or simplified 
 | `--size sm\|md\|lg\|xl\|xxl` | `md` | PNG raster scale (ignored for SVG) |
 | `--without-shadow` | off | Flat nodes without drop shadows |
 | `--monochrome` | off | Black, grey, and white only |
+| `--page a4\|letter\|a4-portrait\|letter-portrait` | fit-to-content | PDF page size |
+| `--quality high` | bundled PDF lane | Use Playwright/Chromium for high-quality PDF output |
+| `--ascii-engine layout\|svg` | `layout` | Text rendering engine |
 
 **PNG scale factors:**
 
@@ -135,7 +140,7 @@ Parse, validate, layout, and render to **SVG**, **PNG**, **PDF**, or simplified 
 | `xxl` | 6× |
 
 ```bash
-# SVG (vector, default theme with soft pastels)
+# SVG (vector, locked default component look)
 cora render examples/valid/flowchart.yaml -o out.svg
 
 # PNG at default resolution (2×)
@@ -148,9 +153,13 @@ cora render examples/valid/microservice.yaml -o out.png --size xxl
 cora render diagram.yaml
 cora render diagram.yaml -o diagram.txt
 cora render diagram.yaml --charset ascii
-cora render examples/valid/box-arrows.yaml
-cora render examples/valid/box-arrows.yaml -o diagram.txt
-cora render examples/valid/box-arrows.yaml --charset ascii
+
+# PDF, browser-free by default
+cora render examples/valid/infra.yaml -o out.pdf
+cora render examples/valid/infra.yaml -o out.pdf --page a4
+
+# Optional Playwright/Chromium PDF lane
+cora render examples/valid/infra.yaml -o out.pdf --quality high --yes
 
 # Print-friendly / documentation variants
 cora render examples/valid/infra.yaml -o out.svg --monochrome
@@ -247,7 +256,7 @@ Run `cora schema` for the authoritative field list — do not add properties out
 
 ### Icons
 
-Nodes may set `icon` to an Iconify id. Cora currently ships the offline `material-symbols` set, so diagrams render deterministically without API calls:
+Nodes may set `icon` to an Iconify id. Cora currently ships offline `material-symbols` and `basil` icon sets, so diagrams render deterministically without API calls:
 
 ```yaml
 - id: archive
@@ -262,17 +271,20 @@ The older `provider: default` + `service: database` form remains supported as an
 
 | File | Purpose |
 |------|---------|
-| `examples/valid/minimal.yaml` | Smallest valid box-arrows diagram |
-| `examples/valid/box-arrows.yaml` | Box-arrows with `direction: LR` and edge label |
-| `examples/valid/flowchart.yaml` | Flowchart with process and retry edges |
-| `examples/valid/markers.yaml` | Box-arrows with open-circle and filled-circle edge markers |
-| `examples/valid/marker-cycle.yaml` | Flowchart loop with mixed arrow, circle, and filled-circle markers |
-| `examples/valid/microservice.yaml` | Large microservice topology with groups and labeled cross-domain edges |
-| `examples/valid/infra.yaml` | Infra diagram with boundary group |
-| `examples/valid/database.yaml` | Database kind with cylinder node |
+| `examples/valid/minimal.yaml` | Small box-arrows diagram using box nodes |
+| `examples/valid/box-arrows.yaml` | Box-arrows with box nodes and mixed markers |
+| `examples/valid/components.yaml` | Preserve-layout box-node catalog with marker shapes |
+| `examples/valid/flowchart.yaml` | Flowchart with box steps and retry markers |
+| `examples/valid/icon-gallery.yaml` | Box-only graph retained as a compatibility fixture |
+| `examples/valid/markers.yaml` | Box-arrows covering circle, filled-circle, diamond, square, and filled-square markers |
+| `examples/valid/marker-cycle.yaml` | Flowchart loop with box nodes and marker endpoints |
+| `examples/valid/microservice.yaml` | Large microservice topology with groups, box service nodes, and labeled cross-domain edges |
+| `examples/valid/infra.yaml` | Infra diagram with box DNS/cloud/queue/data nodes and grouped regions |
+| `examples/valid/database.yaml` | Database kind with cache, primary, replica, analytics, and dataset box nodes |
+| `examples/invalid/malformed-icon.yaml` | `UNKNOWN_SERVICE` for malformed Iconify id |
 | `examples/invalid/missing-version.yaml` | `SCHEMA_VIOLATION` |
 | `examples/invalid/missing-edge-target.yaml` | `MISSING_EDGE_TARGET` |
-| `examples/invalid/unknown-service.yaml` | `MISSING_EXTENSION` |
+| `examples/invalid/unknown-service.yaml` | `MISSING_EXTENSION` for missing icon provider |
 | `examples/invalid/service-without-provider.yaml` | `UNKNOWN_SERVICE` |
 
 ## Validation errors
@@ -298,6 +310,10 @@ The older `provider: default` + `service: database` form remains supported as an
 | `MISSING_EXTENSION` | Requested icon provider/set is not installed |
 | `PARSE_ERROR` | YAML/JSON syntax error |
 | `LAYOUT_ERROR` | Layout failed (e.g. `layout: preserve` without positions on all nodes) |
+| `CHROMIUM_NOT_INSTALLED` | `--quality=high` requested without installed Chromium or install consent |
+| `CHROMIUM_INSTALL_FAILED` | Chromium install failed after consent |
+| `HIGH_QUALITY_RENDER_FAILED` | Playwright high-quality PDF rendering failed |
+| `RESVG_FONT_WARNING` | Default PDF lane found a non-bundled font in CI mode |
 
 **TTY behavior:** interactive terminal + default `--format text` → colored human-readable lines. `--format json` or non-TTY stdout → JSON only, no extra prose.
 
@@ -312,9 +328,12 @@ cora validate path/to/diagram.yaml --format json | jq -e 'length == 0'
 # Produce artifacts
 cora render path/to/diagram.yaml -o dist/diagram.svg
 cora render path/to/diagram.yaml -o dist/diagram.png --size lg
+cora render path/to/diagram.yaml -o dist/diagram.pdf
 ```
 
 Use `--format json` (or pipe stdout) so parsers never depend on terminal colors or wording.
+
+High-quality PDF rendering downloads Chromium lazily only after explicit consent. In CI, pass `--yes` or set `CORA_AUTO_INSTALL=1`; otherwise `--quality=high` fails with a structured `CHROMIUM_NOT_INSTALLED` error instead of silently falling back.
 
 ## Architecture
 
@@ -323,13 +342,14 @@ Single published **`cora`** npm package with internal modules:
 ```
 YAML/JSON
   → core       parse, validate (AJV), ELK layout, theme resolution
-  → renderer   React → pure SVG (no foreignObject); resvg for PNG
-  → cli        validate, render, schema
+  → renderer   React → pure SVG (no foreignObject); SVG, PNG, PDF, text
+  → preview    Vite-backed local component workbench
+  → cli        validate, render, schema, preview
 ```
 
-**Stack:** Node.js 22+, Bun, TypeScript 5, Turborepo, ELK 0.11, React 19, `@resvg/resvg-js`, bundled Noto Sans for consistent headless metrics.
+**Stack:** Node.js 22+, Bun, TypeScript 5, Turborepo, ELK 0.11, React 19, Vite, `@resvg/resvg-js`, `pdf-lib`, Playwright for optional high-quality PDF, and bundled Noto Sans for consistent headless metrics and selectable PDF text.
 
-**Planned:** `web` (interactive `cora serve`), `cora ext`, and `cora doctor`.
+**Planned:** interactive `cora serve`, `cora ext`, `cora doctor`, and custom extension themes.
 
 ## Development
 
@@ -337,10 +357,14 @@ YAML/JSON
 bun install
 bun run build
 bun run typecheck
+(cd packages/cora && bun x vitest run)
 
 # Golden render regression (all five kinds)
-cd packages/cora && node tests/render-golden.mjs
-# or: bun run test:golden (from packages/cora)
+(cd packages/cora && node tests/render-golden.mjs)
+# or: (cd packages/cora && bun run test:golden)
+
+# Clean install/package smoke
+bash packages/cora/tests/smoke/clean-install.sh
 ```
 
 Programmatic use (after build):

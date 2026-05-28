@@ -6,6 +6,15 @@ import { fileURLToPath } from 'node:url';
 import type { Font } from 'fontkit';
 
 import {
+  APP_SIZE_PRESETS,
+  API_SIZE_PRESETS,
+  DATABASE_SIZE_PRESETS,
+  DOCUMENT_SIZE_PRESETS,
+  ICON_NODE_SIZE_PRESETS,
+  LABEL_ICON_SIZE_PRESETS,
+  WEBSITE_SIZE_PRESETS,
+} from '../renderer/components/styles.js';
+import {
   EDGE_LABEL_SIZE,
   NODE_TITLE_SIZE,
 } from '../renderer/themes/fontTokens.js';
@@ -17,11 +26,13 @@ const NODE_PADDING_X = 14;
 const NODE_PADDING_Y = 8;
 const ICON_LABEL_EXTRA_WIDTH = 40;
 const COMPONENT_MIN_SIZE = {
-  app: { width: 80, height: 64 },
-  document: { width: 96, height: 128 },
-  icon: { width: 48, height: 48 },
-  labelIcon: { width: 128, height: 56 },
-  website: { width: 64, height: 71 },
+  app: APP_SIZE_PRESETS.lg,
+  api: API_SIZE_PRESETS.lg,
+  database: DATABASE_SIZE_PRESETS.lg,
+  document: DOCUMENT_SIZE_PRESETS.lg,
+  icon: ICON_NODE_SIZE_PRESETS.lg,
+  labelIcon: LABEL_ICON_SIZE_PRESETS.lg,
+  website: WEBSITE_SIZE_PRESETS.lg,
 } as const;
 
 function resolveFontPath(filename: string): string {

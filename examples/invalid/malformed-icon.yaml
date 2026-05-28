@@ -3,8 +3,8 @@ version: 1
 diagram:
   kind: infra
   nodes:
-    - id: fn
-      label: Lambda Function
+    - id: cache
+      label: Cache
       component: icon
-      icon: aws:lambda
+      icon: database
   edges: []

@@ -8,7 +8,8 @@ export type MarkerType =
   | 'square'
   | 'filledSquare';
 
-export const MARKER_ARROW_ID = 'cora-marker-arrow';
+export const MARKER_ARROW_START_ID = 'cora-marker-arrow-start';
+export const MARKER_ARROW_END_ID = 'cora-marker-arrow-end';
 export const MARKER_CIRCLE_ID = 'cora-marker-circle';
 export const MARKER_FILLED_CIRCLE_ID = 'cora-marker-filled-circle';
 export const MARKER_DIAMOND_ID = 'cora-marker-diamond';
@@ -20,9 +21,14 @@ function withSuffix(id: string, suffix: string | undefined): string {
   return suffix ? `${id}-${suffix}` : id;
 }
 
-export function markerUrl(marker: MarkerType | undefined, idSuffix?: string): string | undefined {
+export function markerUrl(
+  marker: MarkerType | undefined,
+  position: 'start' | 'end',
+  idSuffix?: string,
+): string | undefined {
   if (marker === 'arrow') {
-    return `url(#${withSuffix(MARKER_ARROW_ID, idSuffix)})`;
+    const id = position === 'start' ? MARKER_ARROW_START_ID : MARKER_ARROW_END_ID;
+    return `url(#${withSuffix(id, idSuffix)})`;
   }
 
   if (marker === 'circle') {
@@ -70,12 +76,23 @@ export function LineMarkerDefs({
   return (
     <>
       <marker
-        id={withSuffix(MARKER_ARROW_ID, idSuffix)}
+        id={withSuffix(MARKER_ARROW_START_ID, idSuffix)}
+        markerWidth={size}
+        markerHeight={size}
+        refX={0}
+        refY={center}
+        orient="auto"
+        markerUnits="userSpaceOnUse"
+      >
+        <path d={`M ${size} 0 L 0 ${center} L ${size} ${size} z`} fill={color} />
+      </marker>
+      <marker
+        id={withSuffix(MARKER_ARROW_END_ID, idSuffix)}
         markerWidth={size}
         markerHeight={size}
         refX={size}
         refY={center}
-        orient="auto-start-reverse"
+        orient="auto"
         markerUnits="userSpaceOnUse"
       >
         <path d={`M 0 0 L ${size} ${center} L 0 ${size} z`} fill={color} />
@@ -86,7 +103,7 @@ export function LineMarkerDefs({
         markerHeight={size}
         refX={center}
         refY={center}
-        orient="auto-start-reverse"
+        orient="auto"
         markerUnits="userSpaceOnUse"
       >
         <circle cx={center} cy={center} r={circleRadius} fill="none" stroke={color} strokeWidth={markerStrokeWidth} />
@@ -97,7 +114,7 @@ export function LineMarkerDefs({
         markerHeight={size}
         refX={center}
         refY={center}
-        orient="auto-start-reverse"
+        orient="auto"
         markerUnits="userSpaceOnUse"
       >
         <circle cx={center} cy={center} r={circleRadius} fill={color} />
@@ -108,7 +125,7 @@ export function LineMarkerDefs({
         markerHeight={size}
         refX={center}
         refY={center}
-        orient="auto-start-reverse"
+        orient="auto"
         markerUnits="userSpaceOnUse"
       >
         <path
@@ -124,7 +141,7 @@ export function LineMarkerDefs({
         markerHeight={size}
         refX={center}
         refY={center}
-        orient="auto-start-reverse"
+        orient="auto"
         markerUnits="userSpaceOnUse"
       >
         <path d={`M ${center} 0 L ${size} ${center} L ${center} ${size} L 0 ${center} Z`} fill={color} />
@@ -135,7 +152,7 @@ export function LineMarkerDefs({
         markerHeight={size}
         refX={center}
         refY={center}
-        orient="auto-start-reverse"
+        orient="auto"
         markerUnits="userSpaceOnUse"
       >
         <rect
@@ -154,7 +171,7 @@ export function LineMarkerDefs({
         markerHeight={size}
         refX={center}
         refY={center}
-        orient="auto-start-reverse"
+        orient="auto"
         markerUnits="userSpaceOnUse"
       >
         <rect x={squareOffset} y={squareOffset} width={squareSize} height={squareSize} fill={color} />

@@ -1,0 +1,44 @@
+version: 1
+
+diagram:
+  kind: box-arrows
+  direction: LR
+  nodes:
+    - id: api
+      label: API
+      component: box
+    - id: database
+      label: Database
+      component: box
+    - id: server
+      label: Server
+      component: box
+    - id: lock
+      label: Lock
+      component: box
+    - id: search
+      label: Search
+      component: box
+    - id: upload
+      label: Upload
+      component: box
+  edges:
+    - from: api
+      to: database
+      label: writes
+    - from: api
+      to: server
+      label: calls
+    - from: server
+      to: lock
+      label: secures
+      endMarker: filledDiamond
+    - from: server
+      to: search
+      label: indexes
+      endMarker: square
+    - from: search
+      to: upload
+      label: exports
+      startMarker: circle
+      endMarker: filledSquare

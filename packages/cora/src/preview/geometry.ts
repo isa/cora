@@ -2,18 +2,31 @@ import {
   resolveComponentSize,
   resolveWebsiteComponentSize,
   resolveAppComponentSize,
+  resolveApiComponentSize,
+  resolveDatabaseComponentSize,
   resolveDocumentComponentSize,
   resolveLabelIconComponentSize,
   APP_SIZE_PRESETS,
+  API_SIZE_PRESETS,
+  DATABASE_SIZE_PRESETS,
   DOCUMENT_SIZE_PRESETS,
   WEBSITE_SIZE_PRESETS,
   LABEL_ICON_SIZE_PRESETS,
+  ICON_NODE_ART_SIZE,
+  iconNodeScale,
 } from '../renderer/components/styles.js';
+import {
+  chooseConnectionSides,
+  connectionAnchorBox,
+  sidePoint,
+  type AnchorNode,
+  type Side,
+} from '../core/connectionAnchors.js';
 import type { ConnectionProps } from './controls/defaults.js';
-import type { SizePreset } from '../renderer/components/types.js';
 import type { CanvasConnection, CanvasNode, WorkbenchState } from './state.js';
 
-export type Side = 'top' | 'right' | 'bottom' | 'left';
+export { chooseConnectionSides, sidePoint };
+export type { Side };
 
 export interface PreviewBox {
   id: string;
@@ -36,11 +49,15 @@ export interface AttachmentSlot {
 export function previewNodeSize(node: CanvasNode): { width: number; height: number } {
   const base = node.componentId === 'app'
     ? resolveAppComponentSize(node.props.size, APP_SIZE_PRESETS.lg)
-    : node.componentId === 'document'
-      ? resolveDocumentComponentSize(node.props.size, DOCUMENT_SIZE_PRESETS.lg)
-      : node.componentId === 'website'
-        ? resolveWebsiteComponentSize(node.props.size, WEBSITE_SIZE_PRESETS.lg)
-        : resolveComponentSize(node.props.size, { width: 140, height: 56 });
+    : node.componentId === 'api'
+      ? resolveApiComponentSize(node.props.size, API_SIZE_PRESETS.lg)
+      : node.componentId === 'database'
+        ? resolveDatabaseComponentSize(node.props.size, DATABASE_SIZE_PRESETS.lg)
+        : node.componentId === 'document'
+          ? resolveDocumentComponentSize(node.props.size, DOCUMENT_SIZE_PRESETS.lg)
+          : node.componentId === 'website'
+            ? resolveWebsiteComponentSize(node.props.size, WEBSITE_SIZE_PRESETS.lg)
+            : resolveComponentSize(node.props.size, { width: 140, height: 56 });
   const title = node.props.title ?? node.props.text ?? '';
   const subtitle = node.props.subtitle ?? '';
   const lines = title.split(/\r?\n/);
@@ -69,9 +86,9 @@ export function previewNodeSize(node: CanvasNode): { width: number; height: numb
 
 function previewIconSize(node: CanvasNode): { width: number; height: number } {
   if (node.componentId === 'icon') {
-    return resolveAppComponentSize(node.props.size, { width: 160, height: 128 });
+    return resolveAppComponentSize(node.props.size, APP_SIZE_PRESETS.lg);
   }
-  return resolveLabelIconComponentSize(node.props.size, { width: 40, height: 40 });
+  return resolveLabelIconComponentSize(node.props.size, LABEL_ICON_SIZE_PRESETS.lg);
 }
 
 export function computeNodeBox(state: WorkbenchState, nodeId: string): PreviewBox | undefined {
@@ -91,9 +108,9 @@ export function computeNodeBox(state: WorkbenchState, nodeId: string): PreviewBo
   let position = node.position;
   if (attachedCenter) {
     if (node.componentId === 'labelIcon') {
-      const ratio = size.width / 40;
+      const ratio = iconNodeScale(size);
       const hasText = Boolean((node.props.title ?? node.props.text) || node.props.subtitle);
-      const iconSize = node.props.iconType ? Math.min(size.width, size.height) * 0.62 : 24 * ratio;
+      const iconSize = node.props.iconType ? Math.min(size.width, size.height) * 0.62 : ICON_NODE_ART_SIZE * ratio;
       const iconYOffset = node.props.iconType
         ? (size.height - iconSize) / 2
         : hasText
@@ -129,10 +146,10 @@ function iconVisualBox(state: WorkbenchState, nodeId: string): PreviewBox | unde
   // IconNode: horizontally narrowed to the icon artwork; vertically extends
   // to the full node bottom so that bottom-exiting lines clear title/subtitle.
   if (node.componentId === 'icon') {
-    const ratio = box.width / 160;
-    const iconSize = 87 * ratio;
+    const ratio = iconNodeScale(box);
+    const iconSize = ICON_NODE_ART_SIZE * ratio;
     const hasText = Boolean((node.props.title ?? node.props.text) || node.props.subtitle);
-    const iconY = box.y + (hasText ? 9 * ratio : (box.height - iconSize) / 2);
+    const iconY = box.y + (hasText ? 6 * ratio : (box.height - iconSize) / 2);
     const bottomEdge = box.y + box.height;
 
     return {
@@ -147,9 +164,9 @@ function iconVisualBox(state: WorkbenchState, nodeId: string): PreviewBox | unde
   // AppNode: horizontally narrowed to the phone artwork; vertically extends
   // to the full node bottom so that bottom-exiting lines clear title/subtitle.
   if (node.componentId === 'app') {
-    const ratio = box.width / 160;
+    const ratio = iconNodeScale(box);
     const ARTBOARD = 24;
-    const scale = 3.875 * ratio;
+    const scale = (ICON_NODE_ART_SIZE / ARTBOARD) * ratio;
     const artSize = ARTBOARD * scale;
 
     const hasLabel = Boolean((node.props.title ?? node.props.text) || node.props.subtitle);
@@ -179,66 +196,22 @@ function iconVisualBox(state: WorkbenchState, nodeId: string): PreviewBox | unde
   return box;
 }
 
-function iconArtworkBox(state: WorkbenchState, nodeId: string): PreviewBox | undefined {
+function previewAnchorNode(state: WorkbenchState, nodeId: string): AnchorNode | undefined {
   const node = state.nodes.find((item) => item.id === nodeId);
   const box = computeNodeBox(state, nodeId);
-  if (!node || !box || node.componentId !== 'icon') {
-    return box;
+  if (!node || !box) {
+    return undefined;
   }
-
-  const ratio = box.width / 160;
-  const iconSize = 87 * ratio;
-  const hasText = Boolean((node.props.title ?? node.props.text) || node.props.subtitle);
-  const iconY = box.y + (hasText ? 9 * ratio : (box.height - iconSize) / 2);
 
   return {
-    id: box.id,
-    x: box.x + (box.width - iconSize) / 2,
-    y: iconY,
-    width: iconSize,
-    height: iconSize,
+    ...box,
+    component: node.componentId as AnchorNode['component'],
+    text: node.props.title ?? node.props.text,
+    subtitle: node.props.subtitle,
+    titleFontSize: node.props.titleFontSize,
+    subtitleFontSize: node.props.subtitleFontSize,
+    iconType: node.props.iconType,
   };
-}
-
-function connectionAnchorBox(state: WorkbenchState, nodeId: string, side: Side): PreviewBox | undefined {
-  const node = state.nodes.find((item) => item.id === nodeId);
-  if (node?.componentId === 'icon' && (side === 'left' || side === 'right')) {
-    return iconArtworkBox(state, nodeId);
-  }
-
-  return iconVisualBox(state, nodeId);
-}
-
-export function chooseConnectionSides(source: PreviewBox, target: PreviewBox): { sourceSide: Side; targetSide: Side } {
-  const sx = source.x + source.width / 2;
-  const sy = source.y + source.height / 2;
-  const tx = target.x + target.width / 2;
-  const ty = target.y + target.height / 2;
-  const dx = tx - sx;
-  const dy = ty - sy;
-
-  if (Math.abs(dx) >= Math.abs(dy)) {
-    return dx >= 0
-      ? { sourceSide: 'right', targetSide: 'left' }
-      : { sourceSide: 'left', targetSide: 'right' };
-  }
-
-  return dy >= 0
-    ? { sourceSide: 'bottom', targetSide: 'top' }
-    : { sourceSide: 'top', targetSide: 'bottom' };
-}
-
-export function sidePoint(box: PreviewBox, side: Side, offsetRatio = 0.5): { x: number; y: number } {
-  if (side === 'top') {
-    return { x: box.x + box.width * offsetRatio, y: box.y };
-  }
-  if (side === 'bottom') {
-    return { x: box.x + box.width * offsetRatio, y: box.y + box.height };
-  }
-  if (side === 'left') {
-    return { x: box.x, y: box.y + box.height * offsetRatio };
-  }
-  return { x: box.x + box.width, y: box.y + box.height * offsetRatio };
 }
 
 export function computeConnectionPointsForBoxes(
@@ -269,8 +242,10 @@ export function computeConnectionPoints(
   }
   const { sourceSide, targetSide } = chooseConnectionSides(source, target);
   const ratios = computeConnectionAnchorRatios(state, connection.id);
-  const sourceAnchorBox = connectionAnchorBox(state, connection.fromNodeId, sourceSide) ?? source;
-  const targetAnchorBox = connectionAnchorBox(state, connection.toNodeId, targetSide) ?? target;
+  const sourceAnchorNode = previewAnchorNode(state, connection.fromNodeId);
+  const targetAnchorNode = previewAnchorNode(state, connection.toNodeId);
+  const sourceAnchorBox = sourceAnchorNode ? connectionAnchorBox(sourceAnchorNode, sourceSide) : source;
+  const targetAnchorBox = targetAnchorNode ? connectionAnchorBox(targetAnchorNode, targetSide) : target;
   const start = sidePoint(sourceAnchorBox, sourceSide, ratios.sourceRatio);
   const end = sidePoint(targetAnchorBox, targetSide, ratios.targetRatio);
   const midX = (start.x + end.x) / 2;
@@ -365,8 +340,10 @@ export function computeConnectionAnchorRatios(
       continue;
     }
     const { sourceSide, targetSide } = chooseConnectionSides(source, target);
-    const sourceAnchorBox = connectionAnchorBox(state, connection.fromNodeId, sourceSide) ?? source;
-    const targetAnchorBox = connectionAnchorBox(state, connection.toNodeId, targetSide) ?? target;
+    const sourceAnchorNode = previewAnchorNode(state, connection.fromNodeId);
+    const targetAnchorNode = previewAnchorNode(state, connection.toNodeId);
+    const sourceAnchorBox = sourceAnchorNode ? connectionAnchorBox(sourceAnchorNode, sourceSide) : source;
+    const targetAnchorBox = targetAnchorNode ? connectionAnchorBox(targetAnchorNode, targetSide) : target;
     const sourceSortCoord = sourceSide === 'left' || sourceSide === 'right'
       ? target.y + target.height / 2
       : target.x + target.width / 2;
@@ -536,9 +513,17 @@ export function computeSceneAttachmentSlots(state: WorkbenchState): AttachmentSl
       continue;
     }
     const { sourceSide, targetSide } = chooseConnectionSides(source, target);
+    const sourceAnchorNode = previewAnchorNode(state, connection.fromNodeId);
+    const targetAnchorNode = previewAnchorNode(state, connection.toNodeId);
     for (const endpoint of [
-      { box: connectionAnchorBox(state, connection.fromNodeId, sourceSide) ?? source, side: sourceSide },
-      { box: connectionAnchorBox(state, connection.toNodeId, targetSide) ?? target, side: targetSide },
+      {
+        box: sourceAnchorNode ? connectionAnchorBox(sourceAnchorNode, sourceSide) : source,
+        side: sourceSide,
+      },
+      {
+        box: targetAnchorNode ? connectionAnchorBox(targetAnchorNode, targetSide) : target,
+        side: targetSide,
+      },
     ]) {
       const key = `${endpoint.box.id}:${endpoint.side}`;
       const existing = groups.get(key);

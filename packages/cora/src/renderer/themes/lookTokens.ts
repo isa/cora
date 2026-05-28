@@ -36,6 +36,16 @@ export const LOOK = {
       fill: TAILWIND.white,
       stroke: '#000000',
     },
+    api: {
+      fill: TAILWIND.white,
+      stroke: TAILWIND.slate[700],
+      iconColor: TAILWIND.violet[500],
+    },
+    database: {
+      fill: TAILWIND.white,
+      stroke: TAILWIND.slate[700],
+      iconColor: TAILWIND.violet[500],
+    },
     website: {
       fill: TAILWIND.white,
       stroke: TAILWIND.slate[700],

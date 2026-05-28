@@ -4,7 +4,7 @@ import { Line, linePathData } from '../../renderer/components/lines/Line.js';
 import { LineMarkerDefs, markerUrl } from '../../renderer/components/lines/markers.js';
 import { previewIconForName } from '../iconRenderer.js';
 import { previewIcon } from '../pack/builtins.js';
-import { APP_SIZE_PRESETS, DOCUMENT_SIZE_PRESETS, WEBSITE_SIZE_PRESETS, LABEL_ICON_SIZE_PRESETS } from '../../renderer/components/styles.js';
+import { API_SIZE_PRESETS, APP_SIZE_PRESETS, DATABASE_SIZE_PRESETS, DOCUMENT_SIZE_PRESETS, WEBSITE_SIZE_PRESETS, LABEL_ICON_SIZE_PRESETS } from '../../renderer/components/styles.js';
 import { catalogDefaultProps } from '../../renderer/themes/componentDefaults.js';
 import { defaultTheme } from '../../renderer/themes/default.js';
 import { toMonochrome, withoutShadow } from '../../renderer/themes/transforms.js';
@@ -517,7 +517,7 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
           title: isLabelIcon ? '' : parsed.name,
           subtitle: '',
           iconName: parsed.fullName,
-          size: isLabelIcon ? 'md' : 'lg',
+          size: 'lg',
         };
         componentId = isLabelIcon ? 'labelIcon' : 'icon';
       } catch {
@@ -548,10 +548,12 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
     const dropSize =
       componentId === 'group' ? { width: 280, height: 160 }
       : componentId === 'website' ? WEBSITE_SIZE_PRESETS.lg
+      : componentId === 'api' ? API_SIZE_PRESETS.lg
+      : componentId === 'database' ? DATABASE_SIZE_PRESETS.lg
       : componentId === 'app' ? APP_SIZE_PRESETS.lg
       : componentId === 'document' ? DOCUMENT_SIZE_PRESETS.lg
       : componentId === 'icon' ? APP_SIZE_PRESETS.lg
-      : componentId === 'labelIcon' ? LABEL_ICON_SIZE_PRESETS.md
+      : componentId === 'labelIcon' ? LABEL_ICON_SIZE_PRESETS.lg
       : { width: 176, height: 72 };
     onStateChange(addCatalogItemToCanvas(dropState, componentId, {
       x: Math.max(16, point.x - dropSize.width / 2),

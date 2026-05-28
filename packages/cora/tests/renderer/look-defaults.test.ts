@@ -47,6 +47,30 @@ describe('Design Tokens Contract', () => {
     expect(defaultTheme.shapes.website?.stroke).toBe(TAILWIND.slate[700]);
   });
 
+  it('uses neutral api defaults with a violet cube glyph', () => {
+    const api = catalogDefaultProps('api');
+    expect(api.backgroundColor).toBe(TAILWIND.white);
+    expect(api.iconColor).toBe(TAILWIND.violet[500]);
+    expect(api).not.toHaveProperty('borderColor');
+    expect(api).not.toHaveProperty('borderWidth');
+    expect(api).not.toHaveProperty('borderStyle');
+    expect(api).not.toHaveProperty('radius');
+    expect(defaultTheme.shapes.api?.fill).toBe(TAILWIND.white);
+    expect(defaultTheme.shapes.api?.stroke).toBe(TAILWIND.slate[700]);
+  });
+
+  it('uses neutral database defaults with a violet database glyph', () => {
+    const database = catalogDefaultProps('database');
+    expect(database.backgroundColor).toBe(TAILWIND.white);
+    expect(database.iconColor).toBe(TAILWIND.violet[500]);
+    expect(database).not.toHaveProperty('borderColor');
+    expect(database).not.toHaveProperty('borderWidth');
+    expect(database).not.toHaveProperty('borderStyle');
+    expect(database).not.toHaveProperty('radius');
+    expect(defaultTheme.shapes.database?.fill).toBe(TAILWIND.white);
+    expect(defaultTheme.shapes.database?.stroke).toBe(TAILWIND.slate[700]);
+  });
+
   it('uses neutral labelIcon defaults', () => {
     const labelIcon = catalogDefaultProps('labelIcon');
     expect(labelIcon.backgroundColor).toBe('transparent');
@@ -61,6 +85,8 @@ describe('Design Tokens Contract', () => {
       'box',
       'website',
       'document',
+      'api',
+      'database',
       'app',
     ];
     for (const kind of kinds) {

@@ -1,6 +1,8 @@
 export const COMPONENT_DISPLAY_NAMES: Record<string, string> = {
+  api: 'API',
   app: 'App',
   box: 'Box',
+  database: 'Database',
   document: 'Document',
   group: 'Group',
   icon: 'Icon',
@@ -22,7 +24,9 @@ export function displayNameForComponent(componentId: string): string {
 export function displayNameForComponentLabel(label: string): string {
   const legacyLabels: Record<string, string> = {
     AppNode: 'App',
+    ApiNode: 'API',
     BoxNode: 'Box',
+    DatabaseNode: 'Database',
     Group: 'Group',
     IconNode: 'Icon',
     LabelIconNode: 'Icon Label',

@@ -40,6 +40,16 @@ export const defaultTheme: ThemeTokens = {
       stroke: LOOK.components.document.stroke,
       strokeWidth: 1,
     },
+    api: {
+      fill: LOOK.components.api.fill,
+      stroke: LOOK.components.api.stroke,
+      strokeWidth: 1,
+    },
+    database: {
+      fill: LOOK.components.database.fill,
+      stroke: LOOK.components.database.stroke,
+      strokeWidth: 1,
+    },
     app: {
       fill: LOOK.components.app.fill,
       stroke: LOOK.components.app.stroke,
