@@ -9,7 +9,7 @@ import { connectionDefaults } from '../../src/preview/controls/defaults.js';
 import { filterComponents } from '../../src/preview/components/CatalogSidebar.js';
 import { ControlInput } from '../../src/preview/components/ControlInput.js';
 import { GroupPanel } from '../../src/preview/components/GroupPanel.js';
-import { previewConnectionPathData, WorkbenchCanvas } from '../../src/preview/components/WorkbenchCanvas.js';
+import { attachedLabelMaskRects, WorkbenchCanvas } from '../../src/preview/components/WorkbenchCanvas.js';
 import {
   applyConnectionMarkerInsets,
   computeConnectionPoints,
@@ -260,12 +260,21 @@ describe('preview workbench', () => {
       { title: 'something nice' },
     );
     const connection = state.connections[0]!;
-    const points = renderedShaftPoints(state, 0);
-    const pathData = previewConnectionPathData(state, connection, points, renderedNodeBoxResolver(state, 0));
+    const rects = attachedLabelMaskRects(state, connection, renderedNodeBoxResolver(state, 0));
     const markup = renderToStaticMarkup(<WorkbenchCanvas state={state} onStateChange={() => undefined} />);
 
-    expect(pathData.match(/M /g)).toHaveLength(2);
-    expect(markup).toContain(`d="${pathData}"`);
+    // The attached label knocks the stroke out via a mask, not a split path.
+    expect(rects).toHaveLength(1);
+    expect(markup).toContain(`mask="url(#shaft-mask-${connection.id})"`);
+    // The mask MUST carry an explicit userSpace region covering the whole line;
+    // without it the browser clips long/panned/zoomed strokes to the default
+    // ~120%-of-viewport region, making the line vanish and the gap balloon.
+    const maskTag = markup.slice(markup.indexOf(`<mask id="shaft-mask-${connection.id}"`));
+    const maskOpen = maskTag.slice(0, maskTag.indexOf('>') + 1);
+    expect(maskOpen).toContain('maskUnits="userSpaceOnUse"');
+    expect(maskOpen).toMatch(/\bx="[-\d.]+"/);
+    expect(maskOpen).toMatch(/\bwidth="[\d.]+"/);
+    expect(maskOpen).toMatch(/\bheight="[\d.]+"/);
   });
 
   it('opens an attached-label gap across vertical preview connection bends', () => {
@@ -281,11 +290,14 @@ describe('preview workbench', () => {
       { title: 'something nice' },
     );
     const connection = state.connections[0]!;
-    const points = renderedShaftPoints(state, 0);
-    const pathData = previewConnectionPathData(state, connection, points, renderedNodeBoxResolver(state, 0));
+    const rects = attachedLabelMaskRects(state, connection, renderedNodeBoxResolver(state, 0));
+    const markup = renderToStaticMarkup(<WorkbenchCanvas state={state} onStateChange={() => undefined} />);
 
-    expect(pathData.match(/M /g)).toHaveLength(2);
-    expect(pathData).not.toContain('L 84 256 L 84');
+    // One knock-out rect covering the label, applied on a vertical shaft segment.
+    expect(rects).toHaveLength(1);
+    expect(rects[0]!.width).toBeGreaterThan(0);
+    expect(rects[0]!.height).toBeGreaterThan(0);
+    expect(markup).toContain(`mask="url(#shaft-mask-${connection.id})"`);
   });
 
   it('renders diagram edge labels loaded onto preview connections', () => {
@@ -346,13 +358,11 @@ describe('preview workbench', () => {
     );
     const connection = state.connections[0]!;
     const routedPoints = renderedConnectionPoints(state, 0);
-    const points = renderedShaftPoints(state, 0);
-    const pathData = previewConnectionPathData(
-      state,
-      connection,
-      points,
-      (nodeId) => renderedNodeBoxFor(state, nodeId),
-    );
+    const edge = renderedPreviewLayout(state).edges[0]!;
+    const pathData = edgeLinePathData(edge, {
+      trimForMarkers: true,
+      markerSize: connection.props.arrowSize,
+    });
     const markup = renderToStaticMarkup(
       <WorkbenchCanvas state={state} onStateChange={() => undefined} />,
     );
@@ -395,12 +405,11 @@ describe('preview workbench', () => {
     );
     const connection = state.connections[0]!;
     const routedPoints = renderedConnectionPoints(state, 0);
-    const pathData = previewConnectionPathData(
-      state,
-      connection,
-      renderedShaftPoints(state, 0),
-      (nodeId) => renderedNodeBoxFor(state, nodeId),
-    );
+    const edge = renderedPreviewLayout(state).edges[0]!;
+    const pathData = edgeLinePathData(edge, {
+      trimForMarkers: true,
+      markerSize: connection.props.arrowSize,
+    });
     const markup = renderToStaticMarkup(
       <WorkbenchCanvas state={state} onStateChange={() => undefined} />,
     );

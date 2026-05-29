@@ -9,12 +9,17 @@ export interface PreviewPosition {
   y: number;
 }
 
+export type AttachedEnd = 'source' | 'target';
+
 export interface CanvasNode {
   id: string;
   componentId: string;
   props: PreviewNodeProps;
   position: PreviewPosition;
   attachedConnectionId?: string;
+  // Which end of the connection an on-line icon anchors to. Persisted so moving
+  // the connected boxes never flips the icon to the other side of the line.
+  attachedEnd?: AttachedEnd;
 }
 
 export interface CanvasGroup {
@@ -357,6 +362,19 @@ export function setNodePosition(
   return {
     ...state,
     nodes: state.nodes.map((node) => node.id === nodeId ? { ...node, position } : node),
+  };
+}
+
+export function setNodeAttachedEnd(
+  state: WorkbenchState,
+  nodeId: string,
+  attachedEnd: AttachedEnd,
+): WorkbenchState {
+  return {
+    ...state,
+    nodes: state.nodes.map((node) =>
+      node.id === nodeId && node.attachedEnd !== attachedEnd ? { ...node, attachedEnd } : node,
+    ),
   };
 }
 

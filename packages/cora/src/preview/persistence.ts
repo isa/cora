@@ -16,6 +16,7 @@ import { builtInPack } from './pack/builtins.js';
 import type { PreviewNodeProps } from './controls/defaults.js';
 import {
   createDefaultWorkbenchState,
+  type AttachedEnd,
   type CanvasConnection,
   type CanvasGroup,
   type CanvasNode,
@@ -240,6 +241,10 @@ export async function deserializeWorkbenchState(
     const style = cloneStyle(node.style);
     const attachedEdgeIndex =
       typeof style.attachedEdgeIndex === 'number' ? style.attachedEdgeIndex : undefined;
+    const attachedEnd: AttachedEnd | undefined =
+      style.attachedEnd === 'source' || style.attachedEnd === 'target'
+        ? style.attachedEnd
+        : undefined;
     const layoutedNode = layouted?.nodes.find((item) => item.id === node.id);
 
     return {
@@ -254,6 +259,7 @@ export async function deserializeWorkbenchState(
         typeof attachedEdgeIndex === 'number'
           ? connectionIdByIndex.get(attachedEdgeIndex)
           : undefined,
+      attachedEnd,
     };
   });
 
@@ -341,6 +347,9 @@ function nodeStyleFromPreviewNode(state: WorkbenchState, node: CanvasNode, attac
 
   if (attachedEdgeIndex !== undefined) {
     style.attachedEdgeIndex = attachedEdgeIndex;
+    if (node.attachedEnd) {
+      style.attachedEnd = node.attachedEnd;
+    }
   }
 
   return Object.keys(style).length > 0 ? style : undefined;

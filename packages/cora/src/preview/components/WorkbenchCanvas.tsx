@@ -24,11 +24,13 @@ import { connectionDefaults } from '../controls/defaults.js';
 import {
   applyConnectionMarkerInsets,
   connectionCenter,
+  connectionLabelIconEnd,
   computeConnectionCenter,
   computeConnectionPoints,
   computeNodeBox,
   computeSceneAttachmentSlots,
   previewLabelContentSize,
+  previewLabelIconContentHeight,
   previewNodeSize,
 } from '../geometry.js';
 import {
@@ -40,6 +42,7 @@ import {
   setGroupPosition,
   setGroupPositions,
   setGroupSize,
+  setNodeAttachedEnd,
   setNodePosition,
   setNodePositions,
   setNodeSize,
@@ -147,219 +150,87 @@ type EndpointDrag = {
 const DEFAULT_VIEWPORT = { width: 960, height: 640 };
 const ATTACHED_LABEL_GAP_X = 4;
 const ATTACHED_LABEL_GAP_Y = 3;
-const MIN_LABEL_LINE_STUB = 12;
+// Icon-label nodes read better a touch smaller than the sm preset the first
+// time they're dropped onto a line (20% down from the standalone sm size).
+const DROPPED_LABEL_ICON_SIZE = {
+  width: LABEL_ICON_SIZE_PRESETS.sm.width * 0.8,
+  height: LABEL_ICON_SIZE_PRESETS.sm.height * 0.8,
+};
 
 type PreviewPoint = { x: number; y: number };
 
-function pointAtRatio(a: PreviewPoint, b: PreviewPoint, ratio: number): PreviewPoint {
-  return {
-    x: a.x + (b.x - a.x) * ratio,
-    y: a.y + (b.y - a.y) * ratio,
-  };
-}
+interface MaskRect { x: number; y: number; width: number; height: number; }
 
-function pointDistance(a: PreviewPoint, b: PreviewPoint): number {
-  return Math.hypot(b.x - a.x, b.y - a.y);
-}
-
-function samePoint(a: PreviewPoint, b: PreviewPoint): boolean {
-  return Math.abs(a.x - b.x) < 0.001 && Math.abs(a.y - b.y) < 0.001;
-}
-
-function segmentRatioForPoint(a: PreviewPoint, b: PreviewPoint, point: PreviewPoint): number | undefined {
-  const length = pointDistance(a, b);
-  if (length === 0) {
-    return undefined;
-  }
-
-  if (Math.abs(a.y - b.y) < 0.001 && Math.abs(point.y - a.y) < 0.001) {
-    const minX = Math.min(a.x, b.x) - 0.001;
-    const maxX = Math.max(a.x, b.x) + 0.001;
-    if (point.x < minX || point.x > maxX) {
-      return undefined;
-    }
-    return (point.x - a.x) / (b.x - a.x);
-  }
-
-  if (Math.abs(a.x - b.x) < 0.001 && Math.abs(point.x - a.x) < 0.001) {
-    const minY = Math.min(a.y, b.y) - 0.001;
-    const maxY = Math.max(a.y, b.y) + 0.001;
-    if (point.y < minY || point.y > maxY) {
-      return undefined;
-    }
-    return (point.y - a.y) / (b.y - a.y);
-  }
-
-  return undefined;
-}
-
-function pathLength(points: PreviewPoint[]): number {
-  return points.slice(1).reduce(
-    (total, point, index) => total + pointDistance(points[index]!, point),
-    0,
-  );
-}
-
-function pointAtPathDistance(points: PreviewPoint[], distance: number): PreviewPoint {
-  if (points.length === 0) {
-    return { x: 0, y: 0 };
-  }
-
-  let cursor = 0;
-  for (let index = 0; index < points.length - 1; index++) {
-    const start = points[index]!;
-    const end = points[index + 1]!;
-    const length = pointDistance(start, end);
-    if (length === 0) {
-      continue;
-    }
-
-    if (cursor + length >= distance) {
-      return pointAtRatio(start, end, (distance - cursor) / length);
-    }
-
-    cursor += length;
-  }
-
-  return points.at(-1)!;
-}
-
-function pushDistinct(points: PreviewPoint[], point: PreviewPoint): void {
-  const previous = points.at(-1);
-  if (!previous || !samePoint(previous, point)) {
-    points.push(point);
-  }
-}
-
-function pathSlice(points: PreviewPoint[], startDistance: number, endDistance: number): PreviewPoint[] {
-  if (points.length === 0 || endDistance <= startDistance) {
-    return [];
-  }
-
-  const slice = [pointAtPathDistance(points, startDistance)];
-  let cursor = 0;
-  for (let index = 0; index < points.length - 1; index++) {
-    const start = points[index]!;
-    const end = points[index + 1]!;
-    const length = pointDistance(start, end);
-    const segmentEndDistance = cursor + length;
-    if (length > 0 && segmentEndDistance > startDistance && segmentEndDistance < endDistance) {
-      pushDistinct(slice, end);
-    }
-    cursor = segmentEndDistance;
-  }
-  pushDistinct(slice, pointAtPathDistance(points, endDistance));
-  return slice;
-}
-
-function mergeGaps(gaps: Array<{ startDistance: number; endDistance: number }>) {
-  const sorted = gaps
-    .slice()
-    .sort((a, b) => a.startDistance - b.startDistance);
-  const merged: Array<{ startDistance: number; endDistance: number }> = [];
-
-  for (const gap of sorted) {
-    const previous = merged.at(-1);
-    if (!previous || gap.startDistance > previous.endDistance) {
-      merged.push({ ...gap });
-    } else {
-      previous.endDistance = Math.max(previous.endDistance, gap.endDistance);
-    }
-  }
-
-  return merged;
-}
-
-function connectionPathDataWithGaps(
-  points: PreviewPoint[],
-  gaps: Array<{ startDistance: number; endDistance: number }>,
-): string {
-  if (points.length === 0 || gaps.length === 0) {
-    return linePathData(points);
-  }
-
-  const totalLength = pathLength(points);
-  const subpaths: PreviewPoint[][] = [];
-  let cursor = 0;
-
-  for (const gap of mergeGaps(gaps)) {
-    if (gap.startDistance > cursor) {
-      subpaths.push(pathSlice(points, cursor, gap.startDistance));
-    }
-    cursor = Math.max(cursor, gap.endDistance);
-  }
-
-  if (cursor < totalLength) {
-    subpaths.push(pathSlice(points, cursor, totalLength));
-  }
-
-  return subpaths
-    .filter((subpath) => subpath.length >= 2)
-    .map((subpath) => linePathData(subpath))
-    .join(' ');
-}
-
-export function previewConnectionPathData(
+// Rectangles (in canvas space) where the connection stroke must be knocked out
+// because an attached label / icon-label node sits on the line. We mask the
+// stroke rather than splitting the path: it is robust to orientation, routing
+// and the node sitting near an endpoint, and never lets the line pierce the node.
+export function attachedLabelMaskRects(
   state: WorkbenchState,
   connection: CanvasConnection,
-  points: PreviewPoint[],
   getNodeBox: (nodeId: string) => ReturnType<typeof computeNodeBox> = (nodeId) => computeNodeBox(state, nodeId),
-): string {
-  const gaps: Array<{ startDistance: number; endDistance: number }> = [];
-
+): MaskRect[] {
+  const rects: MaskRect[] = [];
   for (const node of state.nodes) {
-    if (node.attachedConnectionId !== connection.id || node.componentId !== 'label') {
+    if (node.attachedConnectionId !== connection.id) {
       continue;
     }
-
+    const isLabel = node.componentId === 'label';
+    const isLabelIcon = node.componentId === 'labelIcon';
+    if (!isLabel && !isLabelIcon) {
+      continue;
+    }
     const box = getNodeBox(node.id);
     if (!box) {
       continue;
     }
 
-    // Gap the line around the visible text, not the fixed label-node box width.
-    const content = previewLabelContentSize(node);
-
-    const center = {
-      x: box.x + box.width / 2,
-      y: box.y + box.height / 2,
-    };
-
-    let cursor = 0;
-    for (let index = 0; index < points.length - 1; index++) {
-      const start = points[index]!;
-      const end = points[index + 1]!;
-      const length = pointDistance(start, end);
-      const ratio = segmentRatioForPoint(start, end, center);
-      if (ratio === undefined) {
-        cursor += length;
-        continue;
-      }
-
-      const horizontal = Math.abs(start.y - end.y) < 0.001;
-      const halfSpan = horizontal
-        ? content.width / 2 + ATTACHED_LABEL_GAP_X
-        : content.height / 2 + ATTACHED_LABEL_GAP_Y;
-      const totalLength = pathLength(points);
-      const centerDistance = cursor + ratio * length;
-      const availableHalfSpan = Math.max(
-        0,
-        Math.min(centerDistance, totalLength - centerDistance) - MIN_LABEL_LINE_STUB,
-      );
-      const effectiveHalfSpan = Math.min(halfSpan, availableHalfSpan);
-      if (effectiveHalfSpan <= 0) {
-        break;
-      }
-
-      gaps.push({
-        startDistance: centerDistance - effectiveHalfSpan,
-        endDistance: centerDistance + effectiveHalfSpan,
+    if (isLabelIcon) {
+      // The visible content (icon + text) is top-aligned in the box; the box may
+      // carry dead space below it from the size-preset minimum, so knock out the
+      // tight content height, not the padded box height.
+      const contentHeight = previewLabelIconContentHeight(node);
+      rects.push({
+        x: box.x - ATTACHED_LABEL_GAP_X,
+        y: box.y - ATTACHED_LABEL_GAP_Y,
+        width: box.width + ATTACHED_LABEL_GAP_X * 2,
+        height: contentHeight + ATTACHED_LABEL_GAP_Y * 2,
       });
-      break;
+    } else {
+      // Text label: knock out the wrapped text, centred on the box.
+      const content = previewLabelContentSize(node);
+      rects.push({
+        x: box.x + box.width / 2 - content.width / 2 - ATTACHED_LABEL_GAP_X,
+        y: box.y + box.height / 2 - content.height / 2 - ATTACHED_LABEL_GAP_Y,
+        width: content.width + ATTACHED_LABEL_GAP_X * 2,
+        height: content.height + ATTACHED_LABEL_GAP_Y * 2,
+      });
     }
   }
+  return rects;
+}
 
-  return connectionPathDataWithGaps(points, gaps);
+// Bounding rect for a connection's mask: the line plus its knock-out rects,
+// padded so the white "show everything" backdrop fully covers the stroke.
+export function maskCoverageBounds(points: PreviewPoint[], rects: MaskRect[]): MaskRect {
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  for (const p of points) {
+    minX = Math.min(minX, p.x);
+    minY = Math.min(minY, p.y);
+    maxX = Math.max(maxX, p.x);
+    maxY = Math.max(maxY, p.y);
+  }
+  for (const r of rects) {
+    minX = Math.min(minX, r.x);
+    minY = Math.min(minY, r.y);
+    maxX = Math.max(maxX, r.x + r.width);
+    maxY = Math.max(maxY, r.y + r.height);
+  }
+  const pad = 32;
+  return { x: minX - pad, y: minY - pad, width: maxX - minX + pad * 2, height: maxY - minY + pad * 2 };
 }
 
 function resolvePreviewTheme(
@@ -675,7 +546,7 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
 
       if (isZoomGesture) {
         const delta = -event.deltaY * 0.01;
-        setZoom((value) => Math.min(2, Math.max(0.65, Number((value + delta).toFixed(2)))));
+        setZoom((value) => Math.min(3, Math.max(0.65, Number((value + delta).toFixed(2)))));
         return;
       }
 
@@ -721,20 +592,18 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
       markerSize: connection.props.arrowSize,
     });
     const shaftPoints = applyConnectionMarkerInsets(markerCarrierPoints, connection.props);
-    const hasAttachedLabelNode = state.nodes.some(
-      (node) => node.attachedConnectionId === connection.id && node.componentId === 'label',
+    const shaftPath = edgeLinePathData(edge, {
+      trimForMarkers: true,
+      markerSize: connection.props.arrowSize,
+    });
+    // Attached label / icon-label nodes knock the stroke out via an SVG mask
+    // (drawn full, masked where the node sits) rather than by splitting the path.
+    const maskRects = attachedLabelMaskRects(
+      state,
+      connection,
+      (nodeId) => renderedNodeBoxesById.get(nodeId) ?? computeNodeBox(state, nodeId),
     );
-    const shaftPath = hasAttachedLabelNode && !edge.label
-      ? previewConnectionPathData(
-          state,
-          connection,
-          shaftPoints,
-          (nodeId) => renderedNodeBoxesById.get(nodeId) ?? computeNodeBox(state, nodeId),
-        )
-      : edgeLinePathData(edge, {
-          trimForMarkers: true,
-          markerSize: connection.props.arrowSize,
-        });
+    const maskBounds = maskRects.length ? maskCoverageBounds(shaftPoints, maskRects) : undefined;
     const hitPath = linePathData(edge.points);
     const bridgeMaskPath = edgeBridgeMaskPathData(edge);
     const hasMarkers =
@@ -755,6 +624,8 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
       edge,
       shaftPoints,
       shaftPath,
+      maskRects,
+      maskBounds,
       hitPath,
       bridgeMaskPath,
       markerCarrierPath,
@@ -891,7 +762,8 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
           subtitle: '',
           iconName: parsed.fullName,
           // Icons sitting on a line read better small; standalone icons stay large.
-          size: isLabelIcon ? 'sm' : 'lg',
+          size: isLabelIcon ? DROPPED_LABEL_ICON_SIZE : 'lg',
+          ...(isLabelIcon ? { titleFontSize: 28 } : {}),
         };
         componentId = isLabelIcon ? 'labelIcon' : 'icon';
       } catch {
@@ -927,13 +799,27 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
       : componentId === 'app' ? APP_SIZE_PRESETS.lg
       : componentId === 'document' ? DOCUMENT_SIZE_PRESETS.lg
       : componentId === 'icon' ? APP_SIZE_PRESETS.lg
-      : componentId === 'labelIcon' ? LABEL_ICON_SIZE_PRESETS.sm
+      : componentId === 'labelIcon' ? DROPPED_LABEL_ICON_SIZE
       : componentId === 'box' ? { width: 140, height: 37 }
       : { width: 176, height: 72 };
-    onStateChange(addCatalogItemToCanvas(dropState, componentId, {
+    let nextState = addCatalogItemToCanvas(dropState, componentId, {
       x: Math.max(16, point.x - dropSize.width / 2),
       y: Math.max(16, point.y - dropSize.height / 2),
-    }, props));
+    }, props);
+    // Pin the icon to whichever end of the line it was dropped near, so moving
+    // the connected boxes later never flips it to the other side.
+    if (componentId === 'labelIcon') {
+      const newNode = nextState.selected?.kind === 'node'
+        ? nextState.nodes.find((node) => node.id === nextState.selected!.id)
+        : undefined;
+      if (newNode?.attachedConnectionId) {
+        const end = connectionLabelIconEnd(nextState, newNode.attachedConnectionId, point);
+        if (end) {
+          nextState = setNodeAttachedEnd(nextState, newNode.id, end);
+        }
+      }
+    }
+    onStateChange(nextState);
     if (iconPayload) {
       onIconDrop?.();
     }
@@ -1046,11 +932,20 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
       );
       return;
     }
-    onStateChange(
-      dragTarget.kind === 'node'
-        ? setNodePosition(state, dragTarget.id, position)
-        : setGroupPosition(state, dragTarget.id, position),
-    );
+    if (dragTarget.kind === 'node') {
+      let next = setNodePosition(state, dragTarget.id, position);
+      // Dragging an on-line icon past the midpoint re-pins it to the nearer end.
+      const dragged = state.nodes.find((node) => node.id === dragTarget.id);
+      if (dragged?.componentId === 'labelIcon' && dragged.attachedConnectionId) {
+        const end = connectionLabelIconEnd(next, dragged.attachedConnectionId, point);
+        if (end) {
+          next = setNodeAttachedEnd(next, dragTarget.id, end);
+        }
+      }
+      onStateChange(next);
+      return;
+    }
+    onStateChange(setGroupPosition(state, dragTarget.id, position));
   };
 
   const beginDrag = (
@@ -1215,7 +1110,7 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
   };
 
   const changeZoom = (delta: number) => {
-    setZoom((value) => Math.min(2, Math.max(0.65, Number((value + delta).toFixed(2)))));
+    setZoom((value) => Math.min(3, Math.max(0.65, Number((value + delta).toFixed(2)))));
   };
 
   return (
@@ -1339,18 +1234,40 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
         })}
         <AttachmentOverlay slots={slots} boxes={boxes} showLabels={false} />
         <g id="preview-edge-shafts">
-          {renderedConnections.map(({ connection, shaftPoints, shaftPath, connectionStrokeColor }) => (
-            <Line
-              key={`shaft-${connection.id}`}
-              points={shaftPoints}
-              pathData={shaftPath}
-              lineStyle={connection.props.lineStyle}
-              strokeColor={connectionStrokeColor}
-              strokeWidth={connection.props.strokeWidth}
-              startMarker="none"
-              endMarker="none"
-            />
-          ))}
+          {renderedConnections.map(({ connection, shaftPoints, shaftPath, connectionStrokeColor, maskRects, maskBounds }) => {
+            const maskId = `shaft-mask-${connection.id}`;
+            return (
+              <g key={`shaft-${connection.id}`}>
+                {maskBounds ? (
+                  <mask
+                    id={maskId}
+                    maskUnits="userSpaceOnUse"
+                    maskContentUnits="userSpaceOnUse"
+                    x={maskBounds.x}
+                    y={maskBounds.y}
+                    width={maskBounds.width}
+                    height={maskBounds.height}
+                  >
+                    <rect x={maskBounds.x} y={maskBounds.y} width={maskBounds.width} height={maskBounds.height} fill="white" />
+                    {maskRects.map((rect, index) => (
+                      <rect key={index} x={rect.x} y={rect.y} width={rect.width} height={rect.height} fill="black" />
+                    ))}
+                  </mask>
+                ) : null}
+                <g mask={maskBounds ? `url(#${maskId})` : undefined}>
+                  <Line
+                    points={shaftPoints}
+                    pathData={shaftPath}
+                    lineStyle={connection.props.lineStyle}
+                    strokeColor={connectionStrokeColor}
+                    strokeWidth={connection.props.strokeWidth}
+                    startMarker="none"
+                    endMarker="none"
+                  />
+                </g>
+              </g>
+            );
+          })}
         </g>
         <g id="preview-edge-markers">
           {renderedConnections.map(({ connection, hasMarkers, markerCarrierPath }) => (

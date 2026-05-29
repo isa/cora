@@ -144,14 +144,10 @@ export function previewNodeSize(node: CanvasNode): { width: number; height: numb
     if (node.props.iconType) {
       return base;
     }
-    const ratio = iconNodeScale(base);
-    const iconSize = ICON_NODE_ART_SIZE * ratio;
-    const textWidth = Math.max(120, base.width * 2.5);
-    const textHeight = hasText
-      ? wrappedTextHeight(node, textWidth, titleFontSize * ratio, subtitleFontSize * ratio)
-      : 0;
-    const requiredHeight = hasText ? 2 * ratio + iconSize + 4 * ratio + textHeight : base.height;
-    return { width: base.width, height: Math.max(base.height, Math.ceil(requiredHeight)) };
+    return {
+      width: base.width,
+      height: Math.max(base.height, previewLabelIconContentHeight(node)),
+    };
   }
 
   if (node.componentId === 'app' || node.componentId === 'database') {
@@ -207,6 +203,33 @@ export function previewNodeSize(node: CanvasNode): { width: number; height: numb
 }
 
 /**
+ * Intrinsic height of an icon-label node's *visible* content (icon + text below
+ * it), top-aligned within the node box. The node box height is clamped up to the
+ * size-preset minimum, which can leave dead space below the content; gapping the
+ * connection line should track this tight content height, not the padded box.
+ */
+export function previewLabelIconContentHeight(node: CanvasNode): number {
+  const base = previewBaseSize(node);
+  if (node.props.iconType) {
+    return base.height;
+  }
+  const ratio = iconNodeScale(base);
+  const iconSize = ICON_NODE_ART_SIZE * ratio;
+  const hasText = Boolean(nodeText(node) || nodeSubtitle(node));
+  if (!hasText) {
+    return base.height;
+  }
+  const textWidth = Math.max(120, base.width * 2.5);
+  const textHeight = wrappedTextHeight(
+    node,
+    textWidth,
+    nodeTitleFontSize(node) * ratio,
+    nodeSubtitleFontSize(node) * ratio,
+  );
+  return Math.ceil(2 * ratio + iconSize + 4 * ratio + textHeight);
+}
+
+/**
  * Rendered size of a label node's text (longest wrapped line + wrapped height),
  * as opposed to its fixed box width. Used to tightly gap the connection line
  * around the visible text rather than the whole node box.
@@ -229,29 +252,45 @@ export function computeNodeBox(state: WorkbenchState, nodeId: string): PreviewBo
     return undefined;
   }
   const size = previewNodeSize(node);
+  // For an attached icon-label, where the icon centre sits on the line and how
+  // far the content reaches around it (icon above, text below) — fed to the
+  // anchor maths so the content always clears the line ending.
+  const labelIconLayout = node.componentId === 'labelIcon'
+    ? (() => {
+        const ratio = iconNodeScale(size);
+        const hasText = Boolean((node.props.title ?? node.props.text) || node.props.subtitle);
+        const iconSize = node.props.iconType ? Math.min(size.width, size.height) * 0.62 : ICON_NODE_ART_SIZE * ratio;
+        const iconYOffset = node.props.iconType
+          ? (size.height - iconSize) / 2
+          : hasText
+          ? 2 * ratio
+          : (size.height - iconSize) / 2;
+        const iconCenterYOffset = iconYOffset + iconSize / 2;
+        const contentHeight = node.props.iconType ? size.height : previewLabelIconContentHeight(node);
+        return {
+          iconCenterYOffset,
+          extents: {
+            halfWidth: size.width / 2,
+            up: iconCenterYOffset,
+            down: Math.max(0, contentHeight - iconCenterYOffset),
+          },
+        };
+      })()
+    : undefined;
   const attachedCenter = node.attachedConnectionId
     ? node.componentId === 'labelIcon'
       ? computeConnectionLabelIconCenter(state, node.attachedConnectionId, size, {
           x: node.position.x + size.width / 2,
           y: node.position.y + size.height / 2,
-        })
+        }, node.attachedEnd, labelIconLayout!.extents)
       : computeConnectionCenter(state, node.attachedConnectionId)
     : undefined;
   let position = node.position;
   if (attachedCenter) {
     if (node.componentId === 'labelIcon') {
-      const ratio = iconNodeScale(size);
-      const hasText = Boolean((node.props.title ?? node.props.text) || node.props.subtitle);
-      const iconSize = node.props.iconType ? Math.min(size.width, size.height) * 0.62 : ICON_NODE_ART_SIZE * ratio;
-      const iconYOffset = node.props.iconType
-        ? (size.height - iconSize) / 2
-        : hasText
-        ? 2 * ratio
-        : (size.height - iconSize) / 2;
-      const iconCenterYOffset = iconYOffset + iconSize / 2;
       position = {
         x: attachedCenter.x - size.width / 2,
-        y: attachedCenter.y - iconCenterYOffset,
+        y: attachedCenter.y - labelIconLayout!.iconCenterYOffset,
       };
     } else {
       position = {
@@ -542,32 +581,81 @@ export function computeConnectionCenter(
 // own size, so resizing scales it in place rather than sliding it.
 const LABEL_ICON_LINE_OFFSET = 40;
 
+// Decide which end of a connection a point is nearer to. Used once when an icon
+// is placed/dragged; the result is persisted so later box moves can't flip it.
+export function connectionLabelIconEnd(
+  state: WorkbenchState,
+  connectionId: string,
+  point: { x: number; y: number },
+): 'source' | 'target' | undefined {
+  const connection = state.connections.find((item) => item.id === connectionId);
+  if (!connection) {
+    return undefined;
+  }
+  const points = computeConnectionPoints(state, connection);
+  if (points.length < 2) {
+    return 'source';
+  }
+  const source = points[0]!;
+  const target = points[points.length - 1]!;
+  const sourceDistance = Math.hypot(point.x - source.x, point.y - source.y);
+  const targetDistance = Math.hypot(point.x - target.x, point.y - target.y);
+  return targetDistance < sourceDistance ? 'target' : 'source';
+}
+
+// Room reserved between the node's content and the line ending so the shaft and
+// its arrow head always stay visible past the label/icon.
+const LABEL_ICON_END_CLEARANCE = 18;
+
+// How far the node's content reaches from the icon centre toward `dir` (a unit
+// vector along the terminal segment, pointing at the endpoint). The icon sits at
+// the top of the box and the text below it, so the up/down reach differ.
+function contentReachTowardEndpoint(
+  dir: { x: number; y: number },
+  extents: { halfWidth: number; up: number; down: number },
+): number {
+  const vertical = dir.y >= 0 ? extents.down : extents.up;
+  return Math.abs(dir.x) * extents.halfWidth + Math.abs(dir.y) * vertical;
+}
+
 export function computeConnectionLabelIconCenter(
   state: WorkbenchState,
   connectionId: string,
   size: { width: number; height: number } = { width: 40, height: 40 },
   preferredPoint?: { x: number; y: number },
+  end?: 'source' | 'target',
+  // The node's content reach from the icon centre: half its width, and how far
+  // the content extends above (icon) and below (text) the icon centre.
+  extents?: { halfWidth: number; up: number; down: number },
 ): { x: number; y: number } | undefined {
   const connection = state.connections.find((item) => item.id === connectionId);
   if (!connection) {
     return undefined;
   }
   const points = computeConnectionPoints(state, connection);
-  // Anchor the icon a fixed distance along the line — independent of its size —
-  // so resizing scales it in place instead of sliding it along the connection.
   void size;
-  const distance = LABEL_ICON_LINE_OFFSET;
-  if (preferredPoint && points.length > 1) {
-    const source = points[0]!;
-    const target = points[points.length - 1]!;
-    const sourceDistance = Math.hypot(preferredPoint.x - source.x, preferredPoint.y - source.y);
-    const targetDistance = Math.hypot(preferredPoint.x - target.x, preferredPoint.y - target.y);
-    return targetDistance < sourceDistance
-      ? pointAlongPath([...points].reverse(), distance)
-      : pointAlongPath(points, distance);
+  // A persisted end wins: it keeps the icon on the same side no matter how the
+  // connected boxes are moved. Fall back to the nearest-end heuristic only when
+  // no end has been recorded yet (e.g. legacy diagrams).
+  const resolvedEnd = end
+    ?? (preferredPoint && points.length > 1
+      ? connectionLabelIconEnd(state, connectionId, preferredPoint)
+      : undefined);
+  const walk = resolvedEnd === 'target' ? [...points].reverse() : points;
+
+  // Anchor a fixed distance from the chosen end, but push the icon further in if
+  // its content (icon + text below) would otherwise reach the endpoint — so the
+  // shaft and arrow head always have room, regardless of size or orientation.
+  let distance = LABEL_ICON_LINE_OFFSET;
+  if (extents && walk.length > 1) {
+    const dx = walk[0]!.x - walk[1]!.x;
+    const dy = walk[0]!.y - walk[1]!.y;
+    const len = Math.hypot(dx, dy) || 1;
+    const reach = contentReachTowardEndpoint({ x: dx / len, y: dy / len }, extents);
+    distance = Math.max(distance, reach + LABEL_ICON_END_CLEARANCE);
   }
 
-  return pointAlongPath(points, distance);
+  return pointAlongPath(walk, distance);
 }
 
 function pointAlongPath(
