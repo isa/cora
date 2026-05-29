@@ -32,7 +32,7 @@
   ],
   "scripts": {
     "generate:icon-index": "node scripts/generate-icon-index.mjs",
-    "build": "tsdown && vite build src/preview --base ./ --outDir ../../dist/preview --emptyOutDir false && mkdir -p dist/renderer/assets && cp -r src/renderer/assets/fonts dist/renderer/assets/",
+    "build": "tsdown && vite build src/preview --base ./ --outDir ../../preview-dist --emptyOutDir && mkdir -p dist/renderer/assets && cp -r src/renderer/assets/fonts dist/renderer/assets/",
     "cora": "node dist/cli.js",
     "dev": "tsdown --watch",
     "prepack": "cp ../../SKILL.md SKILL.md",
@@ -60,7 +60,6 @@
     "playwright": "^1.60.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "vite": "^8.0.14",
     "web-worker": "^1.5.0",
     "yaml": "^2.7.0"
   },
@@ -73,6 +72,7 @@
     "pdf-parse": "^2.4.5",
     "tsdown": "^0.22.0",
     "typescript": "^5.8.3",
+    "vite": "^8.0.14",
     "vitest": "^4.1.7"
   }
 }

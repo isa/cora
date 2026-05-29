@@ -1,0 +1,1308 @@
+{
+  "nodes": [
+    {
+      "id": "3_3_04_plan_3_3_04_plan",
+      "label": "Phase 3.3 Plan 04: Preview Packaging And Docs",
+      "file_type": "rationale",
+      "source_file": ".planning/phases/3.3-component-preview-canvas/3.3-04-PLAN.md"
+    },
+    {
+      "id": "requirements_prev_01",
+      "label": "PREV-01: cora preview CLI command",
+      "file_type": "concept",
+      "source_file": ".planning/REQUIREMENTS.md"
+    },
+    {
+      "id": "requirements_prev_02",
+      "label": "PREV-02: Built-in pack manifest",
+      "file_type": "concept",
+      "source_file": ".planning/REQUIREMENTS.md"
+    },
+    {
+      "id": "requirements_prev_03",
+      "label": "PREV-03: Two-node workbench scenarios",
+      "file_type": "concept",
+      "source_file": ".planning/REQUIREMENTS.md"
+    },
+    {
+      "id": "requirements_prev_04",
+      "label": "PREV-04: Typed prop controls",
+      "file_type": "concept",
+      "source_file": ".planning/REQUIREMENTS.md"
+    },
+    {
+      "id": "requirements_prev_05",
+      "label": "PREV-05: Attachment overlay",
+      "file_type": "concept",
+      "source_file": ".planning/REQUIREMENTS.md"
+    },
+    {
+      "id": "requirements_prev_06",
+      "label": "PREV-06: No YAML persistence",
+      "file_type": "concept",
+      "source_file": ".planning/REQUIREMENTS.md"
+    },
+    {
+      "id": "package_json_cora",
+      "label": "cora package.json",
+      "file_type": "code",
+      "source_file": "packages/cora/package.json"
+    },
+    {
+      "id": "tsdown_config_cora",
+      "label": "tsdown.config.ts",
+      "file_type": "code",
+      "source_file": "packages/cora/tsdown.config.ts"
+    },
+    {
+      "id": "clean_install_sh",
+      "label": "clean-install.sh",
+      "file_type": "code",
+      "source_file": "packages/cora/tests/smoke/clean-install.sh"
+    },
+    {
+      "id": "package_test_ts",
+      "label": "package.test.ts",
+      "file_type": "code",
+      "source_file": "packages/cora/tests/preview/package.test.ts"
+    },
+    {
+      "id": "agents_md",
+      "label": "AGENTS.md",
+      "file_type": "document",
+      "source_file": "AGENTS.md"
+    },
+    {
+      "id": "readme_md",
+      "label": "README.md",
+      "file_type": "document",
+      "source_file": "README.md"
+    },
+    {
+      "id": "3_3_ui_spec_3_3_ui_spec",
+      "label": "Phase 3.3 UI Design Contract",
+      "file_type": "document",
+      "source_file": ".planning/phases/3.3-component-preview-canvas/3.3-UI-SPEC.md"
+    },
+    {
+      "id": "3_3_context_3_3_context",
+      "label": "Phase 3.3 Context",
+      "file_type": "document",
+      "source_file": ".planning/phases/3.3-component-preview-canvas/3.3-CONTEXT.md"
+    },
+    {
+      "id": "3_3_security_3_3_security",
+      "label": "Phase 3.3 Security",
+      "file_type": "document",
+      "source_file": ".planning/phases/3.3-component-preview-canvas/3.3-SECURITY.md"
+    },
+    {
+      "id": "03_5_02_plan_catalogsidebar",
+      "label": "CatalogSidebar.tsx",
+      "file_type": "code",
+      "source_file": "packages/cora/src/preview/components/CatalogSidebar.tsx",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "03_5_02_plan_nodeproppanel",
+      "label": "NodePropPanel.tsx",
+      "file_type": "code",
+      "source_file": "packages/cora/src/preview/components/NodePropPanel.tsx",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "03_5_02_plan_connectionpanel",
+      "label": "ConnectionPanel.tsx",
+      "file_type": "code",
+      "source_file": "packages/cora/src/preview/components/ConnectionPanel.tsx",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "03_5_02_plan_grouppanel",
+      "label": "GroupPanel.tsx",
+      "file_type": "code",
+      "source_file": "packages/cora/src/preview/components/GroupPanel.tsx",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "03_5_02_plan_controlinput",
+      "label": "ControlInput.tsx",
+      "file_type": "code",
+      "source_file": "packages/cora/src/preview/components/ControlInput.tsx",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "03_5_02_plan_styles",
+      "label": "styles.css",
+      "file_type": "code",
+      "source_file": "packages/cora/src/preview/styles.css",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "03_5_02_plan_workbench_test",
+      "label": "workbench.test.tsx",
+      "file_type": "code",
+      "source_file": "packages/cora/tests/preview/workbench.test.tsx",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "03_5_02_plan_visual_beauty_plan",
+      "label": "Phase 3.5 Plan 02",
+      "file_type": "rationale",
+      "source_file": "packages/cora/.planning/phases/3.5-preview-visual-beauty/03.5-02-PLAN.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "03_5_02_plan_ui_spec",
+      "label": "UI Design Contract",
+      "file_type": "document",
+      "source_file": "packages/cora/.planning/phases/3.5-preview-visual-beauty/03.5-UI-SPEC.md",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "02_03_plan_phase",
+      "label": "Phase 02: Renderer SVG Export",
+      "file_type": "document",
+      "source_file": "packages/cora/.planning/phases/02-renderer-svg-export/02-03-PLAN.md"
+    },
+    {
+      "id": "themeresolver_resolvetheme",
+      "label": "resolveTheme",
+      "file_type": "code",
+      "source_file": "packages/cora/src/core/themeResolver.ts"
+    },
+    {
+      "id": "default_defaulttheme",
+      "label": "defaultTheme",
+      "file_type": "code",
+      "source_file": "packages/cora/src/renderer/themes/default.ts"
+    },
+    {
+      "id": "viewbox_viewbox",
+      "label": "viewBox helper",
+      "file_type": "code",
+      "source_file": "packages/cora/src/renderer/viewBox.ts"
+    },
+    {
+      "id": "diagram_diagram",
+      "label": "Diagram Component",
+      "file_type": "code",
+      "source_file": "packages/cora/src/renderer/Diagram.tsx"
+    },
+    {
+      "id": "cylindernode_cylindernode",
+      "label": "CylinderNode",
+      "file_type": "code",
+      "source_file": "packages/cora/src/renderer/nodes/CylinderNode.tsx"
+    },
+    {
+      "id": "group_group",
+      "label": "Group Component",
+      "file_type": "code",
+      "source_file": "packages/cora/src/renderer/groups/Group.tsx"
+    },
+    {
+      "id": "arrow_arrow",
+      "label": "Arrow Component",
+      "file_type": "code",
+      "source_file": "packages/cora/src/renderer/edges/Arrow.tsx"
+    },
+    {
+      "id": "rendertosvg_rendertosvg",
+      "label": "renderToSVG",
+      "file_type": "code",
+      "source_file": "packages/cora/src/renderer/renderToSVG.ts"
+    },
+    {
+      "id": "render_rendercommand",
+      "label": "render command",
+      "file_type": "code",
+      "source_file": "packages/cora/src/cli/commands/render.ts"
+    },
+    {
+      "id": "02_02_plan_phase",
+      "label": "Phase 02 Plan 02",
+      "file_type": "document",
+      "source_file": "packages/cora/.planning/phases/02-renderer-svg-export/02-02-PLAN.md"
+    },
+    {
+      "id": "layout_computelayout",
+      "label": "computeLayout",
+      "file_type": "code",
+      "source_file": "packages/cora/src/core/layout.ts"
+    },
+    {
+      "id": "layoutworker_runelklayout",
+      "label": "runElkLayout",
+      "file_type": "code",
+      "source_file": "packages/cora/src/core/layoutWorker.ts"
+    },
+    {
+      "id": "03_03_summary_phase",
+      "label": "Phase 03 Plan 03 Summary",
+      "file_type": "document",
+      "source_file": "packages/cora/.planning/phases/03-pdf-export/03-03-SUMMARY.md"
+    },
+    {
+      "id": "playwrightinstall_installchromium",
+      "label": "installChromium",
+      "file_type": "code",
+      "source_file": "packages/cora/src/cli/playwrightInstall.ts"
+    },
+    {
+      "id": "rendertopdfhighquality_rendertopdfhighquality",
+      "label": "renderToPDFHighQuality",
+      "file_type": "code",
+      "source_file": "packages/cora/src/renderer/renderToPDFHighQuality.ts"
+    },
+    {
+      "id": "03_6_03_summary_phase",
+      "label": "Phase 3.6 Plan 03 Summary",
+      "file_type": "document",
+      "source_file": "packages/cora/.planning/phases/03.6-default-component-look-lockdown-inserted/03.6-03-SUMMARY.md"
+    },
+    {
+      "id": "componentdefaults_catalogdefaultprops",
+      "label": "catalogDefaultProps",
+      "file_type": "code",
+      "source_file": "packages/cora/src/renderer/themes/componentDefaults.ts"
+    },
+    {
+      "id": "cora_validate",
+      "label": "cora validate",
+      "file_type": "code",
+      "source_file": "packages/cora/src/cli/commands/validate.ts",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "cora_render",
+      "label": "cora render",
+      "file_type": "code",
+      "source_file": "packages/cora/src/cli/commands/render.ts",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "cora_preview",
+      "label": "cora preview",
+      "file_type": "code",
+      "source_file": "packages/cora/src/cli/commands/preview.ts",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "cora_schema",
+      "label": "cora schema",
+      "file_type": "code",
+      "source_file": "packages/cora/src/cli/commands/schema.ts",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "core_validator",
+      "label": "Validator",
+      "file_type": "code",
+      "source_file": "packages/cora/src/core/validator.ts",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "core_layout",
+      "label": "ELK Layout Engine",
+      "file_type": "code",
+      "source_file": "packages/cora/src/core/layout.ts",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "renderer_svg",
+      "label": "SVG Renderer",
+      "file_type": "code",
+      "source_file": "packages/cora/src/renderer/renderToSVG.tsx",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "renderer_pdf",
+      "label": "PDF Exporter",
+      "file_type": "code",
+      "source_file": "packages/cora/src/renderer/renderToPDF.ts",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "renderer_text",
+      "label": "Text Renderer",
+      "file_type": "code",
+      "source_file": "packages/cora/src/renderer/renderToText.ts",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "preview_workbench",
+      "label": "Preview Workbench",
+      "file_type": "code",
+      "source_file": "packages/cora/src/preview/App.tsx",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "component_defaults",
+      "label": "catalogDefaultProps",
+      "file_type": "code",
+      "source_file": "packages/cora/src/renderer/themes/componentDefaults.ts",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "diagram_schema",
+      "label": "v1 JSON Schema",
+      "file_type": "document",
+      "source_file": "packages/cora/src/core/schema/diagram.schema.json",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "03_6_04_plan_look_06",
+      "label": "LOOK-06: Golden Stability",
+      "file_type": "rationale",
+      "source_file": ".planning/phases/03.6-default-component-look-lockdown-inserted/03.6-04-PLAN.md"
+    },
+    {
+      "id": "03_6_04_plan_look_07",
+      "label": "LOOK-07: Default Look Documentation",
+      "file_type": "rationale",
+      "source_file": ".planning/phases/03.6-default-component-look-lockdown-inserted/03.6-04-PLAN.md"
+    },
+    {
+      "id": "03_6_04_plan_d_13",
+      "label": "D-13: Intentional Golden Refresh",
+      "file_type": "rationale",
+      "source_file": ".planning/phases/03.6-default-component-look-lockdown-inserted/03.6-04-PLAN.md"
+    },
+    {
+      "id": "agents_md",
+      "label": "AGENTS.md",
+      "file_type": "document",
+      "source_file": "AGENTS.md"
+    },
+    {
+      "id": "box_arrows_svg",
+      "label": "box-arrows.svg",
+      "file_type": "image",
+      "source_file": "packages/cora/tests/golden/box-arrows.svg"
+    },
+    {
+      "id": "flowchart_svg",
+      "label": "flowchart.svg",
+      "file_type": "image",
+      "source_file": "packages/cora/tests/golden/flowchart.svg"
+    },
+    {
+      "id": "microservice_svg",
+      "label": "microservice.svg",
+      "file_type": "image",
+      "source_file": "packages/cora/tests/golden/microservice.svg"
+    },
+    {
+      "id": "infra_svg",
+      "label": "infra.svg",
+      "file_type": "image",
+      "source_file": "packages/cora/tests/golden/infra.svg"
+    },
+    {
+      "id": "database_svg",
+      "label": "database.svg",
+      "file_type": "image",
+      "source_file": "packages/cora/tests/golden/database.svg"
+    },
+    {
+      "id": "render_golden_mjs",
+      "label": "render-golden.mjs",
+      "file_type": "code",
+      "source_file": "packages/cora/tests/render-golden.mjs"
+    },
+    {
+      "id": "text_test_ts",
+      "label": "text.test.ts",
+      "file_type": "code",
+      "source_file": "packages/cora/tests/renderer/text.test.ts"
+    },
+    {
+      "id": "render_pdf_test_ts",
+      "label": "render-pdf.test.ts",
+      "file_type": "code",
+      "source_file": "packages/cora/tests/pdf/render-pdf.test.ts"
+    },
+    {
+      "id": "component_defaults_ts",
+      "label": "componentDefaults.ts",
+      "file_type": "code",
+      "source_file": "packages/cora/src/renderer/themes/componentDefaults.ts"
+    },
+    {
+      "id": "microservice_api_gateway",
+      "label": "API Gateway",
+      "file_type": "rationale",
+      "source_file": "packages/cora/tests/golden/microservice.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "microservice_web_bff",
+      "label": "Web BFF",
+      "file_type": "rationale",
+      "source_file": "packages/cora/tests/golden/microservice.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "microservice_mobile_bff",
+      "label": "Mobile BFF",
+      "file_type": "rationale",
+      "source_file": "packages/cora/tests/golden/microservice.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "microservice_auth_service",
+      "label": "Auth Service",
+      "file_type": "rationale",
+      "source_file": "packages/cora/tests/golden/microservice.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "microservice_catalog_service",
+      "label": "Catalog Service",
+      "file_type": "rationale",
+      "source_file": "packages/cora/tests/golden/microservice.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "microservice_orders_service",
+      "label": "Orders Service",
+      "file_type": "rationale",
+      "source_file": "packages/cora/tests/golden/microservice.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "database_application",
+      "label": "Application",
+      "file_type": "rationale",
+      "source_file": "packages/cora/tests/golden/database.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "database_redis",
+      "label": "Redis",
+      "file_type": "rationale",
+      "source_file": "packages/cora/tests/golden/database.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "database_postgresql_primary",
+      "label": "PostgreSQL Primary",
+      "file_type": "rationale",
+      "source_file": "packages/cora/tests/golden/database.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "database_postgresql_replica",
+      "label": "PostgreSQL Replica",
+      "file_type": "rationale",
+      "source_file": "packages/cora/tests/golden/database.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "infra_global_dns",
+      "label": "Global DNS",
+      "file_type": "rationale",
+      "source_file": "packages/cora/tests/golden/infra.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "infra_vpc_east",
+      "label": "VPC East",
+      "file_type": "rationale",
+      "source_file": "packages/cora/tests/golden/infra.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "infra_compute_east",
+      "label": "Compute East",
+      "file_type": "rationale",
+      "source_file": "packages/cora/tests/golden/infra.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "box_arrows_browser_client",
+      "label": "Browser Client",
+      "file_type": "rationale",
+      "source_file": "packages/cora/tests/golden/box-arrows.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "box_arrows_edge_proxy",
+      "label": "Edge Proxy",
+      "file_type": "rationale",
+      "source_file": "packages/cora/tests/golden/box-arrows.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "box_arrows_api_server",
+      "label": "API Server",
+      "file_type": "rationale",
+      "source_file": "packages/cora/tests/golden/box-arrows.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "flowchart_start",
+      "label": "Start",
+      "file_type": "rationale",
+      "source_file": "packages/cora/tests/golden/flowchart.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "flowchart_load_config",
+      "label": "Load Config",
+      "file_type": "rationale",
+      "source_file": "packages/cora/tests/golden/flowchart.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    },
+    {
+      "id": "flowchart_valid",
+      "label": "Valid?",
+      "file_type": "rationale",
+      "source_file": "packages/cora/tests/golden/flowchart.svg",
+      "source_location": null,
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null
+    }
+  ],
+  "edges": [
+    {
+      "source": "3_3_04_plan_3_3_04_plan",
+      "target": "requirements_prev_01",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".planning/phases/3.3-component-preview-canvas/3.3-04-PLAN.md"
+    },
+    {
+      "source": "3_3_04_plan_3_3_04_plan",
+      "target": "package_test_ts",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".planning/phases/3.3-component-preview-canvas/3.3-04-PLAN.md"
+    },
+    {
+      "source": "3_3_04_plan_3_3_04_plan",
+      "target": "clean_install_sh",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".planning/phases/3.3-component-preview-canvas/3.3-04-PLAN.md"
+    },
+    {
+      "source": "3_3_04_plan_3_3_04_plan",
+      "target": "agents_md",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".planning/phases/3.3-component-preview-canvas/3.3-04-PLAN.md"
+    },
+    {
+      "source": "3_3_04_plan_3_3_04_plan",
+      "target": "readme_md",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".planning/phases/3.3-component-preview-canvas/3.3-04-PLAN.md"
+    },
+    {
+      "source": "package_test_ts",
+      "target": "package_json_cora",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "source_file": "packages/cora/tests/preview/package.test.ts"
+    },
+    {
+      "source": "clean_install_sh",
+      "target": "package_json_cora",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "source_file": "packages/cora/tests/smoke/clean-install.sh"
+    },
+    {
+      "source": "3_3_04_plan_3_3_04_plan",
+      "target": "3_3_ui_spec_3_3_ui_spec",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".planning/phases/3.3-component-preview-canvas/3.3-04-PLAN.md"
+    },
+    {
+      "source": "3_3_04_plan_3_3_04_plan",
+      "target": "3_3_context_3_3_context",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".planning/phases/3.3-component-preview-canvas/3.3-04-PLAN.md"
+    },
+    {
+      "source": "3_3_04_plan_3_3_04_plan",
+      "target": "3_3_security_3_3_security",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": ".planning/phases/3.3-component-preview-canvas/3.3-04-PLAN.md"
+    },
+    {
+      "source": "03_5_02_plan_visual_beauty_plan",
+      "target": "03_5_02_plan_catalogsidebar",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/.planning/phases/3.5-preview-visual-beauty/03.5-02-PLAN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "03_5_02_plan_visual_beauty_plan",
+      "target": "03_5_02_plan_nodeproppanel",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/.planning/phases/3.5-preview-visual-beauty/03.5-02-PLAN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "03_5_02_plan_visual_beauty_plan",
+      "target": "03_5_02_plan_connectionpanel",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/.planning/phases/3.5-preview-visual-beauty/03.5-02-PLAN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "03_5_02_plan_visual_beauty_plan",
+      "target": "03_5_02_plan_grouppanel",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/.planning/phases/3.5-preview-visual-beauty/03.5-02-PLAN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "03_5_02_plan_visual_beauty_plan",
+      "target": "03_5_02_plan_controlinput",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/.planning/phases/3.5-preview-visual-beauty/03.5-02-PLAN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "03_5_02_plan_visual_beauty_plan",
+      "target": "03_5_02_plan_styles",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/.planning/phases/3.5-preview-visual-beauty/03.5-02-PLAN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "03_5_02_plan_visual_beauty_plan",
+      "target": "03_5_02_plan_workbench_test",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/.planning/phases/3.5-preview-visual-beauty/03.5-02-PLAN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "03_5_02_plan_visual_beauty_plan",
+      "target": "03_5_02_plan_ui_spec",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/.planning/phases/3.5-preview-visual-beauty/03.5-02-PLAN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "03_5_02_plan_nodeproppanel",
+      "target": "03_5_02_plan_controlinput",
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "source_file": "packages/cora/.planning/phases/3.5-preview-visual-beauty/03.5-02-PLAN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "03_5_02_plan_connectionpanel",
+      "target": "03_5_02_plan_controlinput",
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "source_file": "packages/cora/.planning/phases/3.5-preview-visual-beauty/03.5-02-PLAN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "03_5_02_plan_grouppanel",
+      "target": "03_5_02_plan_controlinput",
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "source_file": "packages/cora/.planning/phases/3.5-preview-visual-beauty/03.5-02-PLAN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "02_03_plan_phase",
+      "target": "02_02_plan_phase",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/.planning/phases/02-renderer-svg-export/02-03-PLAN.md"
+    },
+    {
+      "source": "render_rendercommand",
+      "target": "themeresolver_resolvetheme",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/.planning/phases/02-renderer-svg-export/02-03-PLAN.md"
+    },
+    {
+      "source": "diagram_diagram",
+      "target": "cylindernode_cylindernode",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/.planning/phases/02-renderer-svg-export/02-03-PLAN.md"
+    },
+    {
+      "source": "layout_computelayout",
+      "target": "layoutworker_runelklayout",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/.planning/phases/02-renderer-svg-export/02-02-PLAN.md"
+    },
+    {
+      "source": "render_rendercommand",
+      "target": "layout_computelayout",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/.planning/phases/02-renderer-svg-export/02-02-PLAN.md"
+    },
+    {
+      "source": "03_03_summary_phase",
+      "target": "playwrightinstall_installchromium",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/.planning/phases/03-pdf-export/03-03-SUMMARY.md"
+    },
+    {
+      "source": "03_03_summary_phase",
+      "target": "rendertopdfhighquality_rendertopdfhighquality",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/.planning/phases/03-pdf-export/03-03-SUMMARY.md"
+    },
+    {
+      "source": "03_6_03_summary_phase",
+      "target": "componentdefaults_catalogdefaultprops",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/.planning/phases/03.6-default-component-look-lockdown-inserted/03.6-03-SUMMARY.md"
+    },
+    {
+      "source": "rendertosvg_rendertosvg",
+      "target": "diagram_diagram",
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "source_file": "packages/cora/.planning/phases/02-renderer-svg-export/02-03-PLAN.md"
+    },
+    {
+      "source": "diagram_diagram",
+      "target": "group_group",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/.planning/phases/02-renderer-svg-export/02-03-PLAN.md"
+    },
+    {
+      "source": "diagram_diagram",
+      "target": "arrow_arrow",
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "packages/cora/.planning/phases/02-renderer-svg-export/02-03-PLAN.md"
+    },
+    {
+      "source": "cora_validate",
+      "target": "core_validator",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/src/cli/commands/validate.ts",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "core_validator",
+      "target": "diagram_schema",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/src/core/validator.ts",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cora_render",
+      "target": "core_layout",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/src/cli/commands/render.ts",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cora_render",
+      "target": "renderer_svg",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/src/cli/commands/render.ts",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cora_render",
+      "target": "renderer_pdf",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/src/cli/commands/render.ts",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cora_render",
+      "target": "renderer_text",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/src/cli/commands/render.ts",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cora_preview",
+      "target": "preview_workbench",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/src/cli/commands/preview.ts",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "renderer_svg",
+      "target": "component_defaults",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/src/renderer/renderToSVG.tsx",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "preview_workbench",
+      "target": "component_defaults",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/src/preview/App.tsx",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "cora_schema",
+      "target": "diagram_schema",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/src/cli/commands/schema.ts",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "renderer_pdf",
+      "target": "renderer_svg",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "source_file": "packages/cora/src/renderer/renderToPDF.ts",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "render_golden_mjs",
+      "target": "box_arrows_svg",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/tests/render-golden.mjs"
+    },
+    {
+      "source": "03_6_04_plan_d_13",
+      "target": "box_arrows_svg",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".planning/phases/03.6-default-component-look-lockdown-inserted/03.6-04-PLAN.md"
+    },
+    {
+      "source": "03_6_04_plan_look_07",
+      "target": "agents_md",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".planning/phases/03.6-default-component-look-lockdown-inserted/03.6-04-PLAN.md"
+    },
+    {
+      "source": "agents_md",
+      "target": "component_defaults_ts",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.9,
+      "source_file": "AGENTS.md"
+    },
+    {
+      "source": "text_test_ts",
+      "target": "03_6_04_plan_look_06",
+      "relation": "implements",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "packages/cora/tests/renderer/text.test.ts"
+    },
+    {
+      "source": "render_pdf_test_ts",
+      "target": "03_6_04_plan_look_06",
+      "relation": "implements",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "packages/cora/tests/pdf/render-pdf.test.ts"
+    },
+    {
+      "source": "microservice_api_gateway",
+      "target": "microservice_web_bff",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/tests/golden/microservice.svg",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "microservice_api_gateway",
+      "target": "microservice_mobile_bff",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/tests/golden/microservice.svg",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "microservice_web_bff",
+      "target": "microservice_auth_service",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/tests/golden/microservice.svg",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "microservice_mobile_bff",
+      "target": "microservice_catalog_service",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/tests/golden/microservice.svg",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "database_application",
+      "target": "database_redis",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/tests/golden/database.svg",
+      "source_location": "session lookup",
+      "weight": 1.0
+    },
+    {
+      "source": "database_application",
+      "target": "database_postgresql_primary",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/tests/golden/database.svg",
+      "source_location": "writes",
+      "weight": 1.0
+    },
+    {
+      "source": "database_postgresql_primary",
+      "target": "database_postgresql_replica",
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/tests/golden/database.svg",
+      "source_location": "streaming",
+      "weight": 1.0
+    },
+    {
+      "source": "infra_global_dns",
+      "target": "infra_vpc_east",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/tests/golden/infra.svg",
+      "source_location": "route",
+      "weight": 1.0
+    },
+    {
+      "source": "infra_vpc_east",
+      "target": "infra_compute_east",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/tests/golden/infra.svg",
+      "source_location": "private ingress",
+      "weight": 1.0
+    },
+    {
+      "source": "box_arrows_browser_client",
+      "target": "box_arrows_edge_proxy",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/tests/golden/box-arrows.svg",
+      "source_location": "request",
+      "weight": 1.0
+    },
+    {
+      "source": "box_arrows_edge_proxy",
+      "target": "box_arrows_api_server",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/tests/golden/box-arrows.svg",
+      "source_location": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "box_arrows_api_server",
+      "target": "box_arrows_browser_client",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/tests/golden/box-arrows.svg",
+      "source_location": "response",
+      "weight": 1.0
+    },
+    {
+      "source": "flowchart_start",
+      "target": "flowchart_load_config",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/tests/golden/flowchart.svg",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "flowchart_load_config",
+      "target": "flowchart_valid",
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "packages/cora/tests/golden/flowchart.svg",
+      "source_location": null,
+      "weight": 1.0
+    }
+  ],
+  "hyperedges": [],
+  "input_tokens": 362433,
+  "output_tokens": 13486,
+  "failed_chunks": 0
+}

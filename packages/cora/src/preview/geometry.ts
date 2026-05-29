@@ -13,6 +13,8 @@ import {
   WEBSITE_SIZE_PRESETS,
   LABEL_ICON_SIZE_PRESETS,
   ICON_NODE_ART_SIZE,
+  APP_ICON_VIEW_WIDTH,
+  APP_ICON_VIEW_HEIGHT,
   iconNodeScale,
 } from '../renderer/components/styles.js';
 import { resolveCatalogTextLayout } from '../core/catalogTextLayout.js';
@@ -25,7 +27,7 @@ import {
 } from '../core/connectionAnchors.js';
 import { markerShaftTrim } from '../core/edgeMarkers.js';
 import type { ConnectionProps } from './controls/defaults.js';
-import type { CanvasConnection, CanvasNode, WorkbenchState } from './state.js';
+import type { CanvasConnection, CanvasNode, PreviewPosition, WorkbenchState } from './state.js';
 
 export { chooseConnectionSides, sidePoint };
 export type { Side };
@@ -307,6 +309,156 @@ export function computeNodeBox(state: WorkbenchState, nodeId: string): PreviewBo
   };
 }
 
+function nodeHasLabelText(node: CanvasNode): boolean {
+  return Boolean((node.props.title ?? node.props.text) || node.props.subtitle);
+}
+
+function iconLikeArtCenter(
+  box: PreviewBox,
+  node: CanvasNode,
+  options?: { topPadding?: number; bottomPadding?: number; labelGap?: number },
+): PreviewPoint {
+  const ratio = iconNodeScale(box);
+  const hasText = nodeHasLabelText(node);
+  const titleFontSize = (node.props.titleFontSize ?? 12) * ratio;
+  const subtitleFontSize = (node.props.subtitleFontSize ?? Math.max(8, (node.props.titleFontSize ?? 12) - 2)) * ratio;
+  const textHeight = hasText
+    ? wrappedTextHeight(node, box.width, titleFontSize, subtitleFontSize)
+    : 0;
+  const labelGap = options?.labelGap ?? (hasText ? 8 : 0) * ratio;
+  const topPadding = options?.topPadding ?? (hasText ? 6 : 0) * ratio;
+  const bottomPadding = options?.bottomPadding ?? (hasText ? 6 : 0) * ratio;
+  const artSize = ICON_NODE_ART_SIZE * ratio;
+  const offsetX = box.x + (box.width - artSize) / 2;
+  const offsetY = box.y + topPadding + (box.height - artSize - textHeight - labelGap - topPadding - bottomPadding) / 2;
+  return { x: offsetX + artSize / 2, y: offsetY + artSize / 2 };
+}
+
+/** Resize anchor for center-anchored scaling (icon/device centre, excluding label text). */
+export function nodeResizeCenter(state: WorkbenchState, nodeId: string): PreviewPoint | undefined {
+  const node = state.nodes.find((item) => item.id === nodeId);
+  const box = computeNodeBox(state, nodeId);
+  if (!node || !box) {
+    return undefined;
+  }
+
+  if (node.componentId === 'box' || node.componentId === 'label') {
+    return undefined;
+  }
+
+  if (node.componentId === 'icon') {
+    const ratio = iconNodeScale(box);
+    const iconSize = ICON_NODE_ART_SIZE * ratio;
+    const hasText = nodeHasLabelText(node);
+    const iconY = box.y + (hasText ? 6 * ratio : (box.height - iconSize) / 2);
+    return { x: box.x + box.width / 2, y: iconY + iconSize / 2 };
+  }
+
+  if (node.componentId === 'app') {
+    const ratio = iconNodeScale(box);
+    const scale = (ICON_NODE_ART_SIZE / APP_ICON_VIEW_WIDTH) * ratio;
+    const artWidth = APP_ICON_VIEW_WIDTH * scale;
+    const artHeight = APP_ICON_VIEW_HEIGHT * scale;
+    const hasLabel = nodeHasLabelText(node);
+    const textHeight = hasLabel
+      ? wrappedTextHeight(
+          node,
+          box.width,
+          (node.props.titleFontSize ?? 12) * ratio,
+          (node.props.subtitleFontSize ?? Math.max(8, (node.props.titleFontSize ?? 12) - 2)) * ratio,
+        )
+      : 0;
+    const labelGap = (hasLabel ? 8 : 0) * ratio;
+    const topPadding = (hasLabel ? 6 : 0) * ratio;
+    const bottomPadding = (hasLabel ? 6 : 0) * ratio;
+    const offsetX = box.x + (box.width - artWidth) / 2;
+    const offsetY = box.y + topPadding + (box.height - artHeight - textHeight - labelGap - topPadding - bottomPadding) / 2;
+    return { x: offsetX + artWidth / 2, y: offsetY + artHeight / 2 };
+  }
+
+  if (node.componentId === 'document') {
+    const ratio = Math.min(
+      box.width / DOCUMENT_SIZE_PRESETS.lg.width,
+      box.height / DOCUMENT_SIZE_PRESETS.lg.height,
+    );
+    const hasLabel = nodeHasLabelText(node);
+    const textHeight = hasLabel
+      ? wrappedTextHeight(
+          node,
+          box.width,
+          (node.props.titleFontSize ?? 12) * ratio,
+          (node.props.subtitleFontSize ?? Math.max(8, (node.props.titleFontSize ?? 12) - 2)) * ratio,
+        )
+      : 0;
+    const labelGap = (hasLabel ? 8 : 0) * ratio;
+    const topPadding = 12 * ratio;
+    const bottomPadding = (hasLabel ? 8 : 12) * ratio;
+    const scale = (ICON_NODE_ART_SIZE / 24) * ratio;
+    const artWidth = 24 * scale;
+    const artHeight = 24 * scale;
+    const offsetX = box.x + (box.width - artWidth) / 2;
+    const offsetY = box.y + topPadding + (box.height - artHeight - textHeight - labelGap - topPadding - bottomPadding) / 2;
+    return { x: offsetX + artWidth / 2, y: offsetY + artHeight / 2 };
+  }
+
+  if (node.componentId === 'website') {
+    const hasLabel = nodeHasLabelText(node);
+    const titleFontSize = node.props.titleFontSize ?? 12;
+    const subtitleFontSize = node.props.subtitleFontSize ?? Math.max(8, titleFontSize - 2);
+    const textHeight = hasLabel
+      ? wrappedTextHeight(node, box.width, titleFontSize, subtitleFontSize)
+      : 0;
+    const labelGap = hasLabel ? 8 : 0;
+    const topPadding = hasLabel ? 6 : 0;
+    const bottomPadding = hasLabel ? 6 : 0;
+    const artHeight = Math.max(24, box.height - textHeight - labelGap - topPadding - bottomPadding);
+    const scale = Math.min(box.width / 624, artHeight / 710);
+    const artWidth = 624 * scale;
+    const scaledArtHeight = 710 * scale;
+    const offsetX = box.x + (box.width - artWidth) / 2;
+    const offsetY = box.y + topPadding + (artHeight - scaledArtHeight) / 2;
+    return { x: offsetX + artWidth / 2, y: offsetY + scaledArtHeight / 2 };
+  }
+
+  if (
+    node.componentId === 'api' ||
+    node.componentId === 'database' ||
+    node.componentId === 'labelIcon'
+  ) {
+    return iconLikeArtCenter(box, node);
+  }
+
+  return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+}
+
+/** Position a node so its resize anchor stays fixed after a centre-anchored scale. */
+export function positionForResizeAnchor(
+  state: WorkbenchState,
+  nodeId: string,
+  anchor: PreviewPoint,
+  size: { width: number; height: number },
+): PreviewPosition {
+  const tempState: WorkbenchState = {
+    ...state,
+    nodes: state.nodes.map((item) =>
+      item.id === nodeId
+        ? { ...item, props: { ...item.props, size }, position: { x: 0, y: 0 } }
+        : item,
+    ),
+  };
+  const center = nodeResizeCenter(tempState, nodeId);
+  if (!center) {
+    return {
+      x: Math.round(anchor.x - size.width / 2),
+      y: Math.round(anchor.y - size.height / 2),
+    };
+  }
+  return {
+    x: Math.round(anchor.x - center.x),
+    y: Math.round(anchor.y - center.y),
+  };
+}
+
 function iconVisualBox(state: WorkbenchState, nodeId: string): PreviewBox | undefined {
   const node = state.nodes.find((item) => item.id === nodeId);
   const box = computeNodeBox(state, nodeId);
@@ -336,9 +488,9 @@ function iconVisualBox(state: WorkbenchState, nodeId: string): PreviewBox | unde
   // to the full node bottom so that bottom-exiting lines clear title/subtitle.
   if (node.componentId === 'app') {
     const ratio = iconNodeScale(box);
-    const ARTBOARD = 24;
-    const scale = (ICON_NODE_ART_SIZE / ARTBOARD) * ratio;
-    const artSize = ARTBOARD * scale;
+    const scale = (ICON_NODE_ART_SIZE / APP_ICON_VIEW_WIDTH) * ratio;
+    const artWidth = APP_ICON_VIEW_WIDTH * scale;
+    const artHeight = APP_ICON_VIEW_HEIGHT * scale;
 
     const hasLabel = Boolean((node.props.title ?? node.props.text) || node.props.subtitle);
     const textHeight = hasLabel
@@ -352,14 +504,14 @@ function iconVisualBox(state: WorkbenchState, nodeId: string): PreviewBox | unde
     const labelGap = (hasLabel ? 8 : 0) * ratio;
     const topPadding = (hasLabel ? 6 : 0) * ratio;
     const bottomPadding = (hasLabel ? 6 : 0) * ratio;
-    const offsetY = box.y + topPadding + (box.height - artSize - textHeight - labelGap - topPadding - bottomPadding) / 2;
+    const offsetY = box.y + topPadding + (box.height - artHeight - textHeight - labelGap - topPadding - bottomPadding) / 2;
     const bottomEdge = box.y + box.height;
 
     return {
       id: box.id,
-      x: box.x + (box.width - artSize) / 2,
+      x: box.x + (box.width - artWidth) / 2,
       y: offsetY,
-      width: artSize,
+      width: artWidth,
       height: bottomEdge - offsetY,
     };
   }

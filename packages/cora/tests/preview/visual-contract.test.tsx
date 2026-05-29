@@ -21,6 +21,7 @@ describe('preview visual contract', () => {
     expect(markup).toContain('canvas-toolbar-inner');
     expect(markup).toContain('aria-label="Zoom out"');
     expect(markup).toContain('aria-label="Zoom in"');
+    expect(markup).toContain('aria-label="Auto layout and fit"');
     expect(markup).not.toContain('Create Node');
     expect(markup).toContain('Duplicate');
     expect(markup).toContain('Delete');
@@ -43,7 +44,16 @@ describe('preview visual contract', () => {
     expect(css).toContain('--preview-bg: #f7f9fb');
     expect(css).toContain('--preview-surface: #ffffff');
     expect(css).toContain('--preview-ink: #191c1e');
+    expect(css).toContain('body.dark {');
+    expect(css).toContain('--preview-bg: #09090b');
+    expect(css).toContain('--preview-surface: #18181b');
     expect(css).toContain('linear-gradient');
     expect(css).toContain('prefers-reduced-motion');
+  });
+
+  it('renders the theme toggle control with appropriate labels', () => {
+    const markup = renderToStaticMarkup(<App />);
+    expect(markup).toContain('Light Theme');
+    expect(markup).toContain('Dark Theme');
   });
 });

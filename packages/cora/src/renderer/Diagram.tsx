@@ -13,7 +13,9 @@ import {
   DocumentNode,
   WebsiteNode,
   WarningIcon,
+  BUILTIN_ICON_REGISTRY,
 } from './components/index.js';
+import type { SvgIconComponent } from './components/index.js';
 import { BoxNode } from './components/nodes/BoxNode.js';
 import {
   edgeBridgeMaskPathData,
@@ -28,9 +30,18 @@ export interface DiagramProps {
   diagram: LayoutedDiagram;
 }
 
+function resolveNodeIcon(node: LayoutedNode): SvgIconComponent {
+  if (node.provider === 'default' && node.service) {
+    const icon = BUILTIN_ICON_REGISTRY[node.service];
+    if (icon) return icon;
+  }
+  return iconifyIconForNode(node) ?? WarningIcon;
+}
+
 function renderNode(node: LayoutedNode, diagram: LayoutedDiagram) {
   const component = node.component ?? 'box';
-  const icon = iconifyIconForNode(node) ?? WarningIcon;
+  const icon = resolveNodeIcon(node);
+
   const catalogProps = nodeCatalogProps(
     node,
     diagram.theme.shapes[component] ?? diagram.theme.shapes.box!,

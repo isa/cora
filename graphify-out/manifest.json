@@ -1,0 +1,1577 @@
+{
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/cleanup.js": {
+    "mtime": 1779841535.333968,
+    "ast_hash": "1e3e48392651363aaca48335f4acc42d",
+    "semantic_hash": "1e3e48392651363aaca48335f4acc42d"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/tsconfig.base.json": {
+    "mtime": 1779841536.168055,
+    "ast_hash": "b70cb1416fd1c429ba90e2538eaf87c9",
+    "semantic_hash": "b70cb1416fd1c429ba90e2538eaf87c9"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/turbo.json": {
+    "mtime": 1779841536.168134,
+    "ast_hash": "c8dac89fe6e11411e219cbc83f3990c7",
+    "semantic_hash": "c8dac89fe6e11411e219cbc83f3990c7"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/package.json": {
+    "mtime": 1779841535.3352258,
+    "ast_hash": "905b0516c5fdc5924d41bdfe397860e6",
+    "semantic_hash": "905b0516c5fdc5924d41bdfe397860e6"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/update-render.js": {
+    "mtime": 1779841536.1682272,
+    "ast_hash": "d2bdde508ecda4927841107847993f8d",
+    "semantic_hash": "d2bdde508ecda4927841107847993f8d"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/package.json": {
+    "mtime": 1779842103.4949608,
+    "ast_hash": "c4ae6435b0dd8a8c782ee0933603a83d",
+    "semantic_hash": "c4ae6435b0dd8a8c782ee0933603a83d"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/tsconfig.json": {
+    "mtime": 1779841536.1678371,
+    "ast_hash": "e0a91c6bfcdbc90d3a420a29fdcdb595",
+    "semantic_hash": "e0a91c6bfcdbc90d3a420a29fdcdb595"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/tsdown.config.ts": {
+    "mtime": 1779841536.167901,
+    "ast_hash": "a2fd0462b65a0f684bf532e1f111681b",
+    "semantic_hash": "a2fd0462b65a0f684bf532e1f111681b"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/vitest.config.ts": {
+    "mtime": 1779841536.1679733,
+    "ast_hash": "3b08e9ec8cfa9c39a34b196308a840a4",
+    "semantic_hash": "3b08e9ec8cfa9c39a34b196308a840a4"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/preview-dist/assets/index-Bb5lwMOR.js": {
+    "mtime": 1779841535.3360062,
+    "ast_hash": "7f284e3243f6111c629a877e0003de87",
+    "semantic_hash": "7f284e3243f6111c629a877e0003de87"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/preview-dist/icon-packs/catalog.json": {
+    "mtime": 1779841535.3382494,
+    "ast_hash": "c862fdaf2bc28d0f36935b3e82d0692b",
+    "semantic_hash": "c862fdaf2bc28d0f36935b3e82d0692b"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/preview-dist/icon-packs/default/manifest.agents.json": {
+    "mtime": 1779841535.8433733,
+    "ast_hash": "507d8821589dd057fbfde281a1c83340",
+    "semantic_hash": "507d8821589dd057fbfde281a1c83340"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/preview-dist/icon-packs/default/manifest.json": {
+    "mtime": 1779841535.8444595,
+    "ast_hash": "c0c1f537f2d550c07a53a6f22ed144db",
+    "semantic_hash": "c0c1f537f2d550c07a53a6f22ed144db"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/preview-dist/icon-packs/streamline/manifest.agents.json": {
+    "mtime": 1779841536.1425478,
+    "ast_hash": "a44bfce2f35cbe9b8b58ddb2bafb38a7",
+    "semantic_hash": "a44bfce2f35cbe9b8b58ddb2bafb38a7"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/preview-dist/icon-packs/streamline/manifest.json": {
+    "mtime": 1779841536.1437514,
+    "ast_hash": "7d1f6894644b146824f2e4acbd6421b8",
+    "semantic_hash": "7d1f6894644b146824f2e4acbd6421b8"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/tests/render-golden.mjs": {
+    "mtime": 1779841536.1670976,
+    "ast_hash": "7f32a3651410a7325daf697e513cf4db",
+    "semantic_hash": "7f32a3651410a7325daf697e513cf4db"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/tests/smoke/clean-install.sh": {
+    "mtime": 1779841536.1677647,
+    "ast_hash": "8ed2329f5f71cee74e58c12e61603bf3",
+    "semantic_hash": "8ed2329f5f71cee74e58c12e61603bf3"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/tests/renderer/text.test.ts": {
+    "mtime": 1779993756.725088,
+    "ast_hash": "057609a21ab52d43c502d7ea6807cd48",
+    "semantic_hash": "057609a21ab52d43c502d7ea6807cd48"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/tests/renderer/components.test.tsx": {
+    "mtime": 1780056526.9221034,
+    "ast_hash": "df833010753fa16cead64076f333ec43",
+    "semantic_hash": "df833010753fa16cead64076f333ec43"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/tests/renderer/look-defaults.test.ts": {
+    "mtime": 1779937890.12937,
+    "ast_hash": "1b659c187ad2bbe9f79d035860e895c9",
+    "semantic_hash": "1b659c187ad2bbe9f79d035860e895c9"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/tests/core/iconify.test.ts": {
+    "mtime": 1779842247.625281,
+    "ast_hash": "82a2d1221e2f16a03761cc31c8eae79f",
+    "semantic_hash": "82a2d1221e2f16a03761cc31c8eae79f"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/tests/core/connection-anchors.test.ts": {
+    "mtime": 1780056526.9220657,
+    "ast_hash": "2850249c89ba3f7a4cc1a9c4ace5206c",
+    "semantic_hash": "2850249c89ba3f7a4cc1a9c4ace5206c"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/tests/pdf/chromium-prompt.test.ts": {
+    "mtime": 1779841536.1654518,
+    "ast_hash": "f64b33c21c7cfc2b6f1efd0931cd64f2",
+    "semantic_hash": "f64b33c21c7cfc2b6f1efd0931cd64f2"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/tests/pdf/resvg-warning.test.ts": {
+    "mtime": 1779841536.1657534,
+    "ast_hash": "3a39f7393dd5d26968fea1dbbde557f0",
+    "semantic_hash": "3a39f7393dd5d26968fea1dbbde557f0"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/tests/pdf/render-pdf.test.ts": {
+    "mtime": 1779937890.1136255,
+    "ast_hash": "25cdcd9b68e0a683c67825ef0c820bf0",
+    "semantic_hash": "25cdcd9b68e0a683c67825ef0c820bf0"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/tests/pdf/high-quality.test.ts": {
+    "mtime": 1779841536.1655304,
+    "ast_hash": "03ddfefdf5ee64a4a8d477df38fdb1ce",
+    "semantic_hash": "03ddfefdf5ee64a4a8d477df38fdb1ce"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/tests/pdf/page-size.test.ts": {
+    "mtime": 1779841536.1656,
+    "ast_hash": "797b38446cb5631fb7aaf3f08972ec71",
+    "semantic_hash": "797b38446cb5631fb7aaf3f08972ec71"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/tests/cli/render-text.test.ts": {
+    "mtime": 1779983191.964057,
+    "ast_hash": "a8c1dc70789b11312d291b43fa536e5e",
+    "semantic_hash": "a8c1dc70789b11312d291b43fa536e5e"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/tests/cli/preview.test.ts": {
+    "mtime": 1779841536.1643896,
+    "ast_hash": "682eb0d98282b687300ea5263fedd290",
+    "semantic_hash": "682eb0d98282b687300ea5263fedd290"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/tests/preview/pack.test.tsx": {
+    "mtime": 1779937890.1179879,
+    "ast_hash": "635e5f7c1ebb11a49deb7a245d133561",
+    "semantic_hash": "635e5f7c1ebb11a49deb7a245d133561"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/tests/preview/controls.test.ts": {
+    "mtime": 1780002120.9643497,
+    "ast_hash": "c7e53204f083d2a1dfc74ae85bcae178",
+    "semantic_hash": "c7e53204f083d2a1dfc74ae85bcae178"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/tests/preview/visual-contract.test.tsx": {
+    "mtime": 1779841536.1669395,
+    "ast_hash": "4ef1ee96b93b28fd3755bf7609cb43ba",
+    "semantic_hash": "4ef1ee96b93b28fd3755bf7609cb43ba"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/tests/preview/workbench.test.tsx": {
+    "mtime": 1780020357.9572728,
+    "ast_hash": "00bf2313da2726e50c178131d0406ed9",
+    "semantic_hash": "00bf2313da2726e50c178131d0406ed9"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/tests/preview/persistence.test.ts": {
+    "mtime": 1779983198.1216488,
+    "ast_hash": "150ad77460e70495a696f183d371ca2c",
+    "semantic_hash": "150ad77460e70495a696f183d371ca2c"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/tests/preview/geometry.test.ts": {
+    "mtime": 1780000471.0418606,
+    "ast_hash": "3e6f20340d6d9cfe499509b6baaedf30",
+    "semantic_hash": "3e6f20340d6d9cfe499509b6baaedf30"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/tests/preview/package.test.ts": {
+    "mtime": 1779841536.16655,
+    "ast_hash": "2d4a31fd273326fc8bc9473bd734ca0a",
+    "semantic_hash": "2d4a31fd273326fc8bc9473bd734ca0a"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/tests/preview/state.test.ts": {
+    "mtime": 1779999854.5893722,
+    "ast_hash": "731ad4493fd1d462ca7931e34b40b428",
+    "semantic_hash": "731ad4493fd1d462ca7931e34b40b428"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/tests/preview/look-sync.test.ts": {
+    "mtime": 1779841536.166288,
+    "ast_hash": "ff2d4316c8b1721ce38ce2ab857e1e1e",
+    "semantic_hash": "ff2d4316c8b1721ce38ce2ab857e1e1e"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/tests/preview/server.test.ts": {
+    "mtime": 1779841536.1666234,
+    "ast_hash": "3d144e1a01af40629b47e59a17ff38a1",
+    "semantic_hash": "3d144e1a01af40629b47e59a17ff38a1"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/scripts/generate-icon-index.mjs": {
+    "mtime": 1779841536.1440775,
+    "ast_hash": "03110467b5bcda838d563d39d78ec805",
+    "semantic_hash": "03110467b5bcda838d563d39d78ec805"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/layout-ir.ts": {
+    "mtime": 1779937890.0418057,
+    "ast_hash": "9ff2ef6e2c352047da8417a87ab421d1",
+    "semantic_hash": "9ff2ef6e2c352047da8417a87ab421d1"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/index.ts": {
+    "mtime": 1779841536.1463985,
+    "ast_hash": "e25e5560741a353404169be1181d96fe",
+    "semantic_hash": "e25e5560741a353404169be1181d96fe"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/renderToText.ts": {
+    "mtime": 1779987264.3069382,
+    "ast_hash": "8a6ba9fc4dcc8c4fded2286ea6cb67fc",
+    "semantic_hash": "8a6ba9fc4dcc8c4fded2286ea6cb67fc"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/renderToPNG.ts": {
+    "mtime": 1779841536.1628072,
+    "ast_hash": "9131345ffa1cfa36f215acc27636bb10",
+    "semantic_hash": "9131345ffa1cfa36f215acc27636bb10"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/renderToPDFHighQuality.ts": {
+    "mtime": 1779841536.1627371,
+    "ast_hash": "dc3fe1cd4cca7e47027edddb7a204a9a",
+    "semantic_hash": "dc3fe1cd4cca7e47027edddb7a204a9a"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/utils.ts": {
+    "mtime": 1779841536.1637974,
+    "ast_hash": "a69025907d6f4e423489d715ec66c809",
+    "semantic_hash": "a69025907d6f4e423489d715ec66c809"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/viewBox.ts": {
+    "mtime": 1779841536.1638777,
+    "ast_hash": "d0de2f4aa39c0ca91082eed49c878368",
+    "semantic_hash": "d0de2f4aa39c0ca91082eed49c878368"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/renderToSVG.tsx": {
+    "mtime": 1779841536.162871,
+    "ast_hash": "2f699815cfe40aa6850799e5a4d04500",
+    "semantic_hash": "2f699815cfe40aa6850799e5a4d04500"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/renderToTextFromSvg.ts": {
+    "mtime": 1779993747.892309,
+    "ast_hash": "7da796ec1c6d37abb25ab90dd7c59974",
+    "semantic_hash": "7da796ec1c6d37abb25ab90dd7c59974"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/index.ts": {
+    "mtime": 1779841536.1622193,
+    "ast_hash": "4e6517b3ca045c4ccd67cf619b5ffce3",
+    "semantic_hash": "4e6517b3ca045c4ccd67cf619b5ffce3"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/Diagram.tsx": {
+    "mtime": 1779937890.087098,
+    "ast_hash": "cbf3d8c6fd247425c2833ef53ab26224",
+    "semantic_hash": "cbf3d8c6fd247425c2833ef53ab26224"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/iconify.tsx": {
+    "mtime": 1779843251.6899514,
+    "ast_hash": "51ff8f956e3f292bd0536e08da7fab59",
+    "semantic_hash": "51ff8f956e3f292bd0536e08da7fab59"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/renderToPDF.ts": {
+    "mtime": 1779841536.1626577,
+    "ast_hash": "0e97efc9aa7ea4e5a476c538db49090a",
+    "semantic_hash": "0e97efc9aa7ea4e5a476c538db49090a"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/pdf/resvgCapture.ts": {
+    "mtime": 1779841536.162502,
+    "ast_hash": "3840c3966d0697ded83ceb1c6ef01bc2",
+    "semantic_hash": "3840c3966d0697ded83ceb1c6ef01bc2"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/pdf/textOverlay.ts": {
+    "mtime": 1779841536.1625776,
+    "ast_hash": "6fa36c77f2e055ba7558c2af9f75472a",
+    "semantic_hash": "6fa36c77f2e055ba7558c2af9f75472a"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/pdf/pageSize.ts": {
+    "mtime": 1779841536.1624205,
+    "ast_hash": "4af824f2cca70743b13539560742d09f",
+    "semantic_hash": "4af824f2cca70743b13539560742d09f"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/pdf/coords.ts": {
+    "mtime": 1779841536.1623335,
+    "ast_hash": "2b34d3b9266eae9eb2a9954996c21d7f",
+    "semantic_hash": "2b34d3b9266eae9eb2a9954996c21d7f"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/components/styles.ts": {
+    "mtime": 1779937890.100878,
+    "ast_hash": "669c436654e9bbf4ce037a564631dabd",
+    "semantic_hash": "669c436654e9bbf4ce037a564631dabd"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/components/types.ts": {
+    "mtime": 1780001705.8647773,
+    "ast_hash": "90b3e8a7fe9f85a1175c10e47110f03c",
+    "semantic_hash": "90b3e8a7fe9f85a1175c10e47110f03c"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/components/icons.tsx": {
+    "mtime": 1779843251.6855714,
+    "ast_hash": "e46b61dc8ae9bba3eda5071a8c9ef570",
+    "semantic_hash": "e46b61dc8ae9bba3eda5071a8c9ef570"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/components/index.ts": {
+    "mtime": 1779937890.0924666,
+    "ast_hash": "4a2e2d0a705169349a98c4914de437a0",
+    "semantic_hash": "4a2e2d0a705169349a98c4914de437a0"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/components/nodes/AppNode.tsx": {
+    "mtime": 1780001900.6527247,
+    "ast_hash": "7836e81ea31306f2da66c0ec312440cf",
+    "semantic_hash": "7836e81ea31306f2da66c0ec312440cf"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/components/nodes/DocumentNode.tsx": {
+    "mtime": 1780001929.0984428,
+    "ast_hash": "097e47ef38f2d84d7ffb0a14856070cf",
+    "semantic_hash": "097e47ef38f2d84d7ffb0a14856070cf"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/components/nodes/shared.tsx": {
+    "mtime": 1780001861.9162438,
+    "ast_hash": "38cc4d5956043ec7b284078dcc69dde8",
+    "semantic_hash": "38cc4d5956043ec7b284078dcc69dde8"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/components/nodes/LabelNode.tsx": {
+    "mtime": 1780001956.0011954,
+    "ast_hash": "026f3cc23e1b2c17b2f3cd8f40f3bc77",
+    "semantic_hash": "026f3cc23e1b2c17b2f3cd8f40f3bc77"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/components/nodes/LabelIconNode.tsx": {
+    "mtime": 1780001964.9354968,
+    "ast_hash": "bda1e86d9326a3f031780a6c7705dc1b",
+    "semantic_hash": "bda1e86d9326a3f031780a6c7705dc1b"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/components/nodes/DatabaseNode.tsx": {
+    "mtime": 1780001919.8589993,
+    "ast_hash": "4d208e2a4968ad6ab0fa43a0ce4c28f7",
+    "semantic_hash": "4d208e2a4968ad6ab0fa43a0ce4c28f7"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/components/nodes/IconNode.tsx": {
+    "mtime": 1780001947.0202105,
+    "ast_hash": "29e71db6d986c9e90bfd083021a39002",
+    "semantic_hash": "29e71db6d986c9e90bfd083021a39002"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/components/nodes/WebsiteNode.tsx": {
+    "mtime": 1780001938.4441738,
+    "ast_hash": "ba8d92f7e9790e67d946567d41be6abe",
+    "semantic_hash": "ba8d92f7e9790e67d946567d41be6abe"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/components/nodes/BoxNode.tsx": {
+    "mtime": 1780001888.9730372,
+    "ast_hash": "2a2a46c915b3dd8e81e2107e3adace57",
+    "semantic_hash": "2a2a46c915b3dd8e81e2107e3adace57"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/components/nodes/ApiNode.tsx": {
+    "mtime": 1780001910.2516031,
+    "ast_hash": "1a6fdfe75da8a862885c3695ac18dd26",
+    "semantic_hash": "1a6fdfe75da8a862885c3695ac18dd26"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/components/groups/Group.tsx": {
+    "mtime": 1779841536.1602871,
+    "ast_hash": "6849d934c77f7067aa003f819d57776b",
+    "semantic_hash": "6849d934c77f7067aa003f819d57776b"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/components/edges/Arrow.tsx": {
+    "mtime": 1779971369.1253846,
+    "ast_hash": "1587da710849bb86d0f96aa81109cee1",
+    "semantic_hash": "1587da710849bb86d0f96aa81109cee1"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/components/edges/decorations.ts": {
+    "mtime": 1780056526.9416664,
+    "ast_hash": "f3fbf2a5db445e93ad87c0eabebd3984",
+    "semantic_hash": "f3fbf2a5db445e93ad87c0eabebd3984"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/components/edges/EdgeLabel.tsx": {
+    "mtime": 1779841536.160009,
+    "ast_hash": "d8a9cd964cb5b38005e9611bcc66ee28",
+    "semantic_hash": "d8a9cd964cb5b38005e9611bcc66ee28"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/components/edges/edgePath.ts": {
+    "mtime": 1780056526.9220324,
+    "ast_hash": "c3e8d60232f6c97d565095a1da34a228",
+    "semantic_hash": "c3e8d60232f6c97d565095a1da34a228"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/components/lines/markers.tsx": {
+    "mtime": 1779966264.7344682,
+    "ast_hash": "8684970782d132ada32df1a59cb10b43",
+    "semantic_hash": "8684970782d132ada32df1a59cb10b43"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/components/lines/styles.ts": {
+    "mtime": 1779841536.160866,
+    "ast_hash": "abff33bf40aa10a7595a0f9ef6dd1c6d",
+    "semantic_hash": "abff33bf40aa10a7595a0f9ef6dd1c6d"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/components/lines/Line.tsx": {
+    "mtime": 1779986646.0515106,
+    "ast_hash": "4bc77b7ae117ba85fc9de220a61539dd",
+    "semantic_hash": "4bc77b7ae117ba85fc9de220a61539dd"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/assets/fonts.ts": {
+    "mtime": 1779841536.15693,
+    "ast_hash": "67d8020ee2cc55492c95ef72b829e0a8",
+    "semantic_hash": "67d8020ee2cc55492c95ef72b829e0a8"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/themes/componentDefaults.ts": {
+    "mtime": 1779937890.102246,
+    "ast_hash": "f46e71a42122bf08c10f3aa6c184791c",
+    "semantic_hash": "f46e71a42122bf08c10f3aa6c184791c"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/themes/fontTokens.ts": {
+    "mtime": 1779841536.1634548,
+    "ast_hash": "96bfb93464a0d4c54cef1e0b591eb0c9",
+    "semantic_hash": "96bfb93464a0d4c54cef1e0b591eb0c9"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/themes/default.ts": {
+    "mtime": 1779937890.1033242,
+    "ast_hash": "b3c490871c27958ea14b47e029dde2c5",
+    "semantic_hash": "b3c490871c27958ea14b47e029dde2c5"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/themes/lookTokens.ts": {
+    "mtime": 1780002034.2523232,
+    "ast_hash": "e331ef6a1b62039346aad587beac311e",
+    "semantic_hash": "e331ef6a1b62039346aad587beac311e"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/themes/tailwindPalette.ts": {
+    "mtime": 1779841536.1636193,
+    "ast_hash": "7ae6b20d716fb8053d3ad2437c15b93f",
+    "semantic_hash": "7ae6b20d716fb8053d3ad2437c15b93f"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/themes/transforms.ts": {
+    "mtime": 1779841536.163707,
+    "ast_hash": "96ab754eed0e034f2611163d1a78bdce",
+    "semantic_hash": "96ab754eed0e034f2611163d1a78bdce"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/types/external.d.ts": {
+    "mtime": 1779841536.1640024,
+    "ast_hash": "01f9017baf481f3d958441d2b282391f",
+    "semantic_hash": "01f9017baf481f3d958441d2b282391f"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/core/schema.ts": {
+    "mtime": 1779841536.1459494,
+    "ast_hash": "943ad71863221aa49870dab2988af566",
+    "semantic_hash": "943ad71863221aa49870dab2988af566"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/core/connectionAnchors.ts": {
+    "mtime": 1780056526.9220831,
+    "ast_hash": "a63580533482ca51cbe4cd7037b63127",
+    "semantic_hash": "a63580533482ca51cbe4cd7037b63127"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/core/layoutWorker.ts": {
+    "mtime": 1779987095.4117184,
+    "ast_hash": "afe0c8db722ea4f87aa3d78c325d9c1d",
+    "semantic_hash": "afe0c8db722ea4f87aa3d78c325d9c1d"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/core/catalogTextLayout.ts": {
+    "mtime": 1779995411.7494118,
+    "ast_hash": "3a85e3d24151be7b0903d405c09993ac",
+    "semantic_hash": "3a85e3d24151be7b0903d405c09993ac"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/core/iconify.ts": {
+    "mtime": 1779842152.882449,
+    "ast_hash": "32f1afd7aba9868d05f4e28b4e1b633f",
+    "semantic_hash": "32f1afd7aba9868d05f4e28b4e1b633f"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/core/errors.ts": {
+    "mtime": 1779841536.1451578,
+    "ast_hash": "e19d9a6a2b11b909b14a5abd2aa19be4",
+    "semantic_hash": "e19d9a6a2b11b909b14a5abd2aa19be4"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/core/renderPipeline.ts": {
+    "mtime": 1779841536.145883,
+    "ast_hash": "cd896879e304dbc2ba89050547204356",
+    "semantic_hash": "cd896879e304dbc2ba89050547204356"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/core/themeResolver.ts": {
+    "mtime": 1779841536.146161,
+    "ast_hash": "55deebe4542122ddee22ffa44406dc73",
+    "semantic_hash": "55deebe4542122ddee22ffa44406dc73"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/core/parser.ts": {
+    "mtime": 1779841536.145816,
+    "ast_hash": "3da6b6b70ff684168e21ae2d582be265",
+    "semantic_hash": "3da6b6b70ff684168e21ae2d582be265"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/core/measureText.ts": {
+    "mtime": 1779937890.0202227,
+    "ast_hash": "e2e53dd9ddd6a1799e4bca0375b65f8b",
+    "semantic_hash": "e2e53dd9ddd6a1799e4bca0375b65f8b"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/core/types.ts": {
+    "mtime": 1779937890.0382745,
+    "ast_hash": "69bc05d3b3eccd6a3240c6bb3738874a",
+    "semantic_hash": "69bc05d3b3eccd6a3240c6bb3738874a"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/core/labeledEdgeExpansion.ts": {
+    "mtime": 1780056526.922052,
+    "ast_hash": "43bc52fd3492e60150f3a3f71a2e31a4",
+    "semantic_hash": "43bc52fd3492e60150f3a3f71a2e31a4"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/core/layout.ts": {
+    "mtime": 1779997520.4183037,
+    "ast_hash": "eee090ab3f79137a69d2767c8e9bf156",
+    "semantic_hash": "eee090ab3f79137a69d2767c8e9bf156"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/core/index.ts": {
+    "mtime": 1779841536.1453,
+    "ast_hash": "30160c5fcc27310a4666cd170b73386d",
+    "semantic_hash": "30160c5fcc27310a4666cd170b73386d"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/core/edgeGeometry.ts": {
+    "mtime": 1779992347.720029,
+    "ast_hash": "e8afff2df32bf0031fea544f1de56647",
+    "semantic_hash": "e8afff2df32bf0031fea544f1de56647"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/core/validator.ts": {
+    "mtime": 1779841536.1463053,
+    "ast_hash": "3f0f865a21e2ccd8cd38f28a4894e969",
+    "semantic_hash": "3f0f865a21e2ccd8cd38f28a4894e969"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/core/edgeMarkers.ts": {
+    "mtime": 1779986232.5553024,
+    "ast_hash": "7bbf82b5ed1bdb70971ae64b36b4c690",
+    "semantic_hash": "7bbf82b5ed1bdb70971ae64b36b4c690"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/core/schema/diagram.schema.json": {
+    "mtime": 1779937890.030049,
+    "ast_hash": "50a90498b517f064a557c439e63b1d8c",
+    "semantic_hash": "50a90498b517f064a557c439e63b1d8c"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/web/index.ts": {
+    "mtime": 1779841536.16421,
+    "ast_hash": "816af4665e17f610a8bf4cb50e07165d",
+    "semantic_hash": "816af4665e17f610a8bf4cb50e07165d"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/cli/output.ts": {
+    "mtime": 1779841536.1447983,
+    "ast_hash": "d08e22a8d48a4ccc70e3ea07e3b89eb5",
+    "semantic_hash": "d08e22a8d48a4ccc70e3ea07e3b89eb5"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/cli/playwrightInstall.ts": {
+    "mtime": 1779841536.144943,
+    "ast_hash": "f613c72d4ff7f2c068fc2801ff83f016",
+    "semantic_hash": "f613c72d4ff7f2c068fc2801ff83f016"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/cli/index.ts": {
+    "mtime": 1779841536.1447222,
+    "ast_hash": "216e5088dd8aabfac794f73edc32d5ce",
+    "semantic_hash": "216e5088dd8aabfac794f73edc32d5ce"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/cli/paths.ts": {
+    "mtime": 1779841536.144862,
+    "ast_hash": "e737b25946df3601db3bdecabcf42dea",
+    "semantic_hash": "e737b25946df3601db3bdecabcf42dea"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/cli/commands/schema.ts": {
+    "mtime": 1779841536.144563,
+    "ast_hash": "573f47c52a7162cdc09ef86ac9581cec",
+    "semantic_hash": "573f47c52a7162cdc09ef86ac9581cec"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/cli/commands/validate.ts": {
+    "mtime": 1779841536.144636,
+    "ast_hash": "3df9f5c0d2cbb5e998261f9d15efd3f0",
+    "semantic_hash": "3df9f5c0d2cbb5e998261f9d15efd3f0"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/cli/commands/render.ts": {
+    "mtime": 1779983099.1275308,
+    "ast_hash": "18cdb56c526ad1f641ceba8bda4028f9",
+    "semantic_hash": "18cdb56c526ad1f641ceba8bda4028f9"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/cli/commands/preview.ts": {
+    "mtime": 1779841536.144333,
+    "ast_hash": "409b1f0db4569c3a702971f6dd22cc37",
+    "semantic_hash": "409b1f0db4569c3a702971f6dd22cc37"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/state.ts": {
+    "mtime": 1780013392.420852,
+    "ast_hash": "795d7ebb6cbc9573f480a5dfafe3e97f",
+    "semantic_hash": "795d7ebb6cbc9573f480a5dfafe3e97f"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/App.tsx": {
+    "mtime": 1779999810.4592817,
+    "ast_hash": "6262fb7dc965082dd1478bf67a2306e5",
+    "semantic_hash": "6262fb7dc965082dd1478bf67a2306e5"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/main.tsx": {
+    "mtime": 1779841536.1557825,
+    "ast_hash": "d8f97eabf85f816fe8182b416ce72db7",
+    "semantic_hash": "d8f97eabf85f816fe8182b416ce72db7"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/geometry.ts": {
+    "mtime": 1780022413.4007552,
+    "ast_hash": "ec1dca6e0548441e753ac7f18e4622f8",
+    "semantic_hash": "ec1dca6e0548441e753ac7f18e4622f8"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/iconRenderer.tsx": {
+    "mtime": 1779843251.6920805,
+    "ast_hash": "483e1c3e1cd1d83937e1aa4cc0fffdd1",
+    "semantic_hash": "483e1c3e1cd1d83937e1aa4cc0fffdd1"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/iconIndex.generated.ts": {
+    "mtime": 1779841536.15527,
+    "ast_hash": "030a0b3bfe7479cc17282c5841b3e46c",
+    "semantic_hash": "030a0b3bfe7479cc17282c5841b3e46c"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/drag.ts": {
+    "mtime": 1779841536.1485558,
+    "ast_hash": "a8fe7bf5da4896908161cd0cb7c3a2b6",
+    "semantic_hash": "a8fe7bf5da4896908161cd0cb7c3a2b6"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/index.ts": {
+    "mtime": 1779841536.1556985,
+    "ast_hash": "7b425b97a7d58620bccfd69ae4647266",
+    "semantic_hash": "7b425b97a7d58620bccfd69ae4647266"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/registerElkWorker.ts": {
+    "mtime": 1779987095.4124515,
+    "ast_hash": "835315d952eb628a35aefa84d3be96f2",
+    "semantic_hash": "835315d952eb628a35aefa84d3be96f2"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/vite.config.ts": {
+    "mtime": 1779841536.1566238,
+    "ast_hash": "fd251dfec4b925c4d28755150fe3d682",
+    "semantic_hash": "fd251dfec4b925c4d28755150fe3d682"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/persistence.ts": {
+    "mtime": 1780013483.799641,
+    "ast_hash": "c31c3d5ab6d96e7b00daa1436094a88d",
+    "semantic_hash": "c31c3d5ab6d96e7b00daa1436094a88d"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/iconSearch.ts": {
+    "mtime": 1779937890.0796762,
+    "ast_hash": "ed6f64a21a6801c7694a6a8e639205bc",
+    "semantic_hash": "ed6f64a21a6801c7694a6a8e639205bc"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/server.ts": {
+    "mtime": 1779841536.1562464,
+    "ast_hash": "042e44f702cbaf19595b928a899fa53d",
+    "semantic_hash": "042e44f702cbaf19595b928a899fa53d"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/node-stub.ts": {
+    "mtime": 1779841536.155866,
+    "ast_hash": "2f9764f5e33c233e62e15f9c175e9d1d",
+    "semantic_hash": "2f9764f5e33c233e62e15f9c175e9d1d"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/pack/displayNames.ts": {
+    "mtime": 1779937890.0852675,
+    "ast_hash": "67d7be29dcb76ff6e7cf46662499723d",
+    "semantic_hash": "67d7be29dcb76ff6e7cf46662499723d"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/pack/types.ts": {
+    "mtime": 1779841536.1561525,
+    "ast_hash": "6e7c3a3d7869d50766903fa74e15e46e",
+    "semantic_hash": "6e7c3a3d7869d50766903fa74e15e46e"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/pack/builtins.tsx": {
+    "mtime": 1780000446.7795656,
+    "ast_hash": "14ecc2501ebb4d1e89a9f78100feeb9c",
+    "semantic_hash": "14ecc2501ebb4d1e89a9f78100feeb9c"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/controls/schema.ts": {
+    "mtime": 1780001736.5872958,
+    "ast_hash": "21666f68cad3b44c533646592a46d91d",
+    "semantic_hash": "21666f68cad3b44c533646592a46d91d"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/controls/defaults.ts": {
+    "mtime": 1780001800.7060082,
+    "ast_hash": "dddc03122cf5ead39186b2f48aac9181",
+    "semantic_hash": "dddc03122cf5ead39186b2f48aac9181"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/components/ControlInput.tsx": {
+    "mtime": 1780001795.3529265,
+    "ast_hash": "32eb585f12fdf2dc64ed79cf603139e9",
+    "semantic_hash": "32eb585f12fdf2dc64ed79cf603139e9"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/components/WorkbenchCanvas.tsx": {
+    "mtime": 1780022481.2403252,
+    "ast_hash": "9689a6cc74855f2ffbe1ad4ce4b38153",
+    "semantic_hash": "9689a6cc74855f2ffbe1ad4ce4b38153"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/components/GroupPanel.tsx": {
+    "mtime": 1779841536.1471224,
+    "ast_hash": "b45ad487b4241e08282b3303c7fe95c7",
+    "semantic_hash": "b45ad487b4241e08282b3303c7fe95c7"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/components/AttachmentOverlay.tsx": {
+    "mtime": 1779987418.865023,
+    "ast_hash": "002f18752673c687fbe1a57a1099b6d1",
+    "semantic_hash": "002f18752673c687fbe1a57a1099b6d1"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/components/CatalogSidebar.tsx": {
+    "mtime": 1779937890.0458593,
+    "ast_hash": "605b46557d8cd1673675c90eff53e0a9",
+    "semantic_hash": "605b46557d8cd1673675c90eff53e0a9"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/components/IconSearchDropdown.tsx": {
+    "mtime": 1779841536.1472054,
+    "ast_hash": "a85ae1904c9e5b19fc18d5aef6fea10d",
+    "semantic_hash": "a85ae1904c9e5b19fc18d5aef6fea10d"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/components/NodePropPanel.tsx": {
+    "mtime": 1780002668.6675193,
+    "ast_hash": "0753e47f76784094d78b840dacec264f",
+    "semantic_hash": "0753e47f76784094d78b840dacec264f"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/components/ConnectionPanel.tsx": {
+    "mtime": 1779841536.1469288,
+    "ast_hash": "874be6d4f3bd2e26cac9f35eeb493159",
+    "semantic_hash": "874be6d4f3bd2e26cac9f35eeb493159"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/components/ui/label.tsx": {
+    "mtime": 1779841536.1478412,
+    "ast_hash": "887c828bf2dd0524d1a115010a6f4dbc",
+    "semantic_hash": "887c828bf2dd0524d1a115010a6f4dbc"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/components/ui/utils.ts": {
+    "mtime": 1779841536.1482143,
+    "ast_hash": "17047248a75301753af85a34ea043bea",
+    "semantic_hash": "17047248a75301753af85a34ea043bea"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/components/ui/index.ts": {
+    "mtime": 1779841536.147685,
+    "ast_hash": "d1889f21926d11c06bb1f08356121724",
+    "semantic_hash": "d1889f21926d11c06bb1f08356121724"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/components/ui/button.tsx": {
+    "mtime": 1779841536.147611,
+    "ast_hash": "ab17c463685c433ec957f8a34dd28f8d",
+    "semantic_hash": "ab17c463685c433ec957f8a34dd28f8d"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/components/ui/toggle.tsx": {
+    "mtime": 1779841536.148083,
+    "ast_hash": "d73efb24812d7751fe52f3d0ad6dd7be",
+    "semantic_hash": "d73efb24812d7751fe52f3d0ad6dd7be"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/components/ui/select.tsx": {
+    "mtime": 1779841536.147914,
+    "ast_hash": "950e1dac10b2e732f7659a422eeace69",
+    "semantic_hash": "950e1dac10b2e732f7659a422eeace69"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/components/ui/textarea.tsx": {
+    "mtime": 1779980910.6171699,
+    "ast_hash": "88caa38bdd2bc2693f75046a70360f0a",
+    "semantic_hash": "88caa38bdd2bc2693f75046a70360f0a"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/components/ui/input.tsx": {
+    "mtime": 1779841536.1477683,
+    "ast_hash": "2c363ca0b46cdd17c1023f51302bccb9",
+    "semantic_hash": "2c363ca0b46cdd17c1023f51302bccb9"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/config.json": {
+    "mtime": 1779841535.3229816,
+    "ast_hash": "1f2c7592588053f35185bb1d67500b69",
+    "semantic_hash": "1f2c7592588053f35185bb1d67500b69"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/PROJECT.md": {
+    "mtime": 1779937889.9373686,
+    "ast_hash": "c7b8c13ed75facac1d11238ae503420b",
+    "semantic_hash": "c7b8c13ed75facac1d11238ae503420b"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/README.md": {
+    "mtime": 1779937889.9400077,
+    "ast_hash": "2500e6a7b6e2a4cb6489a62af04315dc",
+    "semantic_hash": "2500e6a7b6e2a4cb6489a62af04315dc"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/infra-orig.txt": {
+    "mtime": 1779841535.3349583,
+    "ast_hash": "58b399df7ad3ad07a6cd0303731de4c4",
+    "semantic_hash": "58b399df7ad3ad07a6cd0303731de4c4"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/SKILL.md": {
+    "mtime": 1779937889.9443257,
+    "ast_hash": "3fef8975a749cd766b47a4a28e19364e",
+    "semantic_hash": "3fef8975a749cd766b47a4a28e19364e"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/AGENTS.md": {
+    "mtime": 1779937889.9335732,
+    "ast_hash": "f564e7dab6d9b63b9276ce04df4d757c",
+    "semantic_hash": "f564e7dab6d9b63b9276ce04df4d757c"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/examples/valid/microservice.yaml": {
+    "mtime": 1779937889.9722052,
+    "ast_hash": "672f3213870fb98885d05776f48a8f40",
+    "semantic_hash": "672f3213870fb98885d05776f48a8f40"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/examples/valid/marker-cycle.yaml": {
+    "mtime": 1779937889.9631171,
+    "ast_hash": "4cc2d1f51309bde2e28e51f5dd6a17ac",
+    "semantic_hash": "4cc2d1f51309bde2e28e51f5dd6a17ac"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/examples/valid/box-arrows.yaml": {
+    "mtime": 1779937889.9500494,
+    "ast_hash": "9a8fd807f81d38c6724bf0d067b97e29",
+    "semantic_hash": "9a8fd807f81d38c6724bf0d067b97e29"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/examples/valid/minimal.yaml": {
+    "mtime": 1779937889.9786382,
+    "ast_hash": "b25d1f37d1e0e35e723a690744a300e9",
+    "semantic_hash": "b25d1f37d1e0e35e723a690744a300e9"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/examples/valid/infra.yaml": {
+    "mtime": 1779937889.9603984,
+    "ast_hash": "35ddca3555fc07d11c22abb5f425ab6b",
+    "semantic_hash": "35ddca3555fc07d11c22abb5f425ab6b"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/examples/valid/box-arrows.yml": {
+    "mtime": 1779994010.986146,
+    "ast_hash": "bd0e93824bff609634852491e54c7c2b",
+    "semantic_hash": "bd0e93824bff609634852491e54c7c2b"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/examples/valid/icon-gallery.yaml": {
+    "mtime": 1779928094.259055,
+    "ast_hash": "0f9afd8bdab076da0a6d0373406008de",
+    "semantic_hash": "0f9afd8bdab076da0a6d0373406008de"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/examples/valid/database.yaml": {
+    "mtime": 1779937889.9533708,
+    "ast_hash": "b5984adcffa5f48e924cca47df039664",
+    "semantic_hash": "b5984adcffa5f48e924cca47df039664"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/examples/valid/components.yaml": {
+    "mtime": 1780056526.9220948,
+    "ast_hash": "d1bbacc0f87f86f451f724373f75b31a",
+    "semantic_hash": "d1bbacc0f87f86f451f724373f75b31a"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/examples/valid/flowchart.yaml": {
+    "mtime": 1779937889.956939,
+    "ast_hash": "0ada93945d5d56a0ab5f8a408be81009",
+    "semantic_hash": "0ada93945d5d56a0ab5f8a408be81009"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/examples/valid/markers.yaml": {
+    "mtime": 1779937889.9666653,
+    "ast_hash": "c31598625cc1b0a8a9a8b28724f9e945",
+    "semantic_hash": "c31598625cc1b0a8a9a8b28724f9e945"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/examples/invalid/unknown-service.yaml": {
+    "mtime": 1779937889.947116,
+    "ast_hash": "17a78199a272e5870029b100d6538d49",
+    "semantic_hash": "17a78199a272e5870029b100d6538d49"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/examples/invalid/malformed-icon.yaml": {
+    "mtime": 1779844332.1856935,
+    "ast_hash": "e186f67dbd752a0bfe155f511f7fa394",
+    "semantic_hash": "e186f67dbd752a0bfe155f511f7fa394"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/examples/invalid/missing-version.yaml": {
+    "mtime": 1779841535.3342419,
+    "ast_hash": "398ae3a0350e6bc8897eaf3ba75aef90",
+    "semantic_hash": "398ae3a0350e6bc8897eaf3ba75aef90"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/examples/invalid/service-without-provider.yaml": {
+    "mtime": 1779841535.3343031,
+    "ast_hash": "2cb98d081f7b6774f53e6ded7d7f82b2",
+    "semantic_hash": "2cb98d081f7b6774f53e6ded7d7f82b2"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/examples/invalid/missing-edge-target.yaml": {
+    "mtime": 1779841535.3341856,
+    "ast_hash": "25170777cd579002ba43c1349805a052",
+    "semantic_hash": "25170777cd579002ba43c1349805a052"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/preview-dist/index.html": {
+    "mtime": 1779841536.1439013,
+    "ast_hash": "95b92a80837cfcca0fbccf088dee202a",
+    "semantic_hash": "95b92a80837cfcca0fbccf088dee202a"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/renderer/assets/fonts/SOURCES.md": {
+    "mtime": 1779841536.1597822,
+    "ast_hash": "b154ed01dba15f043ab22907a0628702",
+    "semantic_hash": "b154ed01dba15f043ab22907a0628702"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/src/preview/index.html": {
+    "mtime": 1779841536.1556253,
+    "ast_hash": "e44bb350b54b52edc9201b5db22a4ba0",
+    "semantic_hash": "e44bb350b54b52edc9201b5db22a4ba0"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.github/workflows/ci.yml": {
+    "mtime": 1779843224.99086,
+    "ast_hash": "4ed565beff2978f1c52a2e2688d641a5",
+    "semantic_hash": "4ed565beff2978f1c52a2e2688d641a5"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/REQUIREMENTS.md": {
+    "mtime": 1779841535.322652,
+    "ast_hash": "965b6c935365a63afda33617057ac902",
+    "semantic_hash": "965b6c935365a63afda33617057ac902"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/PROJECT.md": {
+    "mtime": 1779841535.3225436,
+    "ast_hash": "3fc457ccaa39bcb478f1969ca86d48ca",
+    "semantic_hash": "3fc457ccaa39bcb478f1969ca86d48ca"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/STATE.md": {
+    "mtime": 1779841535.3229108,
+    "ast_hash": "c2be265bd44a34c72b316db96d6a475b",
+    "semantic_hash": "c2be265bd44a34c72b316db96d6a475b"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/ROADMAP.md": {
+    "mtime": 1779841535.322784,
+    "ast_hash": "707d16498ef81730ea27fb5a153f60a3",
+    "semantic_hash": "707d16498ef81730ea27fb5a153f60a3"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/research/STACK.md": {
+    "mtime": 1779841535.3332453,
+    "ast_hash": "e83ed23e49424b8c1ba011405986a2ea",
+    "semantic_hash": "e83ed23e49424b8c1ba011405986a2ea"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/research/ARCHITECTURE.md": {
+    "mtime": 1779841535.3329675,
+    "ast_hash": "1eb4432f2552a834c10361034a9760b9",
+    "semantic_hash": "1eb4432f2552a834c10361034a9760b9"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/research/PITFALLS.md": {
+    "mtime": 1779841535.3331413,
+    "ast_hash": "d4e69939a153340c25bdd5399d64af67",
+    "semantic_hash": "d4e69939a153340c25bdd5399d64af67"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/research/SUMMARY.md": {
+    "mtime": 1779841535.3333395,
+    "ast_hash": "7f1a6fd7a96cd1f5974f3c4b0bcc686e",
+    "semantic_hash": "7f1a6fd7a96cd1f5974f3c4b0bcc686e"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/research/FEATURES.md": {
+    "mtime": 1779841535.333057,
+    "ast_hash": "fdc53bcf52c7fe478911f7c8b7df3131",
+    "semantic_hash": "fdc53bcf52c7fe478911f7c8b7df3131"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/codebase/STACK.md": {
+    "mtime": 1780055812.2764053,
+    "ast_hash": "70b9bee5c7585d1690c51d6b211ddf6b",
+    "semantic_hash": "70b9bee5c7585d1690c51d6b211ddf6b"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/codebase/ARCHITECTURE.md": {
+    "mtime": 1780055824.8543463,
+    "ast_hash": "b4fa934394fdbe46f511b134072053ee",
+    "semantic_hash": "b4fa934394fdbe46f511b134072053ee"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/codebase/STRUCTURE.md": {
+    "mtime": 1780055833.9506054,
+    "ast_hash": "32be14c726adc5e3c468804496076840",
+    "semantic_hash": "32be14c726adc5e3c468804496076840"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/codebase/CONVENTIONS.md": {
+    "mtime": 1780055840.6325152,
+    "ast_hash": "14200c53a4e6d8bf67c8a151a6d4f210",
+    "semantic_hash": "14200c53a4e6d8bf67c8a151a6d4f210"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/codebase/INTEGRATIONS.md": {
+    "mtime": 1780055820.2055,
+    "ast_hash": "0d88ee11843f0a66def19bc4ce1f2cac",
+    "semantic_hash": "0d88ee11843f0a66def19bc4ce1f2cac"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/codebase/TESTING.md": {
+    "mtime": 1780055846.3274565,
+    "ast_hash": "06f4315eb6d1c1efeb574b4a881715c7",
+    "semantic_hash": "06f4315eb6d1c1efeb574b4a881715c7"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/codebase/CONCERNS.md": {
+    "mtime": 1780055851.990605,
+    "ast_hash": "a37af84ab51b55b4a79280f84ba2e997",
+    "semantic_hash": "a37af84ab51b55b4a79280f84ba2e997"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/03.6-default-component-look-lockdown-inserted/03.6-03-SUMMARY.md": {
+    "mtime": 1779841535.3266761,
+    "ast_hash": "5ca43a283c2ae91f81d1f9ac1c41ec19",
+    "semantic_hash": "5ca43a283c2ae91f81d1f9ac1c41ec19"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/03.6-default-component-look-lockdown-inserted/03.6-PATTERNS.md": {
+    "mtime": 1779841535.3270714,
+    "ast_hash": "ea8a6d000672c58ec5ebb4922e5c3d0f",
+    "semantic_hash": "ea8a6d000672c58ec5ebb4922e5c3d0f"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/03.6-default-component-look-lockdown-inserted/03.6-04-PLAN.md": {
+    "mtime": 1779841535.326756,
+    "ast_hash": "7d3a08aee00f3c3afdd14cf3067b1be7",
+    "semantic_hash": "7d3a08aee00f3c3afdd14cf3067b1be7"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/03.6-default-component-look-lockdown-inserted/03.6-RESEARCH.md": {
+    "mtime": 1779841535.3271863,
+    "ast_hash": "49bb41f1b48750ff93b6c3b93aae9415",
+    "semantic_hash": "49bb41f1b48750ff93b6c3b93aae9415"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/03.6-default-component-look-lockdown-inserted/03.6-04-SUMMARY.md": {
+    "mtime": 1779841535.3268163,
+    "ast_hash": "f309784912c54fa14136aec40f220eff",
+    "semantic_hash": "f309784912c54fa14136aec40f220eff"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/03.6-default-component-look-lockdown-inserted/03.6-01-SUMMARY.md": {
+    "mtime": 1779841535.3263566,
+    "ast_hash": "1120a71df51eb17bbd39ebc5fa7bc20b",
+    "semantic_hash": "1120a71df51eb17bbd39ebc5fa7bc20b"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/03.6-default-component-look-lockdown-inserted/03.6-CONTEXT.md": {
+    "mtime": 1779841535.3268979,
+    "ast_hash": "60981ff4048b551f7db7cfe3998601a0",
+    "semantic_hash": "60981ff4048b551f7db7cfe3998601a0"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/03.6-default-component-look-lockdown-inserted/03.6-DISCUSSION-LOG.md": {
+    "mtime": 1779841535.3269773,
+    "ast_hash": "f540d0248e42296939e16113dd2c951a",
+    "semantic_hash": "f540d0248e42296939e16113dd2c951a"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/03.6-default-component-look-lockdown-inserted/03.6-02-SUMMARY.md": {
+    "mtime": 1779841535.326526,
+    "ast_hash": "9ef73b63e0170bef7f99345efba529a9",
+    "semantic_hash": "9ef73b63e0170bef7f99345efba529a9"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/03.6-default-component-look-lockdown-inserted/03.6-02-PLAN.md": {
+    "mtime": 1779841535.3264463,
+    "ast_hash": "92b59c86992c818a5acc19fafa4b008b",
+    "semantic_hash": "92b59c86992c818a5acc19fafa4b008b"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/03.6-default-component-look-lockdown-inserted/03.6-03-PLAN.md": {
+    "mtime": 1779841535.3266122,
+    "ast_hash": "a5460c18788cb21676630ec2af522d74",
+    "semantic_hash": "a5460c18788cb21676630ec2af522d74"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/03.6-default-component-look-lockdown-inserted/03.6-01-PLAN.md": {
+    "mtime": 1779841535.3262901,
+    "ast_hash": "a090771f4e94bea9f333ca5d36418f0f",
+    "semantic_hash": "a090771f4e94bea9f333ca5d36418f0f"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/03.6-default-component-look-lockdown-inserted/03.6-VALIDATION.md": {
+    "mtime": 1779841535.3272588,
+    "ast_hash": "4667ee43b3254d8b9d44f760d42f97a2",
+    "semantic_hash": "4667ee43b3254d8b9d44f760d42f97a2"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.7-component-icon-and-package-surface-lockdown/03.7-03-PLAN.md": {
+    "mtime": 1779841535.332536,
+    "ast_hash": "0a14f3681be1a64734604b3d5e10dd44",
+    "semantic_hash": "0a14f3681be1a64734604b3d5e10dd44"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.7-component-icon-and-package-surface-lockdown/03.7-02-PLAN.md": {
+    "mtime": 1779841535.332453,
+    "ast_hash": "ae78a8edd57ebdea2f40e4d03c53a70e",
+    "semantic_hash": "ae78a8edd57ebdea2f40e4d03c53a70e"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.7-component-icon-and-package-surface-lockdown/03.7-01-PLAN.md": {
+    "mtime": 1779841535.3323646,
+    "ast_hash": "6a3a7bdfcdfc6410a9b88a91d23f90b6",
+    "semantic_hash": "6a3a7bdfcdfc6410a9b88a91d23f90b6"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.7-component-icon-and-package-surface-lockdown/03.7-04-PLAN.md": {
+    "mtime": 1779841535.3326185,
+    "ast_hash": "375067f749148046f35567f55f6fb94a",
+    "semantic_hash": "375067f749148046f35567f55f6fb94a"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.7-component-icon-and-package-surface-lockdown/03.7-DISCUSSION-LOG.md": {
+    "mtime": 1779841535.3327618,
+    "ast_hash": "e96f88f95a0eab1ec62ab4dfd2b91e42",
+    "semantic_hash": "e96f88f95a0eab1ec62ab4dfd2b91e42"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.7-component-icon-and-package-surface-lockdown/03.7-CONTEXT.md": {
+    "mtime": 1779841535.3326929,
+    "ast_hash": "2b7140c605f92fe196c632f72cc79b44",
+    "semantic_hash": "2b7140c605f92fe196c632f72cc79b44"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.3-component-preview-canvas/3.3-02-SUMMARY.md": {
+    "mtime": 1779841535.328998,
+    "ast_hash": "a4169c02c29e9176efb53c58746340e7",
+    "semantic_hash": "a4169c02c29e9176efb53c58746340e7"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.3-component-preview-canvas/3.3-04-PLAN.md": {
+    "mtime": 1779841535.3292394,
+    "ast_hash": "8b61027a420c01ea8342b944f4d347d6",
+    "semantic_hash": "8b61027a420c01ea8342b944f4d347d6"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.3-component-preview-canvas/3.3-UI-SPEC.md": {
+    "mtime": 1779841535.3298702,
+    "ast_hash": "f9f3bf9d05cb40c67122b84e15e78f54",
+    "semantic_hash": "f9f3bf9d05cb40c67122b84e15e78f54"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.3-component-preview-canvas/3.3-CONTEXT.md": {
+    "mtime": 1779841535.329402,
+    "ast_hash": "260e4177c6425c5c6d7a06e3dffde191",
+    "semantic_hash": "260e4177c6425c5c6d7a06e3dffde191"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.3-component-preview-canvas/3.3-VALIDATION.md": {
+    "mtime": 1779841535.329937,
+    "ast_hash": "1f3e125932756ab592d5570508562739",
+    "semantic_hash": "1f3e125932756ab592d5570508562739"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.3-component-preview-canvas/3.3-03-SUMMARY.md": {
+    "mtime": 1779841535.329157,
+    "ast_hash": "dd87e24dd841c4ecb74f07e80eee8217",
+    "semantic_hash": "dd87e24dd841c4ecb74f07e80eee8217"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.3-component-preview-canvas/3.3-SECURITY.md": {
+    "mtime": 1779841535.329714,
+    "ast_hash": "a561c974e17c4737af84552b11fb6b6a",
+    "semantic_hash": "a561c974e17c4737af84552b11fb6b6a"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.3-component-preview-canvas/3.3-02-PLAN.md": {
+    "mtime": 1779841535.3289278,
+    "ast_hash": "c694dc5bfd7e93195e9863fb9836b8b9",
+    "semantic_hash": "c694dc5bfd7e93195e9863fb9836b8b9"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.3-component-preview-canvas/3.3-03-PLAN.md": {
+    "mtime": 1779841535.3290784,
+    "ast_hash": "530856aa273acaced6929333eb9f7f06",
+    "semantic_hash": "530856aa273acaced6929333eb9f7f06"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.3-component-preview-canvas/3.3-01-SUMMARY.md": {
+    "mtime": 1779841535.3288465,
+    "ast_hash": "2b4e94d0760d689ade68673b5fe54480",
+    "semantic_hash": "2b4e94d0760d689ade68673b5fe54480"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.3-component-preview-canvas/3.3-01-PLAN.md": {
+    "mtime": 1779841535.328774,
+    "ast_hash": "eab8602fb7598d0b5cdf8e37fd3e7953",
+    "semantic_hash": "eab8602fb7598d0b5cdf8e37fd3e7953"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.3-component-preview-canvas/3.3-PATTERNS.md": {
+    "mtime": 1779841535.3295531,
+    "ast_hash": "bc6655d7c6cd086103d63000c60c705b",
+    "semantic_hash": "bc6655d7c6cd086103d63000c60c705b"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.3-component-preview-canvas/3.3-RESEARCH.md": {
+    "mtime": 1779841535.329642,
+    "ast_hash": "4e17e621a18f1c0145dcad9b070c41fe",
+    "semantic_hash": "4e17e621a18f1c0145dcad9b070c41fe"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.3-component-preview-canvas/3.3-04-SUMMARY.md": {
+    "mtime": 1779841535.3293135,
+    "ast_hash": "e3dd46e54f74cd66d4ac38cdd2d59e42",
+    "semantic_hash": "e3dd46e54f74cd66d4ac38cdd2d59e42"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.3-component-preview-canvas/3.3-DISCUSSION-LOG.md": {
+    "mtime": 1779841535.329486,
+    "ast_hash": "5e017026079393b79347ae300434f8df",
+    "semantic_hash": "5e017026079393b79347ae300434f8df"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.3-component-preview-canvas/3.3-UAT.md": {
+    "mtime": 1779841535.3297822,
+    "ast_hash": "8f9c350d54ce8139610fb58452c7f735",
+    "semantic_hash": "8f9c350d54ce8139610fb58452c7f735"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.4-ascii-diagram-export-and-skills-md-file/3.4-CONTEXT.md": {
+    "mtime": 1779841535.330693,
+    "ast_hash": "72f9e6ba4aefbb20acfdb59810c68a67",
+    "semantic_hash": "72f9e6ba4aefbb20acfdb59810c68a67"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.4-ascii-diagram-export-and-skills-md-file/3.4-RESEARCH.md": {
+    "mtime": 1779841535.3308547,
+    "ast_hash": "18b1ca54243666d64976f7ffac2e7da3",
+    "semantic_hash": "18b1ca54243666d64976f7ffac2e7da3"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.4-ascii-diagram-export-and-skills-md-file/3.4-02-SUMMARY.md": {
+    "mtime": 1779841535.3303216,
+    "ast_hash": "e794740d1f825daf0860ef0659bf6560",
+    "semantic_hash": "e794740d1f825daf0860ef0659bf6560"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.4-ascii-diagram-export-and-skills-md-file/3.4-VALIDATION.md": {
+    "mtime": 1779841535.3309846,
+    "ast_hash": "37bc7517874de4af8fc9d82e4823e05c",
+    "semantic_hash": "37bc7517874de4af8fc9d82e4823e05c"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.4-ascii-diagram-export-and-skills-md-file/3.4-04-PLAN.md": {
+    "mtime": 1779841535.330542,
+    "ast_hash": "6d41964f4c54f47f71af2c9358ef0570",
+    "semantic_hash": "6d41964f4c54f47f71af2c9358ef0570"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.4-ascii-diagram-export-and-skills-md-file/3.4-REVIEW.md": {
+    "mtime": 1779841535.3309186,
+    "ast_hash": "4822f795973d4cb08b1e4acfc5788b9e",
+    "semantic_hash": "4822f795973d4cb08b1e4acfc5788b9e"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.4-ascii-diagram-export-and-skills-md-file/3.4-DISCUSSION-LOG.md": {
+    "mtime": 1779841535.3307703,
+    "ast_hash": "24efc849e67a9eccc7e6072071e8d0c1",
+    "semantic_hash": "24efc849e67a9eccc7e6072071e8d0c1"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.4-ascii-diagram-export-and-skills-md-file/3.4-03-SUMMARY.md": {
+    "mtime": 1779841535.3304596,
+    "ast_hash": "3a7877a15ed33d6713e4b58e40665f23",
+    "semantic_hash": "3a7877a15ed33d6713e4b58e40665f23"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.4-ascii-diagram-export-and-skills-md-file/3.4-01-PLAN.md": {
+    "mtime": 1779841535.330112,
+    "ast_hash": "5011f22d335d5d701419d3fac3630b61",
+    "semantic_hash": "5011f22d335d5d701419d3fac3630b61"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.4-ascii-diagram-export-and-skills-md-file/3.4-04-SUMMARY.md": {
+    "mtime": 1779841535.3306067,
+    "ast_hash": "9a4dd2121f263c95da09ac5cd11c5e3a",
+    "semantic_hash": "9a4dd2121f263c95da09ac5cd11c5e3a"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.4-ascii-diagram-export-and-skills-md-file/3.4-03-PLAN.md": {
+    "mtime": 1779841535.3303936,
+    "ast_hash": "6e23f0a33612be7d1ae578ce1485112a",
+    "semantic_hash": "6e23f0a33612be7d1ae578ce1485112a"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.4-ascii-diagram-export-and-skills-md-file/3.4-02-PLAN.md": {
+    "mtime": 1779841535.3302538,
+    "ast_hash": "23599d832ff83f2a03962ac8378875ad",
+    "semantic_hash": "23599d832ff83f2a03962ac8378875ad"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.4-ascii-diagram-export-and-skills-md-file/3.4-VERIFICATION.md": {
+    "mtime": 1779841535.3310535,
+    "ast_hash": "2204eb42d9b9ea31f0d63c3577f77db8",
+    "semantic_hash": "2204eb42d9b9ea31f0d63c3577f77db8"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.4-ascii-diagram-export-and-skills-md-file/3.4-01-SUMMARY.md": {
+    "mtime": 1779841535.3301754,
+    "ast_hash": "e190543c0ceaf88fc42d6dd445770ce8",
+    "semantic_hash": "e190543c0ceaf88fc42d6dd445770ce8"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/03-pdf-export/03-03-SUMMARY.md": {
+    "mtime": 1779841535.3253677,
+    "ast_hash": "3651d3db63c4b8d4238eded7f39c1f00",
+    "semantic_hash": "3651d3db63c4b8d4238eded7f39c1f00"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/03-pdf-export/deferred-items.md": {
+    "mtime": 1779841535.3261614,
+    "ast_hash": "1c3c22bfb9e3687b72b73b2a5845dc96",
+    "semantic_hash": "1c3c22bfb9e3687b72b73b2a5845dc96"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/03-pdf-export/03-01-PLAN.md": {
+    "mtime": 1779841535.3248856,
+    "ast_hash": "7eb406eb41502e0d2df3faa14ae8a813",
+    "semantic_hash": "7eb406eb41502e0d2df3faa14ae8a813"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/03-pdf-export/03-02-PLAN.md": {
+    "mtime": 1779841535.32508,
+    "ast_hash": "f9e066ac5f12f498f20342955867c078",
+    "semantic_hash": "f9e066ac5f12f498f20342955867c078"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/03-pdf-export/03-01-SUMMARY.md": {
+    "mtime": 1779841535.3249786,
+    "ast_hash": "45ca916b041f33f8464b36d5d8b92723",
+    "semantic_hash": "45ca916b041f33f8464b36d5d8b92723"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/03-pdf-export/03-DISCUSSION-LOG.md": {
+    "mtime": 1779841535.325706,
+    "ast_hash": "b3dcd3a9c07d2de45c79ed16fb56e303",
+    "semantic_hash": "b3dcd3a9c07d2de45c79ed16fb56e303"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/03-pdf-export/03-03-PLAN.md": {
+    "mtime": 1779841535.3252773,
+    "ast_hash": "928c0d2d53c96ff9ed7273895c0bb9c7",
+    "semantic_hash": "928c0d2d53c96ff9ed7273895c0bb9c7"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/03-pdf-export/03-04-SUMMARY.md": {
+    "mtime": 1779841535.3255498,
+    "ast_hash": "a18e6842096815b18960e20d189a7bc7",
+    "semantic_hash": "a18e6842096815b18960e20d189a7bc7"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/03-pdf-export/03-02-SUMMARY.md": {
+    "mtime": 1779841535.3251746,
+    "ast_hash": "9f3e052ec78c6589a005e05c2d99ffc9",
+    "semantic_hash": "9f3e052ec78c6589a005e05c2d99ffc9"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/03-pdf-export/03-CONTEXT.md": {
+    "mtime": 1779841535.325641,
+    "ast_hash": "cb479266e8932265ddbb4347081b16ff",
+    "semantic_hash": "cb479266e8932265ddbb4347081b16ff"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/03-pdf-export/03-RESEARCH.md": {
+    "mtime": 1779841535.3259172,
+    "ast_hash": "8259d3a300467d1895c408d71cb8ef8a",
+    "semantic_hash": "8259d3a300467d1895c408d71cb8ef8a"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/03-pdf-export/03-PATTERNS.md": {
+    "mtime": 1779841535.3257897,
+    "ast_hash": "be7ef11085cd95199982e11ec6cccc80",
+    "semantic_hash": "be7ef11085cd95199982e11ec6cccc80"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/03-pdf-export/03-04-PLAN.md": {
+    "mtime": 1779841535.3254657,
+    "ast_hash": "41f23f134abbef9f144a2988c11f4800",
+    "semantic_hash": "41f23f134abbef9f144a2988c11f4800"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/03-pdf-export/03-VALIDATION.md": {
+    "mtime": 1779841535.3260005,
+    "ast_hash": "76b924ae60eb4bfe5772ccc07d78b4df",
+    "semantic_hash": "76b924ae60eb4bfe5772ccc07d78b4df"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/03-pdf-export/03-VERIFICATION.md": {
+    "mtime": 1779841535.3260913,
+    "ast_hash": "549ef2ad6a9ec831785808c4a520ca72",
+    "semantic_hash": "549ef2ad6a9ec831785808c4a520ca72"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/02-renderer-svg-export/02-CONTEXT.md": {
+    "mtime": 1779841535.3245912,
+    "ast_hash": "4b67333e196894bef6da3ccfd3577481",
+    "semantic_hash": "4b67333e196894bef6da3ccfd3577481"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/02-renderer-svg-export/02-04-PLAN.md": {
+    "mtime": 1779841535.3244324,
+    "ast_hash": "0e31028231fdeb2e88c4a7f9563f9288",
+    "semantic_hash": "0e31028231fdeb2e88c4a7f9563f9288"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/02-renderer-svg-export/02-02-SUMMARY.md": {
+    "mtime": 1779841535.324201,
+    "ast_hash": "dec7ff44474a89d3beff543f4efeab3b",
+    "semantic_hash": "dec7ff44474a89d3beff543f4efeab3b"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/02-renderer-svg-export/02-DISCUSSION-LOG.md": {
+    "mtime": 1779841535.3246634,
+    "ast_hash": "aaabd33d710a2df4bc2053fc2de743ba",
+    "semantic_hash": "aaabd33d710a2df4bc2053fc2de743ba"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/02-renderer-svg-export/02-RESEARCH.md": {
+    "mtime": 1779841535.3247516,
+    "ast_hash": "a29d382a1f4750f51739451b8ca13cc1",
+    "semantic_hash": "a29d382a1f4750f51739451b8ca13cc1"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/02-renderer-svg-export/02-04-SUMMARY.md": {
+    "mtime": 1779841535.3245087,
+    "ast_hash": "f87a695ac46d191ab87d2ad923bd6f93",
+    "semantic_hash": "f87a695ac46d191ab87d2ad923bd6f93"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/02-renderer-svg-export/02-01-SUMMARY.md": {
+    "mtime": 1779841535.324055,
+    "ast_hash": "131c9e918ced7152f51147831cd288bc",
+    "semantic_hash": "131c9e918ced7152f51147831cd288bc"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/02-renderer-svg-export/02-01-PLAN.md": {
+    "mtime": 1779841535.3239832,
+    "ast_hash": "3f09808f4f55f6daf7832ee5002ea2ea",
+    "semantic_hash": "3f09808f4f55f6daf7832ee5002ea2ea"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/02-renderer-svg-export/02-03-PLAN.md": {
+    "mtime": 1779841535.324284,
+    "ast_hash": "34bce71c36fb0078dc20f77586a531d8",
+    "semantic_hash": "34bce71c36fb0078dc20f77586a531d8"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/02-renderer-svg-export/02-03-SUMMARY.md": {
+    "mtime": 1779841535.3243513,
+    "ast_hash": "5be42c179746c5ae72c7afb361ce308b",
+    "semantic_hash": "5be42c179746c5ae72c7afb361ce308b"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/02-renderer-svg-export/02-02-PLAN.md": {
+    "mtime": 1779841535.3241367,
+    "ast_hash": "086f241267fa30b853980434368a46eb",
+    "semantic_hash": "086f241267fa30b853980434368a46eb"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.1-renderer-component-refactor/3.1-VERIFICATION.md": {
+    "mtime": 1779841535.3276649,
+    "ast_hash": "d0c6ee4aabf94ef5859bed201a868919",
+    "semantic_hash": "d0c6ee4aabf94ef5859bed201a868919"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.1-renderer-component-refactor/3.1-01-SUMMARY.md": {
+    "mtime": 1779841535.3274546,
+    "ast_hash": "422fbf588d217ee6eaab2276110f4991",
+    "semantic_hash": "422fbf588d217ee6eaab2276110f4991"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.1-renderer-component-refactor/3.1-CONTEXT.md": {
+    "mtime": 1779841535.3275347,
+    "ast_hash": "143da3d23feb967732b5508f3390bdaa",
+    "semantic_hash": "143da3d23feb967732b5508f3390bdaa"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.1-renderer-component-refactor/3.1-01-PLAN.md": {
+    "mtime": 1779841535.3273876,
+    "ast_hash": "c3c21d129593637e4ad1aeb87db805e3",
+    "semantic_hash": "c3c21d129593637e4ad1aeb87db805e3"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.1-renderer-component-refactor/3.1-DISCUSSION-LOG.md": {
+    "mtime": 1779841535.3276012,
+    "ast_hash": "2b5b7add359eafb8fe7125887a17bde8",
+    "semantic_hash": "2b5b7add359eafb8fe7125887a17bde8"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/01-foundation/01-02-PLAN.md": {
+    "mtime": 1779841535.323327,
+    "ast_hash": "0eec0fb75c4bbd4df22e468ea83aad47",
+    "semantic_hash": "0eec0fb75c4bbd4df22e468ea83aad47"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/01-foundation/01-03-PLAN.md": {
+    "mtime": 1779841535.3234847,
+    "ast_hash": "22fa2cf27aef543326ed22028e802483",
+    "semantic_hash": "22fa2cf27aef543326ed22028e802483"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/01-foundation/01-VERIFICATION.md": {
+    "mtime": 1779841535.323779,
+    "ast_hash": "714691099e607e4cba38c3d79ac445df",
+    "semantic_hash": "714691099e607e4cba38c3d79ac445df"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/01-foundation/01-01-PLAN.md": {
+    "mtime": 1779841535.3231707,
+    "ast_hash": "65baeb8997124cc2569b8321c075b96a",
+    "semantic_hash": "65baeb8997124cc2569b8321c075b96a"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/01-foundation/01-02-SUMMARY.md": {
+    "mtime": 1779841535.323399,
+    "ast_hash": "61a3f3565e3edd156aaa32b81a6d1890",
+    "semantic_hash": "61a3f3565e3edd156aaa32b81a6d1890"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/01-foundation/01-01-SUMMARY.md": {
+    "mtime": 1779841535.323239,
+    "ast_hash": "1f437dd9ea3113d8c4f0e730ffb48dff",
+    "semantic_hash": "1f437dd9ea3113d8c4f0e730ffb48dff"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/01-foundation/01-04-SUMMARY.md": {
+    "mtime": 1779841535.3237033,
+    "ast_hash": "db61a867a884df308e2093eb1602c330",
+    "semantic_hash": "db61a867a884df308e2093eb1602c330"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/01-foundation/01-04-PLAN.md": {
+    "mtime": 1779841535.3236365,
+    "ast_hash": "3dcea5290a415e7cb3cbeb708272ea0e",
+    "semantic_hash": "3dcea5290a415e7cb3cbeb708272ea0e"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/01-foundation/01-03-SUMMARY.md": {
+    "mtime": 1779841535.3235512,
+    "ast_hash": "f37aee71336e95a90a3fbed4aef45535",
+    "semantic_hash": "f37aee71336e95a90a3fbed4aef45535"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/01-foundation/SKELETON.md": {
+    "mtime": 1779841535.3238552,
+    "ast_hash": "46b16e723925dd11baef4c5570ef4953",
+    "semantic_hash": "46b16e723925dd11baef4c5570ef4953"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.5-preview-visual-beauty/03.5-03-SUMMARY.md": {
+    "mtime": 1779841535.331582,
+    "ast_hash": "cabe558fa33dd45bbd062a1a45cf7a28",
+    "semantic_hash": "cabe558fa33dd45bbd062a1a45cf7a28"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.5-preview-visual-beauty/03.5-01-PLAN.md": {
+    "mtime": 1779841535.3312297,
+    "ast_hash": "05d012970e956d82ac31d79fb8dc0b34",
+    "semantic_hash": "05d012970e956d82ac31d79fb8dc0b34"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.5-preview-visual-beauty/03.5-RESEARCH.md": {
+    "mtime": 1779841535.3320463,
+    "ast_hash": "4565726384395fd860c8a6d95e07641b",
+    "semantic_hash": "4565726384395fd860c8a6d95e07641b"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.5-preview-visual-beauty/03.5-03-PLAN.md": {
+    "mtime": 1779841535.331513,
+    "ast_hash": "7acffbee7e1b1d01a7dd45d53dce5da0",
+    "semantic_hash": "7acffbee7e1b1d01a7dd45d53dce5da0"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.5-preview-visual-beauty/03.5-PATTERNS.md": {
+    "mtime": 1779841535.3319724,
+    "ast_hash": "935bb5f409ed70d0721ba07a6a359760",
+    "semantic_hash": "935bb5f409ed70d0721ba07a6a359760"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.5-preview-visual-beauty/03.5-01-SUMMARY.md": {
+    "mtime": 1779841535.331292,
+    "ast_hash": "cefd472ecb5993075cc8e7c7860d585e",
+    "semantic_hash": "cefd472ecb5993075cc8e7c7860d585e"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.5-preview-visual-beauty/03.5-04-SUMMARY.md": {
+    "mtime": 1779841535.3317327,
+    "ast_hash": "cd03763d23febc5ffb025269036c55c3",
+    "semantic_hash": "cd03763d23febc5ffb025269036c55c3"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.5-preview-visual-beauty/03.5-02-PLAN.md": {
+    "mtime": 1779841535.3313744,
+    "ast_hash": "dd57e69b435059eb3122f2411cf8a730",
+    "semantic_hash": "dd57e69b435059eb3122f2411cf8a730"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.5-preview-visual-beauty/03.5-UI-SPEC.md": {
+    "mtime": 1779841535.3321292,
+    "ast_hash": "fe4b0e0ca355947287ef44b02fcb01a3",
+    "semantic_hash": "fe4b0e0ca355947287ef44b02fcb01a3"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.5-preview-visual-beauty/03.5-CONTEXT.md": {
+    "mtime": 1779841535.3318195,
+    "ast_hash": "9e37ab94dd96726fc720570ebbc6a22b",
+    "semantic_hash": "9e37ab94dd96726fc720570ebbc6a22b"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.5-preview-visual-beauty/03.5-02-SUMMARY.md": {
+    "mtime": 1779841535.3314362,
+    "ast_hash": "f3a35c1858c627de5672ecf89e16794d",
+    "semantic_hash": "f3a35c1858c627de5672ecf89e16794d"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.5-preview-visual-beauty/03.5-04-PLAN.md": {
+    "mtime": 1779841535.331664,
+    "ast_hash": "5c6b0236b1c309d09d017ef7ae32938c",
+    "semantic_hash": "5c6b0236b1c309d09d017ef7ae32938c"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.5-preview-visual-beauty/03.5-DISCUSSION-LOG.md": {
+    "mtime": 1779841535.331901,
+    "ast_hash": "fb7bd189b2ddbe3ca68a6b4847ca4b35",
+    "semantic_hash": "fb7bd189b2ddbe3ca68a6b4847ca4b35"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.5-preview-visual-beauty/03.5-VALIDATION.md": {
+    "mtime": 1779841535.3321917,
+    "ast_hash": "92fb82d0a19d124af50b033c59e2fbce",
+    "semantic_hash": "92fb82d0a19d124af50b033c59e2fbce"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.2-renderer-component-library/3.2-03-PLAN.md": {
+    "mtime": 1779841535.3280852,
+    "ast_hash": "77f7925942b1c762e84e99158b9344de",
+    "semantic_hash": "77f7925942b1c762e84e99158b9344de"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.2-renderer-component-library/3.2-04-SUMMARY.md": {
+    "mtime": 1779841535.3283193,
+    "ast_hash": "b7bb1c30ee78d11ba467bff89eab7848",
+    "semantic_hash": "b7bb1c30ee78d11ba467bff89eab7848"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.2-renderer-component-library/3.2-01-SUMMARY.md": {
+    "mtime": 1779841535.3278565,
+    "ast_hash": "da1e657e3634ce445514966df106befb",
+    "semantic_hash": "da1e657e3634ce445514966df106befb"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.2-renderer-component-library/3.2-02-PLAN.md": {
+    "mtime": 1779841535.3279405,
+    "ast_hash": "f83d7bde94cdd99e30f550dd3c8d8e65",
+    "semantic_hash": "f83d7bde94cdd99e30f550dd3c8d8e65"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.2-renderer-component-library/3.2-RESEARCH.md": {
+    "mtime": 1779841535.3285654,
+    "ast_hash": "19337538a7bacb95f3fa50981cbedd46",
+    "semantic_hash": "19337538a7bacb95f3fa50981cbedd46"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.2-renderer-component-library/3.2-03-SUMMARY.md": {
+    "mtime": 1779841535.3281565,
+    "ast_hash": "eeb620d22312c6863ac16d0c8c466859",
+    "semantic_hash": "eeb620d22312c6863ac16d0c8c466859"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.2-renderer-component-library/3.2-01-PLAN.md": {
+    "mtime": 1779841535.327785,
+    "ast_hash": "20f4a2ce41f72eb574b3264ef2121e4b",
+    "semantic_hash": "20f4a2ce41f72eb574b3264ef2121e4b"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.2-renderer-component-library/3.2-VALIDATION.md": {
+    "mtime": 1779841535.3286493,
+    "ast_hash": "fabae1052b64459954c74630840c53d7",
+    "semantic_hash": "fabae1052b64459954c74630840c53d7"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.2-renderer-component-library/3.2-04-PLAN.md": {
+    "mtime": 1779841535.3282447,
+    "ast_hash": "5a4ee63470b33e9d7979c6f23b90578c",
+    "semantic_hash": "5a4ee63470b33e9d7979c6f23b90578c"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.2-renderer-component-library/3.2-02-SUMMARY.md": {
+    "mtime": 1779841535.32801,
+    "ast_hash": "11ba1dec99751217277f76e88f45a094",
+    "semantic_hash": "11ba1dec99751217277f76e88f45a094"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.2-renderer-component-library/3.2-CONTEXT.md": {
+    "mtime": 1779841535.3284032,
+    "ast_hash": "b5d41f94fa77be6842562876fef955ae",
+    "semantic_hash": "b5d41f94fa77be6842562876fef955ae"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/.planning/phases/3.2-renderer-component-library/3.2-DISCUSSION-LOG.md": {
+    "mtime": 1779841535.328481,
+    "ast_hash": "9be9b32d74d9446fa440360b31dfe9a2",
+    "semantic_hash": "9be9b32d74d9446fa440360b31dfe9a2"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/min2.svg": {
+    "mtime": 1779841535.3351007,
+    "ast_hash": "3c3d6b56bffbeceb9db169507df61edc",
+    "semantic_hash": "3c3d6b56bffbeceb9db169507df61edc"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/min.svg": {
+    "mtime": 1779841535.3350387,
+    "ast_hash": "360931ed2f7f817495d82debb5de7271",
+    "semantic_hash": "360931ed2f7f817495d82debb5de7271"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/minimal.svg": {
+    "mtime": 1779841535.3351638,
+    "ast_hash": "3c3d6b56bffbeceb9db169507df61edc",
+    "semantic_hash": "3c3d6b56bffbeceb9db169507df61edc"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/tests/golden/microservice.svg": {
+    "mtime": 1780002341.6079972,
+    "ast_hash": "78f5ec26af297d73e768ce5ea84faaa7",
+    "semantic_hash": "78f5ec26af297d73e768ce5ea84faaa7"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/tests/golden/database.svg": {
+    "mtime": 1780002343.4517365,
+    "ast_hash": "3a867aacc8abc8212061056e095fb176",
+    "semantic_hash": "3a867aacc8abc8212061056e095fb176"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/tests/golden/infra.svg": {
+    "mtime": 1780002342.390551,
+    "ast_hash": "b65ec7d694e99e2f45f2d4c0b1828dd6",
+    "semantic_hash": "b65ec7d694e99e2f45f2d4c0b1828dd6"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/tests/golden/box-arrows.svg": {
+    "mtime": 1780002339.185942,
+    "ast_hash": "0ae89dfabed813f51b43e423a7f264fc",
+    "semantic_hash": "0ae89dfabed813f51b43e423a7f264fc"
+  },
+  "/Users/isa.goksu/Projects/playgrounds/node/cora/packages/cora/tests/golden/flowchart.svg": {
+    "mtime": 1780002340.3237562,
+    "ast_hash": "a133339c5d0f08b7325eee7bcf7a2728",
+    "semantic_hash": "a133339c5d0f08b7325eee7bcf7a2728"
+  }
+}

@@ -5,7 +5,7 @@ import { execFileSync } from 'node:child_process';
 import { describe, expect, it } from 'vitest';
 
 const packageRoot = new URL('../..', import.meta.url).pathname;
-const previewDist = join(packageRoot, 'dist/preview');
+const previewDist = join(packageRoot, 'preview-dist');
 
 describe('preview package assets', () => {
   it('emits dist/preview/index.html and browser assets after build', () => {

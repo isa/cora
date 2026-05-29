@@ -99,7 +99,7 @@ describe('preview controls', () => {
     expect(labelIconNodeControls.some((control) => control.key === 'titleFontSize')).toBe(true);
     expect(labelIconNodeControls.some((control) => control.kind === 'bold')).toBe(true);
     expect(labelIconNodeControls.find((control) => control.key === 'iconName')).toMatchObject({
-      kind: 'icon',
+      kind: 'enum',
     });
     expect(labelIconNodeControls.some((control) => control.kind === 'size')).toBe(false);
     expect(websiteNodeControls.map((control) => control.key)).toContain('skeletonColor');

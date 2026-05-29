@@ -19,9 +19,10 @@ bun run cora render diagram.yaml -o diagram.pdf
 bun run cora render diagram.yaml -o diagram.txt
 bun run cora render diagram.yaml
 bun run cora render diagram.yaml --charset ascii
-bun run cora preview
-bun run cora preview --no-open
 bun run cora schema
+# (Development only - requires running from the source repository)
+# bun run cora preview
+# bun run cora preview --no-open
 ```
 
 After `bun link` in `packages/cora`, you can use `cora` directly.
@@ -36,7 +37,7 @@ After `bun link` in `packages/cora`, you can use `cora` directly.
 - Render only after validation passes. Pick the artifact the user needs: SVG for docs/review, PNG for raster attachments, PDF for sharing, text for PR comments/logs.
 - Use `--charset ascii` when output may be pasted into plain logs or systems that mangle Unicode.
 - Do not call deferred commands: `cora serve`, `cora ext`, and `cora doctor` are not shipped yet.
-- Do not use `cora preview` to render a diagram file. It is a component workbench and does not read or persist diagram YAML.
+- Do not use `cora preview` to render a diagram file. It is a development-only component workbench, excluded from the npm package, and does not read or persist diagram YAML.
 
 ## Output choice
 
@@ -49,14 +50,12 @@ After `bun link` in `packages/cora`, you can use `cora` directly.
 | Generate a fixed-page PDF | `cora render diagram.yaml -o diagram.pdf --page=a4` |
 | Generate text for PRs, Markdown, terminals, or logs | `cora render diagram.yaml` |
 | Generate ASCII-only text | `cora render diagram.yaml --charset ascii` |
-| Inspect built-in renderer components | `cora preview --no-open` |
+| Inspect built-in renderer components (Dev-only) | `cora preview --no-open` (requires source repo) |
 
-## Preview workbench
+## Preview workbench (Development only)
 
 `cora preview` starts a local component workbench for built-in renderer
-components. It does not require a diagram YAML file. Use `cora preview --no-open`
-or `bun run cora preview --no-open` in tests and automation to avoid launching a
-browser.
+components. It is a development-only tool, excluded from production package builds (Vite is a dev dependency). It does not require a diagram YAML file. Use `cora preview --no-open` or `bun run cora preview --no-open` in tests and automation to avoid launching a browser.
 
 Preview selection means nodes only, with at most a primary node and secondary
 node selected at once. Lines/connections and groups are context for inspecting
@@ -284,6 +283,41 @@ Schema id: `https://cora.dev/schema/v1/diagram.json`
 
 Do not add fields that are not in the schema — validation will reject them.
 
+## Default Icons
+
+Cora ships a built-in set of generic icons under the `default` provider that work without extensions:
+
+| Service Name | Icon | Purpose |
+|-------------|------|---------|
+| `server` | Server/rack | Generic server or compute |
+| `database` | Cylinder | Database or data store |
+| `cloud` | Cloud | Cloud service or platform |
+| `network` | Connected nodes | Network or connectivity |
+| `user` | Person | User or actor |
+| `bug` | Circle crosshairs | Bug/defect |
+| `warning` | Triangle ! | Warning |
+| `error` | Circle X | Error |
+| `stop` | Octagon | Stop/blocked |
+
+Use in YAML:
+```yaml
+nodes:
+  - id: db
+    label: PostgreSQL
+    component: icon
+    provider: default
+    service: database
+```
+
+## Package Exports
+
+| Subpath | Purpose |
+|---------|---------|
+| `cora` | Main library (validate, render, schema) |
+| `cora/core` | Core validation and layout engine |
+| `cora/renderer` | SVG renderer |
+| `cora/renderer/components` | Typed React component catalog for extensions |
+
 ## Renderer Components
 
 Renderer component implementations live under `packages/cora/src/renderer/components/`.
@@ -313,10 +347,11 @@ YAML nodes use `component` as the catalog discriminator. Omit it for the default
 `box`, or set one of: `box`, `label`, `icon`, `labelIcon`, `website`,
 `document`, `app`.
 
-Icon and label-icon nodes may set `icon` to an offline Iconify id such as
-`material-symbols:database` or `basil:cloud-upload-outline`. The legacy
-`provider: default` plus `service: database` form remains supported as an alias
-for `material-symbols:database`.
+Icon and label-icon nodes may set `icon` to:
+- A built-in default icon under `provider: default` (with `service: server`, `database`, `cloud`, `network`, `user`, or using simple aliases directly like `server`, `database`, `cloud`, `network`, `user`). Status icons also include `bug`, `warning`, `error`, `stop`.
+- An offline Iconify id such as `material-symbols:database` or `basil:cloud-upload-outline`.
+
+The legacy `provider: default` plus `service: database` form remains supported and resolves to the built-in default database icon.
 
 Box-like renderer props use `BoxStyleProps`: `backgroundColor`, `radius`,
 `borderStyle`, `borderColor`, `borderWidth`, `text`, `textColor`, and `size`.
@@ -339,7 +374,7 @@ Cora defines a canonical locked default visual language for all built-in compone
   - Node subtitles: 10px Regular
   - Standalone labels: 11px SemiBold `slate-800`
   - Edge labels: 10px Regular `slate-600`
-- **Single Source of Truth**: Handled centrally via `catalogDefaultProps()` in `packages/cora/src/renderer/themes/componentDefaults.ts`, shared exactly between both the pure SVG renderer and the preview controls.
+- **Single Source of Truth**: Handled centrally via `catalogDefaultProps()` in `packages/cora/src/renderer/themes/componentDefaults.ts`, shared exactly between both the pure SVG renderer and the development preview controls.
 - **When to Override**: Default look coordinates can be overridden directly using custom style/layout properties inside the diagram YAML document. Custom extension themes are deferred to Phase 5.
 
 ## Examples

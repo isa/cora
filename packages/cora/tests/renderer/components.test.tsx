@@ -109,6 +109,17 @@ describe('renderer component primitives', () => {
     });
   });
 
+  it('uses explicit style.size dimensions when provided', () => {
+    const measured = measureNodes([
+      { id: 'icon', label: 'Icon', component: 'icon', style: { size: { width: 140, height: 140 } } },
+      { id: 'box', label: 'Box', component: 'box', style: { size: { width: 200, height: 80 } } },
+    ]);
+
+    expect(measured[0]).toMatchObject({ measuredWidth: 140, measuredHeight: 140 });
+    expect(measured[1]?.measuredWidth).toBeGreaterThanOrEqual(200);
+    expect(measured[1]?.measuredHeight).toBeGreaterThanOrEqual(80);
+  });
+
   it('keeps icon-like nodes on the shared icon scale contract', () => {
     const iconLikeFiles = [
       'IconNode.tsx',
@@ -524,12 +535,38 @@ describe('renderer catalog nodes', () => {
     }
   });
 
+  it('renders AppNode with the iphone-old-apps icon path', () => {
+    const markup = renderToStaticMarkup(<AppNode />);
+
+    expect(markup).toContain('viewBox="0 0 24 26"');
+    expect(markup).toContain('fill-rule="evenodd"');
+    expect(markup).toContain('M5 5a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v17');
+    expect(markup).toContain('M11 23a1 1 0 1 0 2 0');
+  });
+
   it('renders WebsiteNode with neutral default colors', () => {
     const markup = renderToStaticMarkup(<WebsiteNode />);
 
     expect(markup).toContain('fill="#ffffff"');
-    expect(markup).toContain('stroke="#334155"');
+    expect(markup).toContain('fill="#cbd5e1"');
     expect(markup).toContain('fill="#e2e8f0"');
+    expect(markup).toContain('fill="#ff5f57"');
+    expect(markup).toContain('fill="#febc2e"');
+    expect(markup).toContain('fill="#28c840"');
+    expect(markup).toContain('fill="#e8eaed"');
+  });
+
+  it('renders colorful traffic lights on dark website chrome', () => {
+    const markup = renderToStaticMarkup(
+      <WebsiteNode backgroundColor="#27272a" borderColor="#52525b" skeletonColor="#52525b" />,
+    );
+
+    expect(markup).toContain('fill="#ff5f57"');
+    expect(markup).toContain('fill="#febc2e"');
+    expect(markup).toContain('fill="#28c840"');
+    expect(markup).toContain('fill="#71717a"');
+    expect(markup).toContain('fill="#52525b"');
+    expect(markup).toContain('fill="#3f3f46"');
   });
 
   it('fits constrained catalog labels inside their available width', () => {

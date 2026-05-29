@@ -44,17 +44,20 @@ type WindowWithSavePicker = Window & {
   }) => Promise<SaveFilePickerHandle>;
 };
 
-function getContrastColor(hex: string): string {
-  if (!hex || hex.startsWith('var')) return '#18181b';
+function getContrastColor(hex: string, isDark: boolean): string {
+  if (!hex || hex.startsWith('var')) return isDark ? '#ffffff' : '#18181b';
   let color = hex.replace('#', '');
   if (color.length === 3) {
     color = color[0] + color[0] + color[1] + color[1] + color[2] + color[2];
   }
-  if (color.length !== 6) return '#18181b';
+  if (color.length !== 6) return isDark ? '#ffffff' : '#18181b';
   const r = parseInt(color.substring(0, 2), 16);
   const g = parseInt(color.substring(2, 4), 16);
   const b = parseInt(color.substring(4, 6), 16);
   const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+  if (isDark) {
+    return yiq < 60 ? '#ffffff' : hex;
+  }
   return yiq > 180 ? '#854d0e' : hex;
 }
 
@@ -73,11 +76,35 @@ export function shouldFocusSearchFromShortcut(event: Pick<KeyboardEvent, 'key' |
 
 export function App() {
   const [state, setState] = useState(createDefaultWorkbenchState);
+  const [loadTrigger, setLoadTrigger] = useState<number | undefined>(undefined);
   const [isCatalogOpen, setIsCatalogOpen] = useState(true);
   const [isInspectorOpen, setIsInspectorOpen] = useState(true);
   const [componentSearch, setComponentSearch] = useState('');
   const [isIconSearchLoading, setIsIconSearchLoading] = useState(false);
-  const [activeTheme, setActiveTheme] = useState<'default' | 'monochrome' | 'without-shadow'>('default');
+  const [activeTheme, setActiveTheme] = useState<'light' | 'dark'>(() => {
+    if (typeof localStorage !== 'undefined') {
+      const saved = localStorage.getItem('cora-active-theme');
+      if (saved === 'light' || saved === 'dark') return saved;
+    }
+    if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return 'light';
+  });
+
+  useEffect(() => {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('cora-active-theme', activeTheme);
+    }
+    if (typeof document !== 'undefined') {
+      if (activeTheme === 'dark') {
+        document.body.classList.add('dark');
+      } else {
+        document.body.classList.remove('dark');
+      }
+    }
+  }, [activeTheme]);
+
   const [fileMessage, setFileMessage] = useState<string>('');
   const searchInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -134,6 +161,7 @@ export function App() {
       }
 
       setState(result.state);
+      setLoadTrigger((prev) => (prev ?? 0) + 1);
       setFileMessage(`Loaded ${file.name}`);
     } catch (error) {
       setFileMessage(error instanceof Error ? error.message : 'Could not load file.');
@@ -236,9 +264,8 @@ export function App() {
             onChange={(event) => setActiveTheme(event.currentTarget.value as any)}
             aria-label="Theme Selection"
           >
-            <option value="default">Default Theme</option>
-            <option value="monochrome">Monochrome</option>
-            <option value="without-shadow">No Shadows</option>
+            <option value="light">Light Theme</option>
+            <option value="dark">Dark Theme</option>
           </Select>
         </div>
         <button
@@ -282,6 +309,9 @@ export function App() {
           setIsIconSearchLoading(false);
         }}
         activeTheme={activeTheme}
+        loadTrigger={loadTrigger}
+        isCatalogOpen={isCatalogOpen}
+        isInspectorOpen={isInspectorOpen}
       />
       <CatalogSidebar
         state={state}
@@ -297,8 +327,8 @@ export function App() {
       <aside
         className={`inspector-panel ${!isInspectorOpen ? 'collapsed' : ''}`}
         style={{
-          '--inspector-theme-color': selectedNode?.props?.backgroundColor || selectedConnection?.props?.strokeColor || '#18181b',
-          '--inspector-accent-color': getContrastColor(selectedNode?.props?.backgroundColor || selectedConnection?.props?.strokeColor || '#18181b'),
+          '--inspector-theme-color': selectedNode?.props?.backgroundColor || selectedConnection?.props?.strokeColor || (activeTheme === 'dark' ? '#1f1f23' : '#18181b'),
+          '--inspector-accent-color': getContrastColor(selectedNode?.props?.backgroundColor || selectedConnection?.props?.strokeColor || (activeTheme === 'dark' ? '#ffffff' : '#18181b'), activeTheme === 'dark'),
         } as React.CSSProperties}
         aria-label="Inspector"
       >

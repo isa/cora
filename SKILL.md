@@ -32,7 +32,7 @@ Use `cora schema` before adding fields. Do not invent fields outside the schema.
 4. If stdout contains errors, fix each `path`; use `suggestion` when present.
 5. Re-run validation until it passes.
 
-Do not use deferred commands (`cora serve`, `cora ext`, `cora doctor`). Use `cora preview --no-open` only to inspect built-in renderer components; it does not render or mutate diagram YAML.
+Do not use deferred commands (`cora serve`, `cora ext`, `cora doctor`). `cora preview` is development-only (excluded from production installs); use it only when running from the source repository to inspect built-in renderer components. It does not render or mutate diagram YAML.
 
 ## Canonical Example
 
@@ -76,7 +76,7 @@ diagram:
 
 - Node ids start with a letter and may contain letters, numbers, `_`, and `-`.
 - Components are `box`, `label`, `icon`, `labelIcon`, `website`, `document`, and `app`; omit `component` for `box`.
-- Offline icons currently include `material-symbols:*` and `basil:*`.
+- Offline icons currently include `material-symbols:*`, `basil:*`, and built-in default icons under `provider: default` (services: `server`, `database`, `cloud`, `network`, `user`) and status icons (`bug`, `warning`, `error`, `stop`). Simple aliases like `server` directly map to `provider: default`.
 - Edge markers are `none`, `arrow`, `circle`, `filledCircle`, `diamond`, `filledDiamond`, `square`, and `filledSquare`.
 - `layout: preserve` requires `position` on every node.
 - `microservice` groups require `contains`.

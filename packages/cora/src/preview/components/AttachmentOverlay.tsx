@@ -7,6 +7,10 @@ interface AttachmentOverlayProps {
 }
 
 export function AttachmentOverlay({ slots, boxes, showLabels }: AttachmentOverlayProps) {
+  if (!showLabels) {
+    return null;
+  }
+
   return (
     <g className="attachment-overlay" aria-label="Attachment overlay">
       {boxes.map((box, index) => (
@@ -19,15 +23,12 @@ export function AttachmentOverlay({ slots, boxes, showLabels }: AttachmentOverla
       ))}
       {slots.map((slot) => (
         <g key={`${slot.nodeId}-${slot.label}`}>
-          {showLabels ? <circle cx={slot.x} cy={slot.y} r="2.75" className="slot-dot" /> : null}
-          {showLabels ? (
-            <text x={slot.x + 8} y={slot.y - 8} className="slot-label">
-              {slot.label}
-            </text>
-          ) : null}
+          <circle cx={slot.x} cy={slot.y} r="2.75" className="slot-dot" />
+          <text x={slot.x + 8} y={slot.y - 8} className="slot-label">
+            {slot.label}
+          </text>
         </g>
       ))}
-      <text x="-9999" y="-9999">top-1</text>
     </g>
   );
 }

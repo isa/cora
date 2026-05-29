@@ -187,6 +187,81 @@ async function layoutDiagramForPreview(diagram: Diagram) {
   });
 }
 
+export async function autoLayoutWorkbenchState(state: WorkbenchState): Promise<WorkbenchState> {
+  if (state.nodes.length === 0) {
+    return state;
+  }
+
+  const attachedNodeIds = new Set(
+    state.nodes
+      .filter((node) => node.attachedConnectionId)
+      .map((node) => node.id),
+  );
+
+  const document = serializeWorkbenchDocument(state);
+  document.diagram.layout = 'auto';
+  document.diagram.nodes = document.diagram.nodes
+    .filter((node) => !attachedNodeIds.has(node.id))
+    .map(({ position, ...node }) => node);
+
+  if (document.diagram.groups) {
+    document.diagram.groups = document.diagram.groups
+      .map((group) => {
+        const style = group.style
+          ? Object.fromEntries(
+              Object.entries(group.style).filter(([key]) => key !== 'position' && key !== 'size'),
+            )
+          : undefined;
+
+        return {
+          ...group,
+          contains: group.contains?.filter((nodeId) => !attachedNodeIds.has(nodeId)),
+          style: style && Object.keys(style).length > 0 ? style : undefined,
+        };
+      })
+      .filter((group) => (group.contains?.length ?? 0) > 0);
+  }
+
+  const layouted = await layoutDiagramForPreview(document.diagram);
+  if (!layouted) {
+    return state;
+  }
+
+  return {
+    ...state,
+    nodes: state.nodes.map((node) => {
+      if (attachedNodeIds.has(node.id)) {
+        return node;
+      }
+
+      const layoutedNode = layouted.nodes.find((item) => item.id === node.id);
+      if (!layoutedNode) {
+        return node;
+      }
+
+      return {
+        ...node,
+        position: {
+          x: Math.round(layoutedNode.x),
+          y: Math.round(layoutedNode.y),
+        },
+      };
+    }),
+    groups: state.groups.map((group) => {
+      const layoutedGroup = layouted.groups?.find((item) => item.id === group.id);
+      if (!layoutedGroup) {
+        return group;
+      }
+
+      return {
+        ...group,
+        position: { x: Math.round(layoutedGroup.x), y: Math.round(layoutedGroup.y) },
+        size: { width: Math.round(layoutedGroup.width), height: Math.round(layoutedGroup.height) },
+      };
+    }),
+  };
+}
+
 function nextPreviewId(nodes: CanvasNode[], groups: CanvasGroup[], connections: CanvasConnection[]): number {
   const ids = [
     ...nodes.map((node) => node.id),

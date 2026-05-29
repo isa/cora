@@ -123,7 +123,13 @@ export const labelNodeControls: Array<ControlDefinition<PreviewNodeProps>> =
   baseNodeControls.filter((control) => control.key !== 'size' && control.key !== 'shadow' && control.key !== 'shadowColor');
 
 export const iconNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
-  { kind: 'icon', key: 'iconName', label: 'Icon' },
+  {
+    kind: 'enum',
+    key: 'iconName',
+    label: 'Icon',
+    options: ['server', 'database', 'cloud', 'network', 'user', 'bug', 'warning', 'error', 'stop'],
+    display: 'select',
+  },
   { kind: 'color', key: 'iconColor', label: 'Icon color' },
   { kind: 'text', key: 'title', label: 'Title' },
   { kind: 'text', key: 'subtitle', label: 'Subtitle' },
@@ -136,7 +142,13 @@ export const iconNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
 ];
 
 export const labelIconNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
-  { kind: 'icon', key: 'iconName', label: 'Icon' },
+  {
+    kind: 'enum',
+    key: 'iconName',
+    label: 'Icon',
+    options: ['server', 'database', 'cloud', 'network', 'user', 'bug', 'warning', 'error', 'stop'],
+    display: 'select',
+  },
   { kind: 'color', key: 'iconColor', label: 'Icon color' },
   { kind: 'text', key: 'title', label: 'Title' },
   { kind: 'text', key: 'subtitle', label: 'Subtitle' },
@@ -148,6 +160,7 @@ export const labelIconNodeControls: Array<ControlDefinition<PreviewNodeProps>> =
   { kind: 'bold', key: 'subtitleBold', label: 'Bold' },
   { kind: 'color', key: 'backgroundColor', label: 'Background' },
 ];
+
 
 export const documentNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
   ...baseNodeControls

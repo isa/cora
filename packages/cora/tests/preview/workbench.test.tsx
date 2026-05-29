@@ -9,7 +9,7 @@ import { connectionDefaults } from '../../src/preview/controls/defaults.js';
 import { filterComponents } from '../../src/preview/components/CatalogSidebar.js';
 import { ControlInput } from '../../src/preview/components/ControlInput.js';
 import { GroupPanel } from '../../src/preview/components/GroupPanel.js';
-import { attachedLabelMaskRects, WorkbenchCanvas } from '../../src/preview/components/WorkbenchCanvas.js';
+import { attachedLabelMaskRects, measureCanvasObstructions, WorkbenchCanvas } from '../../src/preview/components/WorkbenchCanvas.js';
 import {
   applyConnectionMarkerInsets,
   computeConnectionPoints,
@@ -44,18 +44,11 @@ function renderedPreviewLayout(state: ReturnType<typeof createDefaultWorkbenchSt
   }
 
   const { nodeStyles, theme } = resolveTheme(document.diagram, defaultTheme);
-  // Mirror production: size nodes by their rendered size, not the text-only measure.
-  const measured = measureNodes(document.diagram.nodes).map((measuredNode) => {
-    const stateNode = state.nodes.find((node) => node.id === measuredNode.id);
-    if (!stateNode) {
-      return measuredNode;
-    }
-    const size = previewNodeSize(stateNode);
-    return { ...measuredNode, measuredWidth: size.width, measuredHeight: size.height };
-  });
+  // Mirror production: size nodes exactly as the export renderer does (measureNodes),
+  // so the shared layout engine routes around the same boxes that get drawn.
   const layout = computePreservedLayout({
     diagram: document.diagram,
-    measuredNodes: applyNodeStyles(measured, nodeStyles),
+    measuredNodes: applyNodeStyles(measureNodes(document.diagram.nodes), nodeStyles),
     theme,
     offset: false,
   });
@@ -187,9 +180,8 @@ describe('preview workbench', () => {
     expect(markup).toContain('Components');
     expect(markup).toContain('Search components and icons...');
     expect(markup).toContain('aria-label="Theme Selection"');
-    expect(markup).toContain('Default Theme');
-    expect(markup).toContain('Monochrome');
-    expect(markup).toContain('No Shadows');
+    expect(markup).toContain('Light Theme');
+    expect(markup).toContain('Dark Theme');
     expect(markup).toContain('draggable="true"');
     expect(markup).toContain('component-icon');
     expect(markup).toContain('Group');
@@ -475,5 +467,40 @@ describe('preview workbench', () => {
       altKey: false,
       target: null,
     })).toBe(false);
+  });
+
+  it('measures bottom canvas obstruction from the zoom toolbar overlap', () => {
+    const canvasRegion = {
+      getBoundingClientRect: () => ({
+        top: 64,
+        left: 0,
+        right: 1200,
+        bottom: 900,
+        width: 1200,
+        height: 836,
+      }),
+    } as HTMLElement;
+    const toolbar = {
+      getBoundingClientRect: () => ({
+        top: 828,
+        left: 500,
+        right: 700,
+        bottom: 872,
+        width: 200,
+        height: 44,
+      }),
+    } as HTMLElement;
+
+    const obstructions = measureCanvasObstructions({
+      viewport: { width: 1200, height: 836 },
+      canvasRegion,
+      toolbar,
+      isCatalogOpen: true,
+      isInspectorOpen: true,
+    });
+
+    expect(obstructions.bottom).toBeGreaterThanOrEqual(88);
+    expect(obstructions.left).toBe(290);
+    expect(obstructions.right).toBe(330);
   });
 });

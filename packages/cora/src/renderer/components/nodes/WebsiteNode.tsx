@@ -1,6 +1,6 @@
 import type { BoxStyleProps } from '../types.js';
 import { resolveCatalogTextLayout } from '../../../core/catalogTextLayout.js';
-import { resolveWebsiteComponentSize, WEBSITE_SIZE_PRESETS } from '../styles.js';
+import { resolveWebsiteComponentSize, WEBSITE_SIZE_PRESETS, PRODUCT_FRAME_INSET } from '../styles.js';
 import {
   CatalogShadow,
   CatalogText,
@@ -65,6 +65,60 @@ function resolveSkeletonColor(fill: string, requested?: string) {
   return { color: skeletonColorForFill(fill), auto: true };
 }
 
+function isLightPage(pageFill: string) {
+  const lum = luminance(pageFill);
+  return lum === undefined || lum >= 0.45;
+}
+
+const BROWSER_TRAFFIC_LIGHTS = ['#ff5f57', '#febc2e', '#28c840'] as const;
+
+const LIGHT_BROWSER_CHROME = {
+  frame: '#cbd5e1',
+  bar: '#e8eaed',
+  addressBar: '#ffffff',
+};
+
+const DARK_BROWSER_CHROME = {
+  frame: '#71717a',
+  bar: '#52525b',
+  addressBar: '#3f3f46',
+};
+
+function roundedRectPath(x: number, y: number, width: number, height: number, radius: number) {
+  const right = x + width;
+  const bottom = y + height;
+  const r = Math.min(radius, width / 2, height / 2);
+
+  return [
+    `M ${x + r} ${y}`,
+    `H ${right - r}`,
+    `A ${r} ${r} 0 0 1 ${right} ${y + r}`,
+    `V ${bottom - r}`,
+    `A ${r} ${r} 0 0 1 ${right - r} ${bottom}`,
+    `H ${x + r}`,
+    `A ${r} ${r} 0 0 1 ${x} ${bottom - r}`,
+    `V ${y + r}`,
+    `A ${r} ${r} 0 0 1 ${x + r} ${y}`,
+    'Z',
+  ].join(' ');
+}
+
+function headerPath(x: number, y: number, width: number, height: number, radius: number) {
+  const right = x + width;
+  const bottom = y + height;
+  const r = Math.min(radius, width / 2, height);
+
+  return [
+    `M ${x} ${bottom}`,
+    `V ${y + r}`,
+    `A ${r} ${r} 0 0 1 ${x + r} ${y}`,
+    `H ${right - r}`,
+    `A ${r} ${r} 0 0 1 ${right} ${y + r}`,
+    `V ${bottom}`,
+    'Z',
+  ].join(' ');
+}
+
 const ART_BOUNDS = {
   x: 88,
   y: 138,
@@ -108,58 +162,51 @@ export function WebsiteNode(props: WebsiteNodeProps) {
   const textY = sy(710) + labelGap;
   const remainingTextHeight = Math.max(textHeight, frame.y + frame.height - textY - bottomPadding);
   const pageFill = frame.backgroundColor;
-  const chromeColor = frame.borderColor ?? '#334155';
-  const controlFill = '#ffffff';
-  const skeleton = resolveSkeletonColor(pageFill, props.skeletonColor ?? '#e2e8f0');
+  const lightPage = isLightPage(pageFill);
+  const chrome = lightPage ? LIGHT_BROWSER_CHROME : DARK_BROWSER_CHROME;
+  const trafficLightFills = BROWSER_TRAFFIC_LIGHTS;
+  const skeleton = resolveSkeletonColor(
+    pageFill,
+    props.skeletonColor ?? '#e2e8f0',
+  );
+  const windowX = sx(100);
+  const windowY = sy(150);
+  const windowWidth = sx(700) - windowX;
+  const windowHeight = sy(710) - windowY;
+  const windowRadius = 20 * scale;
+  const borderWidth = PRODUCT_FRAME_INSET * scale;
+  const outerPath = roundedRectPath(windowX, windowY, windowWidth, windowHeight, windowRadius);
+  const innerX = windowX + borderWidth;
+  const innerY = windowY + borderWidth;
+  const innerWidth = windowWidth - borderWidth * 2;
+  const innerHeight = windowHeight - borderWidth * 2;
+  const innerRadius = Math.max(0, windowRadius - borderWidth);
+  const innerPath = roundedRectPath(innerX, innerY, innerWidth, innerHeight, innerRadius);
+  const chromeHeight = sy(230) - innerY;
+  const chromePath = headerPath(innerX, innerY, innerWidth, chromeHeight, innerRadius);
 
   return (
     <g>
       <CatalogShadow
-        x={sx(100) - 6.5 * scale}
-        y={sy(150) - 6.5 * scale}
-        width={613 * scale}
-        height={573 * scale}
-        radius={26.5 * scale}
+        x={windowX}
+        y={windowY}
+        width={windowWidth}
+        height={windowHeight}
+        radius={windowRadius}
         fill={pageFill}
         shadow={frame.shadow}
         shadowColor={frame.shadowColor}
       />
-      <path
-        d={[
-          `M ${sx(100)} ${sy(170)}`,
-          `C ${sx(100)} ${sy(159)} ${sx(109)} ${sy(150)} ${sx(120)} ${sy(150)}`,
-          `L ${sx(680)} ${sy(150)}`,
-          `C ${sx(691)} ${sy(150)} ${sx(700)} ${sy(159)} ${sx(700)} ${sy(170)}`,
-          `L ${sx(700)} ${sy(690)}`,
-          `C ${sx(700)} ${sy(701)} ${sx(691)} ${sy(710)} ${sx(680)} ${sy(710)}`,
-          `L ${sx(120)} ${sy(710)}`,
-          `C ${sx(109)} ${sy(710)} ${sx(100)} ${sy(701)} ${sx(100)} ${sy(690)}`,
-          'Z',
-        ].join(' ')}
-        fill={pageFill}
-        stroke={chromeColor}
-        strokeWidth={13 * scale}
-        strokeLinejoin="round"
-      />
-      <path
-        d={[
-          `M ${sx(100)} ${sy(170)}`,
-          `C ${sx(100)} ${sy(159)} ${sx(109)} ${sy(150)} ${sx(120)} ${sy(150)}`,
-          `L ${sx(680)} ${sy(150)}`,
-          `C ${sx(691)} ${sy(150)} ${sx(700)} ${sy(159)} ${sx(700)} ${sy(170)}`,
-          `L ${sx(700)} ${sy(230)}`,
-          `L ${sx(100)} ${sy(230)}`,
-          'Z',
-        ].join(' ')}
-        fill={chromeColor}
-      />
-      {[140, 185, 230].map((cx) => (
+      <path d={outerPath} fill={chrome.frame} />
+      <path d={innerPath} fill={pageFill} />
+      <path d={chromePath} fill={chrome.bar} />
+      {[140, 185, 230].map((cx, index) => (
         <circle
           key={cx}
           cx={sx(cx)}
           cy={sy(190)}
           r={14 * scale}
-          fill={controlFill}
+          fill={trafficLightFills[index]}
         />
       ))}
       <rect
@@ -168,12 +215,12 @@ export function WebsiteNode(props: WebsiteNodeProps) {
         width={400 * scale}
         height={38 * scale}
         rx={10 * scale}
-        fill={controlFill}
+        fill={chrome.addressBar}
       />
       <g fill={skeleton.color} opacity={skeleton.auto ? 0.52 : undefined}>
         <rect x={sx(140)} y={sy(275)} width={150 * scale} height={30 * scale} />
         <rect x={sx(550)} y={sy(275)} width={110 * scale} height={30 * scale} />
-        <rect x={sx(140)} y={sy(331)} width={360 * scale} height={13 * scale} />
+        <rect x={sx(140)} y={sy(331)} width={350 * scale} height={13 * scale} />
         <rect x={sx(140)} y={sy(363)} width={350 * scale} height={13 * scale} />
         <rect x={sx(140)} y={sy(395)} width={350 * scale} height={13 * scale} />
         <rect x={sx(140)} y={sy(427)} width={235 * scale} height={13 * scale} />

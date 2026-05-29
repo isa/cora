@@ -8,6 +8,8 @@ import {
   computeNodeBox,
   computeConnectionPoints,
   computeSceneAttachmentSlots,
+  nodeResizeCenter,
+  positionForResizeAnchor,
   previewNodeSize,
 } from '../../src/preview/geometry.js';
 import { addNodeToCanvas, createDefaultWorkbenchState, selectCanvasItem } from '../../src/preview/state.js';
@@ -358,5 +360,39 @@ describe('preview geometry', () => {
       { x: 6.75, y: 20 },
       { x: 115.68, y: 20 },
     ]);
+  });
+
+  it('anchors icon resize to the icon artwork centre, not the text box centre', () => {
+    const state = addNodeToCanvas(createDefaultWorkbenchState(), 'icon', { x: 100, y: 100 });
+    const node = state.nodes[0]!;
+    const withTitle = {
+      ...node,
+      props: { ...node.props, title: 'Database', subtitle: 'Primary' },
+    };
+    const stateWithTitle = { ...state, nodes: [{ ...withTitle }] };
+    const box = computeNodeBox(stateWithTitle, node.id)!;
+    const center = nodeResizeCenter(stateWithTitle, node.id)!;
+
+    expect(center.x).toBeCloseTo(box.x + box.width / 2, 5);
+    expect(center.y).toBeLessThan(box.y + box.height / 2);
+  });
+
+  it('keeps the resize anchor fixed when repositioning after a scale', () => {
+    const state = addNodeToCanvas(createDefaultWorkbenchState(), 'icon', { x: 80, y: 60 });
+    const anchor = nodeResizeCenter(state, state.nodes[0]!.id)!;
+    const nextSize = { width: 144, height: 144 };
+    const position = positionForResizeAnchor(state, state.nodes[0]!.id, anchor, nextSize);
+    const resizedState = {
+      ...state,
+      nodes: [{
+        ...state.nodes[0]!,
+        props: { ...state.nodes[0]!.props, size: nextSize },
+        position,
+      }],
+    };
+    const nextCenter = nodeResizeCenter(resizedState, state.nodes[0]!.id)!;
+
+    expect(nextCenter.x).toBeCloseTo(anchor.x, 5);
+    expect(nextCenter.y).toBeCloseTo(anchor.y, 5);
   });
 });

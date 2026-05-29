@@ -44,6 +44,16 @@ export {
   WarningIcon,
 } from './icons.js';
 export type { SvgIconComponent, SvgIconProps } from './icons.js';
+export {
+  ServerIcon,
+  DatabaseIcon,
+  CloudIcon,
+  NetworkIcon,
+  UserIcon,
+  DEFAULT_ICON_REGISTRY,
+  BUILTIN_ICON_REGISTRY,
+} from './defaultIcons.js';
+
 
 export { EdgeLabel } from './edges/EdgeLabel.js';
 export {

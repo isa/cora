@@ -72,3 +72,43 @@ export function toMonochrome(theme: ThemeTokens): ThemeTokens {
     edgeLabel: { ...theme.edgeLabel, fill: BLACK },
   };
 }
+
+const DARK_PRODUCT_SHAPES: Partial<Record<string, { fill: string; stroke: string }>> = {
+  app: { fill: '#27272a', stroke: '#71717a' },
+  website: { fill: '#27272a', stroke: '#52525b' },
+};
+
+export function toDarkTheme(theme: ThemeTokens): ThemeTokens {
+  const shapes: Record<string, ThemeShapeStyle> = {};
+  for (const [key, style] of Object.entries(theme.shapes)) {
+    const isTransparent = style.fill === 'none' || style.fill === 'transparent';
+    const productShape = DARK_PRODUCT_SHAPES[key];
+    shapes[key] = {
+      ...style,
+      fill: isTransparent ? style.fill : (productShape?.fill ?? '#18181b'),
+      stroke:
+        style.stroke === 'none'
+          ? 'none'
+          : (productShape?.stroke ?? '#3f3f46'),
+      labelFill: style.labelFill && style.labelFill !== 'none' ? '#f4f4f5' : style.labelFill,
+    };
+  }
+
+  return {
+    ...theme,
+    background: '#09090b', // Zinc 950
+    shapes,
+    edge: {
+      ...theme.edge,
+      stroke: '#71717a', // Zinc 500
+    },
+    nodeLabel: {
+      ...theme.nodeLabel,
+      fill: '#f4f4f5', // Zinc 100
+    },
+    edgeLabel: {
+      ...theme.edgeLabel,
+      fill: '#a1a1aa', // Zinc 400
+    },
+  };
+}

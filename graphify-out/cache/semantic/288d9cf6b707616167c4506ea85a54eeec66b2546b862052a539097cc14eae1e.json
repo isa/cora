@@ -1,0 +1,1 @@
+{"nodes": [{"id": "render_golden_mjs", "label": "render-golden.mjs", "file_type": "code", "source_file": "packages/cora/tests/render-golden.mjs"}], "edges": [{"source": "render_golden_mjs", "target": "box_arrows_svg", "relation": "references", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "packages/cora/tests/render-golden.mjs"}], "hyperedges": []}

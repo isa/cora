@@ -42,5 +42,8 @@ export default defineConfig([
     outputOptions: {
       entryFileNames: 'cli.js',
     },
+    deps: {
+      neverBundle: ['vite'],
+    },
   },
 ]);

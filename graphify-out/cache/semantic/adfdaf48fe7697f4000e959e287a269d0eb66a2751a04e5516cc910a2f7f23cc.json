@@ -1,0 +1,1 @@
+{"nodes": [{"id": "clean_install_sh", "label": "clean-install.sh", "file_type": "code", "source_file": "packages/cora/tests/smoke/clean-install.sh"}], "edges": [{"source": "clean_install_sh", "target": "package_json_cora", "relation": "references", "confidence": "INFERRED", "confidence_score": 0.9, "source_file": "packages/cora/tests/smoke/clean-install.sh"}], "hyperedges": []}

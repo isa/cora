@@ -448,6 +448,19 @@ export function setGroupSize(
   return updateGroup(state, groupId, { size });
 }
 
+/** Resize a group while pinning its top-left to `position` (keeps the centre fixed). */
+export function setGroupSizeAndPosition(
+  state: WorkbenchState,
+  groupId: string,
+  size: { width: number; height: number },
+  position: PreviewPosition,
+): WorkbenchState {
+  return updateGroup(state, groupId, {
+    size: { width: Math.round(size.width), height: Math.round(size.height) },
+    position: roundPosition(position),
+  });
+}
+
 export function duplicateSelected(state: WorkbenchState): WorkbenchState {
   // Multi-node selection: copy each node (offset, no auto-connections).
   if (state.selectedNodeIds.length > 1) {

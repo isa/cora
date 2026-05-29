@@ -1,7 +1,7 @@
 import type { ComponentType } from 'react';
 // Source preview uses direct source imports to keep the browser bundle free of
 // server-only renderer helpers; package subpath verification is covered in Plan 04.
-import { ErrorIcon } from '../../renderer/components/icons.js';
+import { BUILTIN_ICON_REGISTRY } from '../../renderer/components/index.js';
 import { ApiNode } from '../../renderer/components/nodes/ApiNode.js';
 import { AppNode } from '../../renderer/components/nodes/AppNode.js';
 import { BoxNode } from '../../renderer/components/nodes/BoxNode.js';
@@ -71,14 +71,14 @@ export const builtInPack: PackManifest = {
       ...catalogDefaultProps('icon'),
       title: 'Icon',
       subtitle: '',
-      iconName: 'material-symbols:database',
+      iconName: 'database',
       size: 'lg',
     }, iconNodeControls),
     component('labelIcon', displayNameForComponent('labelIcon'), 'basic', LabelIconNode as unknown as ComponentType<PreviewNodeProps>, {
       ...catalogDefaultProps('labelIcon'),
       title: '',
       subtitle: '',
-      iconName: 'material-symbols:database',
+      iconName: 'database',
       size: 'lg',
     }, labelIconNodeControls),
     component('website', displayNameForComponent('website'), 'product', WebsiteNode as ComponentType<PreviewNodeProps>, {
@@ -93,4 +93,5 @@ export const builtInPack: PackManifest = {
   ],
 };
 
-export const previewIcon = ErrorIcon;
+export const previewIcon = BUILTIN_ICON_REGISTRY.error;
+

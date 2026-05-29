@@ -5,9 +5,11 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 import {
+  autoLayoutWorkbenchState,
   deserializeWorkbenchState,
   serializeWorkbenchDocument,
 } from '../../src/preview/persistence.js';
+import { addCatalogItemToCanvas, createDefaultWorkbenchState } from '../../src/preview/state.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = join(__dirname, '../../../..');
@@ -30,5 +32,17 @@ describe('preview persistence', () => {
     const edgeLabels = document.diagram.edges.map((edge) => edge.label).filter(Boolean);
     expect(edgeLabels).toContain('replicate');
     expect(edgeLabels).toContain('private ingress');
+  });
+
+  it('auto-layout repositions canvas nodes without attached line icons', async () => {
+    let state = addCatalogItemToCanvas(createDefaultWorkbenchState(), 'box', { x: 400, y: 300 });
+    state = addCatalogItemToCanvas(state, 'box', { x: 40, y: 80 });
+    const before = state.nodes.map((node) => ({ id: node.id, ...node.position }));
+
+    const layouted = await autoLayoutWorkbenchState(state);
+    const after = layouted.nodes.map((node) => ({ id: node.id, ...node.position }));
+
+    expect(after).not.toEqual(before);
+    expect(layouted.nodes).toHaveLength(2);
   });
 });

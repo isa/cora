@@ -1,0 +1,1 @@
+{"nodes": [{"id": "package_test_ts", "label": "package.test.ts", "file_type": "code", "source_file": "packages/cora/tests/preview/package.test.ts"}], "edges": [{"source": "package_test_ts", "target": "package_json_cora", "relation": "references", "confidence": "INFERRED", "confidence_score": 0.9, "source_file": "packages/cora/tests/preview/package.test.ts"}], "hyperedges": []}

@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 import type { Font } from 'fontkit';
 
+import type { ComponentSize } from '../renderer/components/types.js';
 import {
   APP_SIZE_PRESETS,
   API_SIZE_PRESETS,
@@ -13,6 +14,13 @@ import {
   ICON_NODE_SIZE_PRESETS,
   LABEL_ICON_SIZE_PRESETS,
   WEBSITE_SIZE_PRESETS,
+  resolveAppComponentSize,
+  resolveApiComponentSize,
+  resolveComponentSize,
+  resolveDatabaseComponentSize,
+  resolveDocumentComponentSize,
+  resolveLabelIconComponentSize,
+  resolveWebsiteComponentSize,
 } from '../renderer/components/styles.js';
 import {
   EDGE_LABEL_SIZE,
@@ -123,6 +131,51 @@ export function baselineYForVisualCenter(
   return centerY + ((metrics.ascent + metrics.descent) * scale) / 2;
 }
 
+function styleSizeValue(style: Record<string, unknown> | undefined): ComponentSize | undefined {
+  const size = style?.size;
+  if (typeof size === 'string') {
+    return size;
+  }
+  if (
+    typeof size === 'object' &&
+    size !== null &&
+    typeof (size as { width?: unknown }).width === 'number' &&
+    typeof (size as { height?: unknown }).height === 'number'
+  ) {
+    return {
+      width: Math.round((size as { width: number }).width),
+      height: Math.round((size as { height: number }).height),
+    };
+  }
+  return undefined;
+}
+
+function resolveStyledNodeDimensions(node: DiagramNode): { width: number; height: number } | undefined {
+  const styleSize = styleSizeValue(node.style);
+  if (!styleSize) {
+    return undefined;
+  }
+
+  const component = node.component ?? 'box';
+  switch (component) {
+    case 'app':
+    case 'icon':
+      return resolveAppComponentSize(styleSize, APP_SIZE_PRESETS.lg);
+    case 'api':
+      return resolveApiComponentSize(styleSize, API_SIZE_PRESETS.lg);
+    case 'database':
+      return resolveDatabaseComponentSize(styleSize, DATABASE_SIZE_PRESETS.lg);
+    case 'document':
+      return resolveDocumentComponentSize(styleSize, DOCUMENT_SIZE_PRESETS.lg);
+    case 'labelIcon':
+      return resolveLabelIconComponentSize(styleSize, LABEL_ICON_SIZE_PRESETS.lg);
+    case 'website':
+      return resolveWebsiteComponentSize(styleSize, WEBSITE_SIZE_PRESETS.lg);
+    default:
+      return resolveComponentSize(styleSize, { width: 140, height: 56 });
+  }
+}
+
 export function measureNodes(nodes: DiagramNode[]): MeasuredNode[] {
   return nodes.map((node) => {
     const { width, height } = measureLabel(node.label, 'node');
@@ -135,16 +188,27 @@ export function measureNodes(nodes: DiagramNode[]): MeasuredNode[] {
       measuredWidth += ICON_LABEL_EXTRA_WIDTH;
     }
 
-    const minSize = COMPONENT_MIN_SIZE[component as keyof typeof COMPONENT_MIN_SIZE];
-    if (minSize) {
-      measuredWidth = Math.max(measuredWidth, minSize.width);
-      measuredHeight = Math.max(measuredHeight, minSize.height);
-    }
+    const styled = resolveStyledNodeDimensions(node);
+    if (styled) {
+      if (component === 'box' || component === 'label') {
+        measuredWidth = Math.max(measuredWidth, styled.width);
+        measuredHeight = Math.max(measuredHeight, styled.height);
+      } else {
+        measuredWidth = styled.width;
+        measuredHeight = styled.height;
+      }
+    } else {
+      const minSize = COMPONENT_MIN_SIZE[component as keyof typeof COMPONENT_MIN_SIZE];
+      if (minSize) {
+        measuredWidth = Math.max(measuredWidth, minSize.width);
+        measuredHeight = Math.max(measuredHeight, minSize.height);
+      }
 
-    const isSmallGraph = nodes.length < 7;
-    if (isSmallGraph && (component === 'box' || component === 'label')) {
-      measuredWidth = Math.max(measuredWidth, 120);
-      measuredHeight = Math.max(measuredHeight, 56);
+      const isSmallGraph = nodes.length < 7;
+      if (isSmallGraph && (component === 'box' || component === 'label')) {
+        measuredWidth = Math.max(measuredWidth, 120);
+        measuredHeight = Math.max(measuredHeight, 56);
+      }
     }
 
     return {

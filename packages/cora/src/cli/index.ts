@@ -1,10 +1,9 @@
-import { readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { existsSync, readFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { Command } from 'commander';
 
-import { registerPreviewCommand } from './commands/preview.js';
 import { registerRenderCommand } from './commands/render.js';
 import { registerSchemaCommand } from './commands/schema.js';
 import { registerValidateCommand } from './commands/validate.js';
@@ -13,6 +12,14 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const packageJson = JSON.parse(
   readFileSync(join(__dirname, '../package.json'), 'utf8'),
 ) as { version: string };
+
+function isDevEnvironment(): boolean {
+  const possibleSrcDirs = [
+    resolve(__dirname, '../src'),
+    resolve(__dirname, '..'),
+  ];
+  return possibleSrcDirs.some(dir => existsSync(dir) && existsSync(join(dir, 'cli/index.ts')));
+}
 
 const autoYes =
   process.env.CORA_AUTO_INSTALL === '1' || process.env.CORA_AUTO_INSTALL === 'true';
@@ -29,12 +36,24 @@ program
     autoYes,
   );
 
-registerValidateCommand(program);
-registerSchemaCommand(program);
-registerRenderCommand(program);
-registerPreviewCommand(program);
+async function main() {
+  registerValidateCommand(program);
+  registerSchemaCommand(program);
+  registerRenderCommand(program);
 
-program.parseAsync(process.argv).catch((error: unknown) => {
+  if (isDevEnvironment()) {
+    try {
+      const { registerPreviewCommand } = await import('./commands/preview.js');
+      registerPreviewCommand(program);
+    } catch {
+      // Preview unavailable — silently skip in production
+    }
+  }
+
+  await program.parseAsync(process.argv);
+}
+
+main().catch((error: unknown) => {
   const message = error instanceof Error ? error.message : String(error);
   console.error(message);
   process.exit(1);

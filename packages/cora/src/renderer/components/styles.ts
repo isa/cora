@@ -8,6 +8,14 @@ import type {
 const DEFAULT_BORDER_WIDTH = 0.5;
 export const ICON_NODE_BASE_SIZE = 96;
 export const ICON_NODE_ART_SIZE = 56;
+export const APP_ICON_VIEW_WIDTH = 24;
+export const APP_ICON_VIEW_HEIGHT = 26;
+export const PRODUCT_FRAME_INSET = 13;
+export const WEBSITE_ART_BOUNDS_WIDTH = 624;
+
+export function productFrameInsetPx(componentWidth: number): number {
+  return PRODUCT_FRAME_INSET * (componentWidth / WEBSITE_ART_BOUNDS_WIDTH);
+}
 
 export const SIZE_PRESETS: Record<SizePreset, ComponentDimensions> = {
   sm: { width: 104, height: 44 },

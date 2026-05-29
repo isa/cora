@@ -16,6 +16,33 @@ export const ERROR_CODES = {
   PARSE_ERROR: 'PARSE_ERROR',
 } as const;
 
+const DEFAULT_PROVIDER = 'default';
+const DEFAULT_SERVICES = new Set([
+  'server',
+  'database',
+  'cloud',
+  'network',
+  'user',
+  'bug',
+  'warning',
+  'error',
+  'stop',
+]);
+
+function isExtensionInstalled(provider: string): boolean {
+  if (provider === DEFAULT_PROVIDER) return true;
+  const iconPrefix = iconPrefixForProvider(provider);
+  return !!(iconPrefix && iconSetForPrefix(iconPrefix));
+}
+
+function isKnownService(provider: string, service: string): boolean {
+  if (provider === DEFAULT_PROVIDER) return DEFAULT_SERVICES.has(service);
+  const iconPrefix = iconPrefixForProvider(provider);
+  const node = { provider, service };
+  const iconRef = iconReferenceForNode(node);
+  return !!(iconRef && hasIconReference(iconRef));
+}
+
 function isDiagramFile(document: unknown): document is DiagramFile {
   if (typeof document !== 'object' || document === null) {
     return false;
@@ -84,20 +111,22 @@ export function runSemanticValidation(diagram: Diagram): StructuredError[] {
     }
 
     if (node.provider) {
-      const iconPrefix = iconPrefixForProvider(node.provider);
-      if (!iconPrefix || !iconSetForPrefix(iconPrefix)) {
+      if (!isExtensionInstalled(node.provider)) {
         errors.push({
           code: 'MISSING_EXTENSION',
           path: `/diagram/nodes/${index}/provider`,
           message: `Icon set for provider "${node.provider}" is not installed`,
           suggestion: `Use provider "default" or "${DEFAULT_ICON_PREFIX}", or add the matching @iconify-json package`,
         });
-      } else if (node.service && !hasIconReference(iconReferenceForNode(node)!)) {
+      } else if (node.service && !isKnownService(node.provider, node.service)) {
+        const iconPrefix = iconPrefixForProvider(node.provider);
         errors.push({
           code: 'UNKNOWN_SERVICE',
           path: `/diagram/nodes/${index}/service`,
           message: `Service "${node.service}" is not known for provider "${node.provider}"`,
-          suggestion: `Verify the icon name in the "${iconPrefix}" Iconify set`,
+          suggestion: iconPrefix
+            ? `Verify the icon name in the "${iconPrefix}" Iconify set`
+            : undefined,
         });
       }
     }

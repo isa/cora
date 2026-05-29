@@ -19,3 +19,8 @@ declare module 'elkjs/lib/elk-api.js' {
     terminateWorker(): Promise<void>;
   }
 }
+
+declare module 'elkjs/lib/elk-worker.min.js?url' {
+  const value: string;
+  export default value;
+}

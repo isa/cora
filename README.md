@@ -11,13 +11,14 @@ Open-source diagram tool for AI coding agents and the humans who review their ou
 | 1 — Foundation | Complete | `cora validate`, `cora schema`, v1 JSON Schema, structured errors |
 | 2 — Renderer + SVG | Complete | `cora render` → `.svg` / `.png`, ELK layout, pure SVG renderer, default theme |
 | 3 — PDF Export | Complete | `cora render -o diagram.pdf` |
-| 3.3 — Component Preview Canvas | Complete | `cora preview` local component workbench |
+| 3.3 — Component Preview Canvas | Complete | `cora preview` local component workbench (development-only) |
 | 3.4 — Text Export + SKILL.md | Complete | `cora render` stdout text, `.txt`, `--charset ascii`, agent skill guide |
 | 3.5 — Preview Visual Beauty | Complete | Polished preview workbench UI and interaction pass |
 | 3.6 — Default Component Look Lockdown | Complete | Shared renderer/preview component defaults and look tokens |
-| 3.7+ | Planned | Component/icon package surface, grid expansion, `cora serve`, extensions (`cora ext`), `cora doctor` |
+| 3.7 — Package Surface Lockdown | Complete | Built-in default icons, development-only preview command, public API exports, clean package |
+| 3.8+ | Planned | Grid expansion, `cora serve`, extensions (`cora ext`), `cora doctor` |
 
-**Today:** validate any diagram, export schema, render all five v1 diagram kinds to SVG, PNG, PDF, or simplified graph-like text, and run `cora preview` as a local workbench for built-in renderer components. Built-in component defaults are shared by the renderer and preview controls. Icon nodes support bundled offline Iconify Material Symbols.
+**Today:** validate any diagram, export schema, render all five v1 diagram kinds to SVG, PNG, PDF, or simplified graph-like text. For development, a local component preview workbench is available via `cora preview`. Built-in component defaults are shared by the renderer and preview controls. Icon nodes support bundled offline Iconify Material Symbols and built-in default icons.
 
 ## Install
 
@@ -73,8 +74,8 @@ bun run cora render examples/valid/box-arrows.yaml -o /tmp/diagram.txt
 # Export JSON Schema
 bun run cora schema --out cora-schema.json
 
-# Open the local component preview workbench
-bun run cora preview --no-open
+# Open the local component preview workbench (Development only)
+# bun run cora preview --no-open
 ```
 
 ## Commands
@@ -188,7 +189,10 @@ cora schema
 cora schema --out cora-schema.json
 ```
 
-### `cora preview`
+### `cora preview` (Development only)
+
+> [!NOTE]
+> This command is development-only. It is available when running from the source repository but is excluded from the published production package (since Vite is a development dependency).
 
 Start a local browser workbench for built-in renderer components. The preview
 does not take a YAML input file and does not persist YAML or layout changes.
@@ -202,8 +206,8 @@ secondary node; lines and groups are relationship context.
 | `--no-open` | off | Do not open the default browser |
 
 ```bash
-cora preview
-cora preview --no-open
+bun run cora preview
+bun run cora preview --no-open
 ```
 
 ## Diagram format
@@ -256,16 +260,18 @@ Run `cora schema` for the authoritative field list — do not add properties out
 
 ### Icons
 
-Nodes may set `icon` to an Iconify id. Cora currently ships offline `material-symbols` and `basil` icon sets, so diagrams render deterministically without API calls:
+Nodes may set `icon` to:
+- A built-in default icon under `provider: default` (with `service: server`, `database`, `cloud`, `network`, `user`, or using simple aliases directly like `server`, `database`, `cloud`, `network`, `user`). Status icons also include `bug`, `warning`, `error`, `stop`.
+- An offline Iconify id such as `material-symbols:database` or `basil:cloud-upload-outline`. Cora currently ships offline `material-symbols` and `basil` icon sets, so diagrams render deterministically without API calls:
 
 ```yaml
 - id: archive
   label: Archive
   component: icon
-  icon: material-symbols:database
+  icon: database
 ```
 
-The older `provider: default` + `service: database` form remains supported as an alias for `material-symbols:database`. Unknown icon sets fail with `MISSING_EXTENSION`; unknown icon names fail with `UNKNOWN_SERVICE`.
+The older `provider: default` + `service: database` form remains supported and resolves to the built-in default database icon. Unknown icon sets fail with `MISSING_EXTENSION`; unknown icon names fail with `UNKNOWN_SERVICE`.
 
 ## Examples
 
