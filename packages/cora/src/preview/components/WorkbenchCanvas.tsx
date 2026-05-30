@@ -2,6 +2,7 @@ import { startTransition, useCallback, useEffect, useMemo, useRef, useState, typ
 
 import type { LayoutedEdge, LayoutedNode, ThemeTokens } from '../../layout-ir.js';
 import { computePreservedLayout } from '../../core/layout.js';
+import { resolveGridConfig, snapPoint, snapSize } from '../../core/grid.js';
 import { updateLabeledEdgePlacements } from '../../core/labeledEdgeExpansion.js';
 import { measureNodes } from '../../core/measureText.js';
 import { applyNodeStyles, resolveTheme } from '../../core/themeResolver.js';
@@ -36,6 +37,7 @@ import {
   previewLabelIconContentHeight,
   previewNodeSize,
 } from '../geometry.js';
+import { shouldSnap } from '../gridSnap.js';
 import {
   addCatalogItemToCanvas,
   clearSelection,
@@ -893,6 +895,8 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [viewport, setViewport] = useState(DEFAULT_VIEWPORT);
   const [isSpaceDown, setIsSpaceDown] = useState(false);
+  const [isShiftDown, setIsShiftDown] = useState(false);
+  const [snapEnabled, setSnapEnabled] = useState(true);
   const [panMode, setPanMode] = useState(false);
   const [marquee, setMarquee] = useState<MarqueeRect | undefined>();
   const [isAutoLayouting, setIsAutoLayouting] = useState(false);
@@ -938,6 +942,23 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
     { topLeft: PreviewPoint; baseWidth: number; baseHeight: number } | undefined
   >(undefined);
   const viewBox = zoomViewBox(zoom, pan, viewport);
+  const gridConfig = useMemo(() => resolveGridConfig(), []);
+  const gridSpacing = gridConfig.spacing;
+  const gridMajorSpacing = gridSpacing * gridConfig.majorEvery;
+
+  const snapPositionIfEnabled = (position: { x: number; y: number }) => {
+    if (!shouldSnap(snapEnabled, isShiftDown)) {
+      return position;
+    }
+    return snapPoint(position, gridConfig);
+  };
+
+  const snapSizeIfEnabled = (size: { width: number; height: number }) => {
+    if (!shouldSnap(snapEnabled, isShiftDown)) {
+      return size;
+    }
+    return snapSize(size, gridConfig);
+  };
 
   const zoomRef = useRef(zoom);
   useEffect(() => {
@@ -1128,6 +1149,9 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
         target instanceof HTMLSelectElement;
     };
     const onKeyDown = (event: KeyboardEvent) => {
+      if (event.shiftKey) {
+        setIsShiftDown(true);
+      }
       if (event.code === 'Space' && !isEditable(event.target)) {
         event.preventDefault();
         setIsSpaceDown(true);
@@ -1139,6 +1163,9 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
       }
     };
     const onKeyUp = (event: KeyboardEvent) => {
+      if (!event.shiftKey) {
+        setIsShiftDown(false);
+      }
       if (event.code === 'Space') {
         setIsSpaceDown(false);
         if (dragTarget?.kind === 'pan') {
@@ -1336,7 +1363,7 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
       const delta = { x: point.x - drag.start.x, y: point.y - drag.start.y };
       const shift = ([id, origin]: [string, PreviewPoint]) => ({
         id,
-        position: { x: origin.x + delta.x, y: origin.y + delta.y },
+        position: snapPositionIfEnabled({ x: origin.x + delta.x, y: origin.y + delta.y }),
       });
       let next = setNodePositions(currentState, [...drag.nodes.entries()].map(shift));
       next = setGroupPositions(next, [...drag.groups.entries()].map(shift));
@@ -1344,10 +1371,10 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
       return;
     }
     const point = toCanvasPoint(event.clientX, event.clientY);
-    const position = {
+    const position = snapPositionIfEnabled({
       x: point.x - dragOffset.x,
       y: point.y - dragOffset.y,
-    };
+    });
     if (dragTarget.kind === 'group-resize') {
       const group = currentState.groups.find((item) => item.id === dragTarget.id);
       if (!group) {
@@ -1358,14 +1385,16 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
         return;
       }
       // Top-left stays pinned; the box grows from there toward the pointer.
-      const width = Math.max(MIN_GROUP_WIDTH, point.x - resize.topLeft.x);
-      const height = Math.max(MIN_GROUP_HEIGHT, point.y - resize.topLeft.y);
-      onStateChange(
-        setGroupSizeAndPosition(currentState, group.id, { width, height }, {
-          x: resize.topLeft.x,
-          y: resize.topLeft.y,
-        }),
-      );
+      const rawSize = {
+        width: Math.max(MIN_GROUP_WIDTH, point.x - resize.topLeft.x),
+        height: Math.max(MIN_GROUP_HEIGHT, point.y - resize.topLeft.y),
+      };
+      const size = snapSizeIfEnabled(rawSize);
+      const topLeft = snapPositionIfEnabled({
+        x: resize.topLeft.x,
+        y: resize.topLeft.y,
+      });
+      onStateChange(setGroupSizeAndPosition(currentState, group.id, size, topLeft));
       return;
     }
     if (dragTarget.kind === 'node-resize') {
@@ -1379,10 +1408,11 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
         if (!box) {
           return;
         }
-        onStateChange(setNodeSize(currentState, node.id, {
+        const rawBoxSize = {
           width: Math.max(MIN_NODE_WIDTH, point.x - box.x),
           height: Math.max(MIN_NODE_HEIGHT, point.y - box.y),
-        }));
+        };
+        onStateChange(setNodeSize(currentState, node.id, snapSizeIfEnabled(rawBoxSize)));
         return;
       }
       // Every other sizable node scales from its icon/body centre (excluding text).
@@ -1394,7 +1424,8 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
       const scaleY = Math.abs(point.y - resize.center.y) / (resize.baseHeight / 2);
       const minScale = Math.max(MIN_NODE_WIDTH / resize.baseWidth, MIN_NODE_HEIGHT / resize.baseHeight);
       const scale = Math.max(scaleX, scaleY, minScale);
-      const size = { width: resize.baseWidth * scale, height: resize.baseHeight * scale };
+      const rawSize = { width: resize.baseWidth * scale, height: resize.baseHeight * scale };
+      const size = snapSizeIfEnabled(rawSize);
 
       if (node.attachedConnectionId) {
         // Attached labels are auto-centred on their line; only the size matters.
@@ -1406,7 +1437,9 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
           currentState,
           dragTarget.id,
           size,
-          positionForResizeAnchor(currentState, dragTarget.id, resize.center, size),
+          snapPositionIfEnabled(
+            positionForResizeAnchor(currentState, dragTarget.id, resize.center, size),
+          ),
         ),
       );
       return;
@@ -1644,6 +1677,37 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
           onPointerLeave={endDrag}
         >
         <defs>
+          {gridConfig.visible ? (
+            <>
+              <pattern
+                id="preview-grid-minor"
+                width={gridSpacing}
+                height={gridSpacing}
+                patternUnits="userSpaceOnUse"
+              >
+                <path
+                  d={`M ${gridSpacing} 0 L 0 0 0 ${gridSpacing}`}
+                  fill="none"
+                  stroke="var(--preview-grid-dot)"
+                  strokeWidth={1}
+                />
+              </pattern>
+              <pattern
+                id="preview-grid-major"
+                width={gridMajorSpacing}
+                height={gridMajorSpacing}
+                patternUnits="userSpaceOnUse"
+              >
+                <path
+                  d={`M ${gridMajorSpacing} 0 L 0 0 0 ${gridMajorSpacing}`}
+                  fill="none"
+                  stroke="var(--preview-muted)"
+                  strokeWidth={1}
+                  opacity={0.55}
+                />
+              </pattern>
+            </>
+          ) : null}
           {state.connections.map((connection) => {
             const isSameColor = (c1: string, c2: string) => {
               if (c1 === c2) return true;
@@ -1664,6 +1728,26 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
             );
           })}
         </defs>
+        {gridConfig.visible ? (
+          <>
+            <rect
+              x={viewBox.x}
+              y={viewBox.y}
+              width={viewBox.width}
+              height={viewBox.height}
+              fill="url(#preview-grid-minor)"
+              pointerEvents="none"
+            />
+            <rect
+              x={viewBox.x}
+              y={viewBox.y}
+              width={viewBox.width}
+              height={viewBox.height}
+              fill="url(#preview-grid-major)"
+              pointerEvents="none"
+            />
+          </>
+        ) : null}
         {state.groups.map((group) => {
           const groupPosition = group.position;
           const groupSize = group.size;
@@ -1968,6 +2052,18 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
             onClick={() => setPanMode((value) => !value)}
           >
             <span className="material-symbols-outlined" aria-hidden="true">pan_tool</span>
+          </button>
+          <button
+            type="button"
+            className={`canvas-tool${snapEnabled ? ' active' : ''}`}
+            aria-label="Snap to grid"
+            aria-pressed={snapEnabled}
+            title="Snap to grid (hold Shift to temporarily disable)"
+            onClick={() => setSnapEnabled((value) => !value)}
+          >
+            <span className="material-symbols-outlined" aria-hidden="true">
+              {snapEnabled ? 'grid_on' : 'grid_off'}
+            </span>
           </button>
           <span className="canvas-toolbar-divider" aria-hidden="true" />
           <button

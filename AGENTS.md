@@ -62,6 +62,26 @@ node selected at once. Lines/connections and groups are context for inspecting
 relationships and grouped layouts; they are not selected components. Dragging is
 preview-local and does not persist YAML, layout, or source-file changes.
 
+## Grid Capability
+
+Diagrams may include optional `diagram.grid` in YAML:
+
+```yaml
+diagram:
+  grid:
+    spacing: 16      # default 16 when omitted
+    majorEvery: 5    # default 5 when omitted
+    visible: true    # edit-surface only
+```
+
+- **Schema:** `spacing` (number, minimum 1), `majorEvery` (integer, minimum 1), `visible` (boolean). All fields optional; defaults are applied by `resolveGridConfig()`.
+- **Public API:** Import `resolveGridConfig`, `snapPoint`, `snapSize`, and `snapScalar` from `cora/core` (not the top-level `cora` barrel).
+- **Static exports:** SVG, PDF, PNG, and text output never render a grid background. `diagram.grid` does not change ELK layout positions or golden SVG output.
+- **Preview workbench:** Snap toggle defaults ON; hold **Shift** to temporarily disable snap while dragging. Nodes and groups snap live during move/resize; connection endpoint drags stay free-form.
+- **Phase 4 (`cora serve`):** Canvas save will round node/group `position` values with `snapPoint` before YAML writeback — documented here, not implemented in Phase 3.8.
+
+See `examples/valid/grid-config.yaml` for a minimal valid fixture.
+
 ## Recommended agent loop
 
 1. Write or edit a diagram YAML/JSON file (`version: 1` required).

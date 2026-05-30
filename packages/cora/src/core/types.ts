@@ -74,6 +74,7 @@ export interface Diagram {
   theme?: string;
   layout?: 'auto' | 'preserve' | 'hybrid';
   direction?: 'LR' | 'TB';
+  grid?: { spacing?: number; majorEvery?: number; visible?: boolean };
 }
 
 export interface DiagramFile {

@@ -723,9 +723,7 @@ textarea {
   display: grid;
   min-height: 0;
   padding: 0;
-  background:
-    radial-gradient(circle, var(--preview-grid-dot) 1px, transparent 1px) 0 0 / 24px 24px,
-    var(--preview-bg);
+  background: var(--preview-bg);
 }
 
 .canvas-toolbar {

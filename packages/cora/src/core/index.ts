@@ -19,6 +19,15 @@ export {
   LayoutError,
 } from './layout.js';
 export {
+  DEFAULT_GRID_MAJOR_EVERY,
+  DEFAULT_GRID_SPACING,
+  resolveGridConfig,
+  snapPoint,
+  snapScalar,
+  snapSize,
+} from './grid.js';
+export type { GridConfig } from './grid.js';
+export {
   createElkWorker,
   runElkLayout,
   terminateElkWorker,

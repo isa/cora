@@ -145,6 +145,23 @@
         "direction": {
           "type": "string",
           "enum": ["LR", "TB"]
+        },
+        "grid": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "spacing": {
+              "type": "number",
+              "minimum": 1
+            },
+            "majorEvery": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "visible": {
+              "type": "boolean"
+            }
+          }
         }
       },
       "allOf": [

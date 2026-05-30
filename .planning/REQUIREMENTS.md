@@ -83,14 +83,14 @@
 
 ### Grid Capability
 
-- [ ] **GRID-01**: Optional `diagram.grid` in JSON Schema with `spacing`, `majorEvery`, and `visible` fields
-- [ ] **GRID-02**: Core exports grid snap helpers (`resolveGridConfig`, `snapPoint`, `snapSize`) via `cora/core`
-- [ ] **GRID-03**: Default grid is 16px spacing, origin (0, 0), major lines every 5 cells when fields omitted
-- [ ] **GRID-04**: Preview edit surface visual grid matches core spacing with major-line hierarchy
-- [ ] **GRID-05**: Preview snap toggle (default ON), Shift temporarily disables snap, live snap on node/group move and resize
-- [ ] **GRID-06**: SVG, PDF, PNG, and text exports are unaffected by `diagram.grid` (edit-time only)
-- [ ] **GRID-07**: ELK auto-layout does not post-snap positions to grid by default
-- [ ] **GRID-08**: AGENTS.md documents grid schema, snap semantics, export boundaries, and Phase 4 save-time rounding contract
+- [x] **GRID-01**: Optional `diagram.grid` in JSON Schema with `spacing`, `majorEvery`, and `visible` fields
+- [x] **GRID-02**: Core exports grid snap helpers (`resolveGridConfig`, `snapPoint`, `snapSize`) via `cora/core`
+- [x] **GRID-03**: Default grid is 16px spacing, origin (0, 0), major lines every 5 cells when fields omitted
+- [x] **GRID-04**: Preview edit surface visual grid matches core spacing with major-line hierarchy
+- [x] **GRID-05**: Preview snap toggle (default ON), Shift temporarily disables snap, live snap on node/group move and resize
+- [x] **GRID-06**: SVG, PDF, PNG, and text exports are unaffected by `diagram.grid` (edit-time only)
+- [x] **GRID-07**: ELK auto-layout does not post-snap positions to grid by default
+- [x] **GRID-08**: AGENTS.md documents grid schema, snap semantics, export boundaries, and Phase 4 save-time rounding contract
 
 ### Interactive Canvas
 
@@ -225,14 +225,14 @@ Deferred to post-v1. Tracked but not in current roadmap.
 | CLI-07 | Phase 6 | Pending |
 | AGT-02 | Phase 6 | Pending |
 | AGT-04 | Phase 3.4 | Done (3.4-04) |
-| GRID-01 | Phase 3.8 | Pending |
-| GRID-02 | Phase 3.8 | Pending |
-| GRID-03 | Phase 3.8 | Pending |
-| GRID-04 | Phase 3.8 | Pending |
-| GRID-05 | Phase 3.8 | Pending |
-| GRID-06 | Phase 3.8 | Pending |
-| GRID-07 | Phase 3.8 | Pending |
-| GRID-08 | Phase 3.8 | Pending |
+| GRID-01 | Phase 3.8 | Complete |
+| GRID-02 | Phase 3.8 | Complete |
+| GRID-03 | Phase 3.8 | Complete |
+| GRID-04 | Phase 3.8 | Complete |
+| GRID-05 | Phase 3.8 | Complete |
+| GRID-06 | Phase 3.8 | Complete |
+| GRID-07 | Phase 3.8 | Complete |
+| GRID-08 | Phase 3.8 | Complete |
 
 **Coverage:**
 - v1 requirements: 74 total
