@@ -63,8 +63,8 @@ export function renderToPNG(svg: string, options: RenderToPNGOptions = {}): Buff
     font: {
       fontBuffers: resvgFontBuffers(),
       loadSystemFonts: false,
-      defaultFontFamily: 'Noto Sans',
-      sansSerifFamily: 'Noto Sans',
+      defaultFontFamily: 'Poppins',
+      sansSerifFamily: 'Poppins',
     },
   } as ResvgRenderOptions;
   const resvg = new Resvg(scaledSvg, resvgOptions);

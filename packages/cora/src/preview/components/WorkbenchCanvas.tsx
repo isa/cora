@@ -21,8 +21,13 @@ import { BUILTIN_ICON_REGISTRY } from '../../renderer/components/index.js';
 
 import { API_SIZE_PRESETS, APP_SIZE_PRESETS, DATABASE_SIZE_PRESETS, DOCUMENT_SIZE_PRESETS, WEBSITE_SIZE_PRESETS, LABEL_ICON_SIZE_PRESETS } from '../../renderer/components/styles.js';
 import { catalogDefaultProps } from '../../renderer/themes/componentDefaults.js';
+import { resolveSvgFontFamily } from '../../renderer/themes/diagramFonts.js';
 import { defaultTheme } from '../../renderer/themes/default.js';
-import { toDarkTheme } from '../../renderer/themes/transforms.js';
+import {
+  isDarkDiagramTheme,
+  normalizeDiagramThemeName,
+  resolveDiagramTheme,
+} from '../../renderer/themes/registry.js';
 import { connectionDefaults } from '../controls/defaults.js';
 import {
   applyConnectionMarkerInsets,
@@ -66,7 +71,6 @@ interface WorkbenchCanvasProps {
   onStateChange(state: WorkbenchState): void;
   onClear?(): void;
   onIconDrop?(): void;
-  activeTheme?: 'light' | 'dark';
   loadTrigger?: number;
   isCatalogOpen?: boolean;
   isInspectorOpen?: boolean;
@@ -284,14 +288,8 @@ export function maskCoverageBounds(points: PreviewPoint[], rects: MaskRect[]): M
   return { x: minX - pad, y: minY - pad, width: maxX - minX + pad * 2, height: maxY - minY + pad * 2 };
 }
 
-function resolvePreviewTheme(
-  activeTheme: 'light' | 'dark',
-): ThemeTokens {
-  if (activeTheme === 'dark') {
-    return toDarkTheme(defaultTheme);
-  }
-
-  return defaultTheme;
+function resolvePreviewTheme(state: WorkbenchState): ThemeTokens {
+  return resolveDiagramTheme(state.diagramTheme);
 }
 
 function samePreviewColor(a: string | undefined, b: string | undefined): boolean {
@@ -399,22 +397,18 @@ export function sharedPreviewLayout(state: WorkbenchState) {
 
 function connectionStrokeColorFor(
   connection: CanvasConnection,
-  activeTheme: 'light' | 'dark',
+  state: WorkbenchState,
   themeTokens: ThemeTokens,
 ): string {
-  return activeTheme === 'dark' && samePreviewColor(connection.props.strokeColor, connectionDefaults.strokeColor)
+  return isDarkDiagramTheme(state.diagramTheme) && samePreviewColor(connection.props.strokeColor, connectionDefaults.strokeColor)
     ? themeTokens.edge.stroke
     : connection.props.strokeColor;
 }
 
-export function previewSceneKey(
-  state: WorkbenchState,
-  activeTheme: 'light' | 'dark',
-): string {
+export function previewSceneKey(state: WorkbenchState): string {
   return JSON.stringify({
-    activeTheme,
+    diagramTheme: normalizeDiagramThemeName(state.diagramTheme),
     diagramKind: state.diagramKind,
-    diagramTheme: state.diagramTheme,
     diagramDirection: state.diagramDirection,
     nodes: state.nodes.map((node) => ({
       id: node.id,
@@ -446,11 +440,10 @@ export function previewSceneKey(
 
 export function buildPreviewScene(
   state: WorkbenchState,
-  activeTheme: 'light' | 'dark',
   mode: PreviewSceneMode,
   layouted?: LayoutedDiagram,
 ): PreviewScene {
-  const themeTokens = resolvePreviewTheme(activeTheme);
+  const themeTokens = resolvePreviewTheme(state);
   const labelLayoutNodes = previewLayoutNodes(state);
   const sharedLayout = layouted ?? state.layoutSnapshot ?? (mode === 'settled' ? sharedPreviewLayout(state) : undefined);
   const layoutedNodeBoxesById = new Map(
@@ -513,7 +506,7 @@ export function buildPreviewScene(
       bridgeMaskPath,
       markerCarrierPath,
       hasMarkers,
-      connectionStrokeColor: connectionStrokeColorFor(connection, activeTheme, themeTokens),
+      connectionStrokeColor: connectionStrokeColorFor(connection, state, themeTokens),
     };
   });
 
@@ -573,10 +566,11 @@ function renderedNodeBox(
 
 function getEffectiveNodeProps(
   node: CanvasNode,
-  activeTheme: 'light' | 'dark',
+  state: WorkbenchState,
 ) {
   const defaultProps = catalogDefaultProps(node.componentId as any) || {};
-  const themeTokens = resolvePreviewTheme(activeTheme);
+  const themeTokens = resolvePreviewTheme(state);
+  const darkDiagram = isDarkDiagramTheme(state.diagramTheme);
 
   const shapeStyle = themeTokens.shapes[node.componentId] ?? themeTokens.shapes.box!;
   const effective = { ...node.props };
@@ -615,18 +609,18 @@ function getEffectiveNodeProps(
   }
 
   if (isSameColor(effective.subtitleColor || '', defaultProps.subtitleColor || '')) {
-    effective.subtitleColor = activeTheme === 'dark' ? '#cbd5e1' : defaultProps.subtitleColor;
+    effective.subtitleColor = darkDiagram ? '#cbd5e1' : defaultProps.subtitleColor;
   }
 
   if (isSameColor(effective.iconColor || '', defaultProps.iconColor || '')) {
-    effective.iconColor = activeTheme === 'dark' ? '#a78bfa' : defaultProps.iconColor;
+    effective.iconColor = darkDiagram ? '#a78bfa' : defaultProps.iconColor;
   }
 
   if (
     node.componentId === 'website' &&
     isSameColor(effective.skeletonColor || '', defaultProps.skeletonColor || '')
   ) {
-    effective.skeletonColor = activeTheme === 'dark' ? '#52525b' : defaultProps.skeletonColor;
+    effective.skeletonColor = darkDiagram ? '#52525b' : defaultProps.skeletonColor;
   }
 
   if (effective.shadow === defaultProps.shadow) {
@@ -639,7 +633,6 @@ function getEffectiveNodeProps(
 function renderNode(
   state: WorkbenchState,
   nodeId: string,
-  activeTheme: 'light' | 'dark' = 'light',
   boxOverride?: NonNullable<ReturnType<typeof computeNodeBox>>,
 ) {
   const node = state.nodes.find((item) => item.id === nodeId);
@@ -652,7 +645,7 @@ function renderNode(
   }
   const definition = state.pack.components.find((component) => component.id === node.componentId)!;
   const Component = definition.component;
-  const effectiveProps = getEffectiveNodeProps(node, activeTheme);
+  const effectiveProps = getEffectiveNodeProps(node, state);
   const getPreviewIcon = (iconName: string | undefined) => {
     if (iconName) {
       if (BUILTIN_ICON_REGISTRY[iconName]) {
@@ -902,7 +895,7 @@ function animateCanvasFit(options: {
   animateFrameRef.current = requestAnimationFrame(tick);
 }
 
-export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, activeTheme = 'light', loadTrigger, isCatalogOpen, isInspectorOpen }: WorkbenchCanvasProps) {
+export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, loadTrigger, isCatalogOpen, isInspectorOpen }: WorkbenchCanvasProps) {
   const canvasRegionRef = useRef<HTMLElement | null>(null);
   const toolbarRef = useRef<HTMLDivElement | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -924,9 +917,8 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
   const [isAutoLayouting, setIsAutoLayouting] = useState(false);
   const [isCanvasAnimating, setIsCanvasAnimating] = useState(false);
   const sceneKey = useMemo(
-    () => previewSceneKey(state, activeTheme),
+    () => previewSceneKey(state),
     [
-      activeTheme,
       state.connections,
       state.diagramDirection,
       state.diagramKind,
@@ -936,20 +928,20 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
     ],
   );
   const fastScene = useMemo(
-    () => buildPreviewScene(state, activeTheme, 'fast'),
+    () => buildPreviewScene(state, 'fast'),
     [sceneKey],
   );
   const [settledScene, setSettledScene] = useState<{ key: string; scene: PreviewScene }>(() => {
     if (typeof window === 'undefined') {
       return {
         key: sceneKey,
-        scene: buildPreviewScene(state, activeTheme, 'settled'),
+        scene: buildPreviewScene(state, 'settled'),
       };
     }
 
     return {
       key: '',
-      scene: buildPreviewScene(state, activeTheme, 'fast'),
+      scene: buildPreviewScene(state, 'fast'),
     };
   });
   const multiDragRef = useRef<
@@ -1038,9 +1030,9 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
         }
 
         const currentState = stateRef.current;
-        const key = previewSceneKey(currentState, activeTheme);
+        const key = previewSceneKey(currentState);
 
-        const scene = buildPreviewScene(currentState, activeTheme, 'settled');
+        const scene = buildPreviewScene(currentState, 'settled');
         if (cancelled) {
           return;
         }
@@ -1055,7 +1047,7 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
       window.clearTimeout(timeout);
       window.cancelAnimationFrame(frame);
     };
-  }, [activeTheme, sceneKey, settledLayoutBlocked, settledScene.key]);
+  }, [sceneKey, settledLayoutBlocked, settledScene.key]);
 
   const fitCanvasToView = useCallback((targetState: WorkbenchState) => {
     animateCanvasFit({
@@ -1771,7 +1763,7 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
               return c1.toLowerCase() === c2.toLowerCase();
             };
             const connectionStrokeColor =
-              activeTheme === 'dark' && isSameColor(connection.props.strokeColor, connectionDefaults.strokeColor)
+              isDarkDiagramTheme(state.diagramTheme) && isSameColor(connection.props.strokeColor, connectionDefaults.strokeColor)
                 ? themeTokens.edge.stroke
                 : connection.props.strokeColor;
             return (
@@ -1798,7 +1790,7 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
           const groupPosition = group.position;
           const groupSize = group.size;
           const groupStyle = {
-            fill: activeTheme === 'dark' && (group.fillColor === 'none' || group.fillColor === 'transparent') ? 'none' : group.fillColor,
+            fill: isDarkDiagramTheme(state.diagramTheme) && (group.fillColor === 'none' || group.fillColor === 'transparent') ? 'none' : group.fillColor,
             pointerEvents: 'all' as const,
           };
 
@@ -1828,8 +1820,9 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
                 y={groupPosition.y + 22}
                 className="group-label"
                 style={{
-                  fill: activeTheme === 'dark' && group.labelColor === '#0f172a' ? '#cbd5e1' : group.labelColor,
+                  fill: isDarkDiagramTheme(state.diagramTheme) && group.labelColor === '#0f172a' ? '#cbd5e1' : group.labelColor,
                   fontSize: group.labelSize,
+                  fontFamily: resolveSvgFontFamily(group.fontFamily),
                 }}
               >
                 {group.label}
@@ -1976,7 +1969,7 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
                   className="selection-outline"
                 />
               ) : null}
-              {renderNode(state, node.id, activeTheme, box)}
+              {renderNode(state, node.id, box)}
               {node.componentId !== 'label' ? (
                 <rect
                   x={box.x + box.width - 6}

@@ -135,6 +135,7 @@ export function LabelIconNode(props: LabelIconNodeProps) {
           subtitleColor={frame.subtitleColor}
           fontSize={titleFontSize}
           subtitleFontSize={subtitleFontSize}
+          fontFamily={frame.fontFamily}
           fontWeight={frame.titleBold ? 700 : 400}
           subtitleFontWeight={frame.subtitleBold ? 700 : 400}
         />

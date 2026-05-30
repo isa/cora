@@ -129,6 +129,7 @@ export function AppNode(props: AppNodeProps) {
         subtitleColor={frame.subtitleColor}
         fontSize={titleFontSize}
         subtitleFontSize={subtitleFontSize}
+        fontFamily={frame.fontFamily}
         fontWeight={frame.titleBold ? 700 : 400}
         subtitleFontWeight={frame.subtitleBold ? 700 : 400}
       />

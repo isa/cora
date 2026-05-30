@@ -7,8 +7,8 @@ const baseOpts = () => ({
   font: {
     fontBuffers: resvgFontBuffers(),
     loadSystemFonts: false,
-    defaultFontFamily: 'Noto Sans',
-    sansSerifFamily: 'Noto Sans',
+    defaultFontFamily: 'Poppins',
+    sansSerifFamily: 'Poppins',
   },
 });
 
@@ -25,6 +25,16 @@ describe('rasteriseWithWarningCapture', () => {
     expect(png.length).toBeGreaterThan(0);
     expect(warnings.length).toBeGreaterThan(0);
     expect(warnings.some((w) => /font-family/i.test(w))).toBe(true);
+  });
+
+  it('returns empty warnings when using bundled Poppins', () => {
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="40" viewBox="0 0 120 40">
+      <text x="10" y="20" font-family="Poppins" font-size="14">hello</text>
+    </svg>`;
+    const { png, warnings } = rasteriseWithWarningCapture(svg, baseOpts());
+    expect(png).toBeInstanceOf(Buffer);
+    expect(png.length).toBeGreaterThan(0);
+    expect(warnings).toEqual([]);
   });
 
   it('returns empty warnings when using bundled Noto Sans', () => {

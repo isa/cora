@@ -31,6 +31,7 @@ export interface CanvasGroup {
   fillColor: string;
   labelColor: string;
   labelSize: number;
+  fontFamily?: string;
 }
 
 export interface CanvasConnection {
@@ -92,7 +93,7 @@ function roundGroupSize(size: CanvasGroup['size']): CanvasGroup['size'] {
   };
 }
 
-type GroupPatch = Partial<Pick<CanvasGroup, 'label' | 'position' | 'size' | 'fillColor' | 'labelColor' | 'labelSize'>>;
+type GroupPatch = Partial<Pick<CanvasGroup, 'label' | 'position' | 'size' | 'fillColor' | 'labelColor' | 'labelSize' | 'fontFamily'>>;
 
 function roundGroupPatch(patch: GroupPatch): GroupPatch {
   const rounded = { ...patch };
@@ -122,6 +123,7 @@ export function createDefaultWorkbenchState(pack = builtInPack): WorkbenchState 
     pack,
     diagramKind: 'box-arrows',
     diagramLayout: 'auto',
+    diagramTheme: 'light',
     nodes: [],
     groups: [],
     connections: [],

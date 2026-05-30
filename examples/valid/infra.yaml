@@ -1,65 +1,157 @@
 version: 1
-
 diagram:
   kind: infra
-  layout: auto
+  layout: preserve
   nodes:
     - id: dns
       label: Global DNS
       component: box
+      position:
+        x: 107
+        y: 24
+      style:
+        title: Global DNS
+        text: Global DNS
+        size:
+          width: 102
+          height: 30
     - id: vpc-east
       label: VPC East
       component: box
+      position:
+        x: 132
+        y: 125
+      style:
+        title: VPC East
+        text: VPC East
+        size:
+          width: 88
+          height: 30
     - id: compute-east
       label: Compute East
       component: box
+      position:
+        x: 117
+        y: 208
+      style:
+        title: Compute East
+        text: Compute East
+        size:
+          width: 117
+          height: 30
     - id: db-east
       label: DB East
       component: box
+      position:
+        x: 135
+        y: 372
+      style:
+        title: DB East
+        text: DB East
+        size:
+          width: 80
+          height: 30
     - id: queue-east
       label: Queue East
       component: box
+      position:
+        x: 124
+        y: 289
+      style:
+        title: Queue East
+        text: Queue East
+        size:
+          width: 102
+          height: 30
     - id: vpc-west
       label: VPC West
       component: box
+      position:
+        x: -96.80050668661988
+        y: 125.57937025479418
+      style:
+        title: VPC West
+        text: VPC West
+        size:
+          width: 88
+          height: 30
     - id: compute-west
       label: Compute West
       component: box
+      position:
+        x: -111.80050668661988
+        y: 208.57937025479418
+      style:
+        title: Compute West
+        text: Compute West
+        size:
+          width: 117
+          height: 30
     - id: db-west
       label: DB West
       component: box
+      position:
+        x: -79.80050668661988
+        y: 372.5793702547942
+      style:
+        title: DB West
+        text: DB West
+        size:
+          width: 80
+          height: 30
     - id: queue-west
       label: Queue West
       component: box
+      position:
+        x: -104.80050668661988
+        y: 289.5793702547942
+      style:
+        title: Queue West
+        text: Queue West
+        size:
+          width: 102
+          height: 30
   edges:
     - from: dns
       to: vpc-east
       label: route
+      startMarker: none
       endMarker: filledCircle
     - from: dns
       to: vpc-west
       label: route
+      startMarker: none
       endMarker: filledCircle
     - from: vpc-east
       to: compute-east
       label: private ingress
+      startMarker: none
+      endMarker: arrow
     - from: compute-east
       to: queue-east
       label: jobs
+      startMarker: none
       endMarker: square
     - from: queue-east
       to: db-east
       label: persist
+      startMarker: none
+      endMarker: arrow
     - from: vpc-west
       to: compute-west
       label: private ingress
+      startMarker: none
+      endMarker: arrow
     - from: compute-west
       to: queue-west
       label: jobs
+      startMarker: none
       endMarker: square
     - from: queue-west
       to: db-west
       label: persist
+      startMarker: none
+      endMarker: arrow
     - from: db-east
       to: db-west
       label: replicate
@@ -71,12 +163,26 @@ diagram:
       contains:
         - vpc-east
         - compute-east
-        - queue-east
         - db-east
+        - queue-east
+      style:
+        position:
+          x: 93
+          y: 101
+        size:
+          width: 165
+          height: 325
     - id: region-west
       label: us-west
       contains:
         - vpc-west
         - compute-west
-        - queue-west
         - db-west
+        - queue-west
+      style:
+        position:
+          x: -136
+          y: 102
+        size:
+          width: 165
+          height: 325

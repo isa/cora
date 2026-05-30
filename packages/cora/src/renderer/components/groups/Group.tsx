@@ -1,4 +1,5 @@
-import { escapeXml, FONT_FAMILY } from '../../utils.js';
+import { escapeXml } from '../../utils.js';
+import { resolveSvgFontFamily } from '../../themes/diagramFonts.js';
 import type { GroupComponentProps, GroupStyleProps } from '../types.js';
 
 function stringProp(value: unknown): string | undefined {
@@ -18,6 +19,8 @@ export function Group({
   labelSize,
   titleColor,
   titleSize,
+  fontFamily,
+  labelFontFamily,
 }: GroupComponentProps & GroupStyleProps) {
   const style = theme.shapes.group!;
   const groupStyle = group.style ?? {};
@@ -41,6 +44,12 @@ export function Group({
     numberProp(groupStyle.titleSize) ??
     numberProp(groupStyle.labelSize) ??
     theme.nodeLabel.fontSize;
+  const resolvedFontFamily = resolveSvgFontFamily(
+    stringProp(groupStyle.fontFamily) ??
+      stringProp(groupStyle.labelFontFamily) ??
+      (typeof fontFamily === 'string' ? fontFamily : undefined) ??
+      (typeof labelFontFamily === 'string' ? labelFontFamily : undefined),
+  );
 
   return (
     <g>
@@ -57,7 +66,7 @@ export function Group({
       <text
         x={group.x + 8}
         y={labelY}
-        fontFamily={FONT_FAMILY}
+        fontFamily={resolvedFontFamily}
         fontSize={resolvedLabelSize}
         fontWeight={theme.nodeLabel.fontWeight}
         fill={resolvedLabelColor}

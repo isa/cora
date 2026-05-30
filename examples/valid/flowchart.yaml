@@ -1,46 +1,108 @@
 version: 1
-
 diagram:
   kind: flowchart
+  layout: preserve
+  theme: dark
   direction: TB
   nodes:
     - id: start
       label: Start
       component: box
+      position:
+        x: 24
+        y: 24
+      style:
+        title: Start
+        text: Start
+        size:
+          width: 120
+          height: 56
     - id: load
       label: Load Config
       component: box
+      position:
+        x: 24
+        y: 128
+      style:
+        title: Load Config
+        text: Load Config
+        size:
+          width: 120
+          height: 56
     - id: check
       label: Valid?
       component: box
+      position:
+        x: 250.47105883856227
+        y: 151.93467904946218
+      style:
+        title: Valid?
+        text: Valid?
+        size:
+          width: 120
+          height: 56
     - id: process
       label: Generate Plan
       component: box
+      position:
+        x: 184
+        y: 338
+      style:
+        title: Generate Plan
+        text: Generate Plan
+        size:
+          width: 125
+          height: 56
     - id: reject
       label: Reject
       component: box
+      position:
+        x: 24
+        y: 338
+      style:
+        title: Reject
+        text: Reject
+        size:
+          width: 120
+          height: 56
     - id: end
       label: Done
       component: box
+      position:
+        x: 186
+        y: 442
+      style:
+        title: Done
+        text: Done
+        size:
+          width: 120
+          height: 56
   edges:
     - from: start
       to: load
       startMarker: filledCircle
+      endMarker: arrow
     - from: load
       to: check
+      startMarker: none
+      endMarker: arrow
     - from: check
       to: process
       label: yes
+      startMarker: none
       endMarker: filledCircle
     - from: check
       to: reject
       label: no
+      startMarker: none
       endMarker: diamond
     - from: process
       to: end
+      startMarker: none
       endMarker: filledSquare
     - from: reject
       to: load
       label: retry
       startMarker: circle
       endMarker: arrow
+  groups: []

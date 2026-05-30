@@ -51,9 +51,12 @@ describe('preview visual contract', () => {
     expect(css).toContain('prefers-reduced-motion');
   });
 
-  it('renders the theme toggle control with appropriate labels', () => {
+  it('renders separate diagram theme and preview UI theme controls', () => {
     const markup = renderToStaticMarkup(<App />);
-    expect(markup).toContain('Light Theme');
-    expect(markup).toContain('Dark Theme');
+    expect(markup).toContain('aria-label="Diagram theme"');
+    expect(markup).toContain('>Light</option>');
+    expect(markup).toContain('>Dark</option>');
+    expect(markup).toContain('aria-label="Light preview UI"');
+    expect(markup).toContain('aria-label="Dark preview UI"');
   });
 });

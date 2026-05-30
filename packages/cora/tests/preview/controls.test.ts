@@ -41,6 +41,11 @@ describe('preview controls', () => {
       min: 4,
       max: 24,
     });
+    expect(baseNodeControls.find((control) => control.key === 'fontFamily')).toMatchObject({
+      kind: 'enum',
+      display: 'select',
+      options: expect.arrayContaining(['Poppins', 'Roboto', 'Noto Sans']),
+    });
     expect(baseNodeControls.find((control) => control.key === 'titleFontSize')).toMatchObject({
       kind: 'number',
       min: 8,
@@ -66,8 +71,8 @@ describe('preview controls', () => {
     expect(labelNodeControls.some((control) => control.key === 'shadow')).toBe(false);
     expect(labelNodeControls.some((control) => control.key === 'shadowColor')).toBe(false);
     expect(iconNodeControls.map((control) => control.key)).toEqual([
-      'iconName',
       'iconColor',
+      'fontFamily',
       'title',
       'subtitle',
       'textColor',
@@ -83,8 +88,8 @@ describe('preview controls', () => {
     expect(appNodeControls.some((control) => control.key === 'radius')).toBe(false);
     expect(documentNodeControls.some((control) => control.key === 'radius')).toBe(false);
     expect(labelIconNodeControls.map((control) => control.key)).toEqual([
-      'iconName',
       'iconColor',
+      'fontFamily',
       'title',
       'subtitle',
       'textColor',
@@ -98,9 +103,6 @@ describe('preview controls', () => {
     // Icon labels expose text size and a bold toggle.
     expect(labelIconNodeControls.some((control) => control.key === 'titleFontSize')).toBe(true);
     expect(labelIconNodeControls.some((control) => control.kind === 'bold')).toBe(true);
-    expect(labelIconNodeControls.find((control) => control.key === 'iconName')).toMatchObject({
-      kind: 'enum',
-    });
     expect(labelIconNodeControls.some((control) => control.kind === 'size')).toBe(false);
     expect(websiteNodeControls.map((control) => control.key)).toContain('skeletonColor');
     expect(websiteNodeControls.some((control) => control.kind === 'size')).toBe(false);

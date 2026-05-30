@@ -1,6 +1,7 @@
 import type { ControlDefinition } from './schema.js';
 import { API_SIZE_PRESETS, APP_SIZE_PRESETS, DATABASE_SIZE_PRESETS, DOCUMENT_SIZE_PRESETS, WEBSITE_SIZE_PRESETS } from '../../renderer/components/styles.js';
 import { catalogDefaultProps } from '../../renderer/themes/componentDefaults.js';
+import { DIAGRAM_FONT_OPTIONS } from '../../renderer/themes/diagramFonts.js';
 import { LOOK } from '../../renderer/themes/lookTokens.js';
 import type { MarkerType } from '../../renderer/components/lines/markers.js';
 
@@ -20,6 +21,7 @@ export type PreviewNodeProps = {
   skeletonColor?: string;
   titleFontSize?: number;
   subtitleFontSize?: number;
+  fontFamily?: string;
   titleBold?: boolean;
   subtitleBold?: boolean;
   shadow?: 'none' | 'cast' | 'radial';
@@ -29,6 +31,14 @@ export type PreviewNodeProps = {
   strokeColor?: string;
   iconName?: string;
   iconType?: 'ok' | 'nok' | 'question-mark';
+};
+
+export const fontFamilyControl: ControlDefinition<PreviewNodeProps> = {
+  kind: 'enum',
+  key: 'fontFamily',
+  label: 'Font family',
+  options: [...DIAGRAM_FONT_OPTIONS],
+  display: 'select',
 };
 
 export type ConnectionProps = {
@@ -93,6 +103,7 @@ export const connectionDefaults: ConnectionProps = {
 };
 
 export const baseNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
+  fontFamilyControl,
   { kind: 'text', key: 'title', label: 'Title' },
   { kind: 'text', key: 'subtitle', label: 'Subtitle' },
   { kind: 'number', key: 'radius', label: 'Radius', min: 0, max: 24, step: 1 },
@@ -123,14 +134,8 @@ export const labelNodeControls: Array<ControlDefinition<PreviewNodeProps>> =
   baseNodeControls.filter((control) => control.key !== 'size' && control.key !== 'shadow' && control.key !== 'shadowColor');
 
 export const iconNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
-  {
-    kind: 'enum',
-    key: 'iconName',
-    label: 'Icon',
-    options: ['server', 'database', 'cloud', 'network', 'user', 'bug', 'warning', 'error', 'stop'],
-    display: 'select',
-  },
   { kind: 'color', key: 'iconColor', label: 'Icon color' },
+  fontFamilyControl,
   { kind: 'text', key: 'title', label: 'Title' },
   { kind: 'text', key: 'subtitle', label: 'Subtitle' },
   { kind: 'color', key: 'textColor', label: 'Title color' },
@@ -142,14 +147,8 @@ export const iconNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
 ];
 
 export const labelIconNodeControls: Array<ControlDefinition<PreviewNodeProps>> = [
-  {
-    kind: 'enum',
-    key: 'iconName',
-    label: 'Icon',
-    options: ['server', 'database', 'cloud', 'network', 'user', 'bug', 'warning', 'error', 'stop'],
-    display: 'select',
-  },
   { kind: 'color', key: 'iconColor', label: 'Icon color' },
+  fontFamilyControl,
   { kind: 'text', key: 'title', label: 'Title' },
   { kind: 'text', key: 'subtitle', label: 'Subtitle' },
   { kind: 'color', key: 'textColor', label: 'Title color' },

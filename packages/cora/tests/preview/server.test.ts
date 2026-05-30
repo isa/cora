@@ -9,10 +9,12 @@ describe('preview server config', () => {
       host: '127.0.0.1',
       port: 4173,
       open: false,
+      workspace: '/tmp/cora-workspace',
     });
 
     expect(config.root).toBe('/tmp/cora-preview-root');
     expect(config.configFile).toBe(false);
+    expect(config.plugins).toHaveLength(1);
     expect(config.server).toMatchObject({
       host: '127.0.0.1',
       port: 4173,

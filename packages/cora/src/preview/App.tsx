@@ -22,27 +22,34 @@ import {
   updateNodesProps,
 } from './state.js';
 import {
+  listDiagramThemes,
+  normalizeDiagramThemeName,
+} from '../renderer/themes/registry.js';
+import {
+  buildSuggestedSaveName,
+  grantWriteAccessAfterOpen,
+  pickDiagramFile,
+  pickSaveDiagramFile,
+  shouldAutosaveWorkbenchYaml,
+  writeYamlToFileHandle,
+  type FilePickerWindow,
+  type WritableFileHandle,
+} from './fileAccess.js';
+import {
   deserializeWorkbenchState,
   serializeWorkbenchYaml,
 } from './persistence.js';
+import {
+  displayNameForWorkspaceDiagram,
+  fetchPreviewServerConfig,
+  fetchPreviewServerSource,
+  fetchWorkspaceDiagrams,
+  getPreviewWorkspace,
+  saveYamlViaPreviewServer,
+} from './previewDevSave.js';
 
-type SaveFilePickerHandle = {
-  name?: string;
-  createWritable(): Promise<{
-    write(data: string): Promise<void>;
-    close(): Promise<void>;
-  }>;
-};
-
-type WindowWithSavePicker = Window & {
-  showSaveFilePicker?: (options?: {
-    suggestedName?: string;
-    types?: Array<{
-      description?: string;
-      accept: Record<string, string[]>;
-    }>;
-  }) => Promise<SaveFilePickerHandle>;
-};
+const AUTOSAVE_DEBOUNCE_MS = 400;
+const AUTOSAVE_INTERVAL_MS = 2000;
 
 function getContrastColor(hex: string, isDark: boolean): string {
   if (!hex || hex.startsWith('var')) return isDark ? '#ffffff' : '#18181b';
@@ -81,9 +88,9 @@ export function App() {
   const [isInspectorOpen, setIsInspectorOpen] = useState(true);
   const [componentSearch, setComponentSearch] = useState('');
   const [isIconSearchLoading, setIsIconSearchLoading] = useState(false);
-  const [activeTheme, setActiveTheme] = useState<'light' | 'dark'>(() => {
+  const [uiTheme, setUiTheme] = useState<'light' | 'dark'>(() => {
     if (typeof localStorage !== 'undefined') {
-      const saved = localStorage.getItem('cora-active-theme');
+      const saved = localStorage.getItem('cora-ui-theme') ?? localStorage.getItem('cora-active-theme');
       if (saved === 'light' || saved === 'dark') return saved;
     }
     if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
@@ -92,26 +99,53 @@ export function App() {
     return 'light';
   });
 
+  const diagramThemes = listDiagramThemes();
+
   useEffect(() => {
     if (typeof localStorage !== 'undefined') {
-      localStorage.setItem('cora-active-theme', activeTheme);
+      localStorage.setItem('cora-ui-theme', uiTheme);
     }
     if (typeof document !== 'undefined') {
-      if (activeTheme === 'dark') {
+      if (uiTheme === 'dark') {
         document.body.classList.add('dark');
       } else {
         document.body.classList.remove('dark');
       }
     }
-  }, [activeTheme]);
+  }, [uiTheme]);
 
   const [fileMessage, setFileMessage] = useState<string>('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [isWorkspacePickerOpen, setIsWorkspacePickerOpen] = useState(false);
+  const [workspaceDiagrams, setWorkspaceDiagrams] = useState<string[]>([]);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const stateRef = useRef(state);
+  const sourceFileHandleRef = useRef<WritableFileHandle | null>(null);
+  const usesPreviewServerSaveRef = useRef(Boolean(getPreviewWorkspace()));
+  const activeWorkspaceDiagramPathRef = useRef<string | null>(null);
+  const lastSavedYamlRef = useRef<string | null>(null);
+  const autosaveTimerRef = useRef<number | null>(null);
+  const saveInFlightRef = useRef(false);
+  const initialServerLoadDoneRef = useRef(false);
+
+  const hasAutosaveTarget = () => {
+    if (usesPreviewServerSaveRef.current) {
+      return Boolean(activeWorkspaceDiagramPathRef.current);
+    }
+    return Boolean(stateRef.current.sourceName && sourceFileHandleRef.current);
+  };
+
+  stateRef.current = state;
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        if (isWorkspacePickerOpen) {
+          event.preventDefault();
+          setIsWorkspacePickerOpen(false);
+          return;
+        }
         if (componentSearch.trim()) {
           event.preventDefault();
           setComponentSearch('');
@@ -136,7 +170,7 @@ export function App() {
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [componentSearch, state.selected]);
+  }, [componentSearch, state.selected, isWorkspacePickerOpen]);
 
   useEffect(() => {
     if (!fileMessage) {
@@ -145,6 +179,186 @@ export function App() {
     const timeout = window.setTimeout(() => setFileMessage(''), 4000);
     return () => window.clearTimeout(timeout);
   }, [fileMessage]);
+
+  const clearAutosaveTimer = () => {
+    if (autosaveTimerRef.current !== null) {
+      window.clearTimeout(autosaveTimerRef.current);
+      autosaveTimerRef.current = null;
+    }
+  };
+
+  const bindLoadedDocument = (
+    loadedState: typeof state,
+    options?: {
+      handle?: WritableFileHandle | null;
+      usePreviewServerSave?: boolean;
+      workspaceDiagramPath?: string | null;
+    },
+  ) => {
+    const yaml = serializeWorkbenchYaml(loadedState);
+    lastSavedYamlRef.current = yaml;
+    if (options?.usePreviewServerSave !== undefined) {
+      usesPreviewServerSaveRef.current = options.usePreviewServerSave;
+    } else if (options?.handle !== undefined) {
+      usesPreviewServerSaveRef.current = false;
+    }
+    if (options?.workspaceDiagramPath !== undefined) {
+      activeWorkspaceDiagramPathRef.current = options.workspaceDiagramPath;
+    }
+    sourceFileHandleRef.current = options?.handle ?? null;
+    setState(loadedState);
+    setLoadTrigger((prev) => (prev ?? 0) + 1);
+  };
+
+  const persistYaml = async (
+    yaml: string,
+    options?: { handle?: WritableFileHandle | null; savedName?: string },
+  ): Promise<boolean> => {
+    saveInFlightRef.current = true;
+    setIsSaving(true);
+    try {
+      if (usesPreviewServerSaveRef.current) {
+        const diagramPath = activeWorkspaceDiagramPathRef.current;
+        if (!diagramPath) {
+          return false;
+        }
+        const saved = await saveYamlViaPreviewServer(diagramPath, yaml);
+        lastSavedYamlRef.current = yaml;
+        const label = saved.path;
+        if (label !== stateRef.current.sourceName) {
+          setState((current) => ({ ...current, sourceName: label }));
+        }
+        return true;
+      }
+
+      const handle = options?.handle ?? sourceFileHandleRef.current;
+      if (!handle) {
+        return false;
+      }
+
+      await writeYamlToFileHandle(handle, yaml);
+      lastSavedYamlRef.current = yaml;
+      const savedName = options?.savedName ?? handle.name;
+      if (savedName && savedName !== stateRef.current.sourceName) {
+        setState((current) => ({ ...current, sourceName: savedName }));
+      }
+      return true;
+    } finally {
+      saveInFlightRef.current = false;
+      setIsSaving(false);
+    }
+  };
+
+  const scheduleAutosave = () => {
+    if (!hasAutosaveTarget()) {
+      return;
+    }
+
+    clearAutosaveTimer();
+    autosaveTimerRef.current = window.setTimeout(() => {
+      autosaveTimerRef.current = null;
+      void flushAutosave();
+    }, AUTOSAVE_DEBOUNCE_MS);
+  };
+
+  const flushAutosave = async () => {
+    if (!hasAutosaveTarget()) {
+      return;
+    }
+
+    const yaml = serializeWorkbenchYaml(stateRef.current);
+    if (!shouldAutosaveWorkbenchYaml(yaml, lastSavedYamlRef.current)) {
+      return;
+    }
+
+    if (saveInFlightRef.current) {
+      return;
+    }
+
+    try {
+      await persistYaml(yaml);
+    } catch (error) {
+      setFileMessage(error instanceof Error ? error.message : 'Could not save file.');
+      return;
+    }
+
+    const latestYaml = serializeWorkbenchYaml(stateRef.current);
+    if (shouldAutosaveWorkbenchYaml(latestYaml, lastSavedYamlRef.current)) {
+      scheduleAutosave();
+    }
+  };
+
+  const workbenchDocumentYaml = serializeWorkbenchYaml(state);
+
+  useEffect(() => {
+    if (!hasAutosaveTarget()) {
+      return;
+    }
+    if (!shouldAutosaveWorkbenchYaml(workbenchDocumentYaml, lastSavedYamlRef.current)) {
+      return;
+    }
+
+    scheduleAutosave();
+    return clearAutosaveTimer;
+  }, [workbenchDocumentYaml, state.sourceName]);
+
+  const loadWorkspaceDiagram = async (diagramPath: string) => {
+    const source = await fetchPreviewServerSource(diagramPath);
+    const result = await deserializeWorkbenchState(
+      displayNameForWorkspaceDiagram(source.path),
+      source.content,
+    );
+    if ('errors' in result) {
+      const first = result.errors[0];
+      setFileMessage(first ? `${first.code}: ${first.message}` : 'Could not load file.');
+      return;
+    }
+
+    bindLoadedDocument(
+      { ...result.state, sourceName: source.path },
+      { usePreviewServerSave: true, workspaceDiagramPath: source.path },
+    );
+    setIsWorkspacePickerOpen(false);
+  };
+
+  useEffect(() => {
+    if (initialServerLoadDoneRef.current || !getPreviewWorkspace()) {
+      return;
+    }
+    initialServerLoadDoneRef.current = true;
+
+    void (async () => {
+      try {
+        const config = await fetchPreviewServerConfig();
+        if (!config?.openPath) {
+          return;
+        }
+        await loadWorkspaceDiagram(config.openPath);
+      } catch (error) {
+        setFileMessage(error instanceof Error ? error.message : 'Could not load file.');
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      if (!hasAutosaveTarget()) {
+        return;
+      }
+      const yaml = serializeWorkbenchYaml(stateRef.current);
+      if (!shouldAutosaveWorkbenchYaml(yaml, lastSavedYamlRef.current)) {
+        return;
+      }
+      if (saveInFlightRef.current) {
+        return;
+      }
+      void flushAutosave();
+    }, AUTOSAVE_INTERVAL_MS);
+
+    return () => window.clearInterval(interval);
+  }, []);
+
+  useEffect(() => () => clearAutosaveTimer(), []);
 
   const handleLoadFile = async (file: File | undefined) => {
     if (!file) {
@@ -160,36 +374,77 @@ export function App() {
         return;
       }
 
-      setState(result.state);
-      setLoadTrigger((prev) => (prev ?? 0) + 1);
-      setFileMessage(`Loaded ${file.name}`);
+      bindLoadedDocument(result.state, {
+        handle: null,
+        usePreviewServerSave: false,
+        workspaceDiagramPath: null,
+      });
     } catch (error) {
       setFileMessage(error instanceof Error ? error.message : 'Could not load file.');
     }
   };
 
-  const handleSave = async () => {
-    const yaml = serializeWorkbenchYaml(state);
-    const suggestedName = state.sourceName?.replace(/\.(json|yaml|yml)$/i, '.yml') || 'diagram.yml';
+  const handleLoadClick = async () => {
+    if (getPreviewWorkspace()) {
+      try {
+        const paths = await fetchWorkspaceDiagrams();
+        setWorkspaceDiagrams(paths);
+        setIsWorkspacePickerOpen(true);
+        setIsCatalogOpen(true);
+      } catch (error) {
+        setFileMessage(error instanceof Error ? error.message : 'Could not list workspace files.');
+      }
+      return;
+    }
 
     try {
-      const pickerWindow = window as WindowWithSavePicker;
-      if (typeof pickerWindow.showSaveFilePicker === 'function') {
-        const handle = await pickerWindow.showSaveFilePicker({
-          suggestedName,
-          types: [
-            {
-              description: 'YAML diagram',
-              accept: { 'application/x-yaml': ['.yml', '.yaml'] },
-            },
-          ],
+      const pickerWindow = window as FilePickerWindow;
+      const picked = await pickDiagramFile(pickerWindow);
+      if (picked) {
+        const canWrite = await grantWriteAccessAfterOpen(picked.handle);
+        const content = await picked.file.text();
+        const result = await deserializeWorkbenchState(picked.file.name, content);
+        if ('errors' in result) {
+          const first = result.errors[0];
+          setFileMessage(first ? `${first.code}: ${first.message}` : 'Could not load file.');
+          return;
+        }
+
+        bindLoadedDocument(result.state, {
+          handle: canWrite ? picked.handle : null,
+          usePreviewServerSave: false,
+          workspaceDiagramPath: null,
         });
-        const writable = await handle.createWritable();
-        await writable.write(yaml);
-        await writable.close();
-        const savedName = handle.name ?? suggestedName;
-        setState((current) => ({ ...current, sourceName: savedName }));
-        setFileMessage(`Saved ${savedName}`);
+        return;
+      }
+
+      fileInputRef.current?.click();
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
+      setFileMessage(error instanceof Error ? error.message : 'Could not load file.');
+    }
+  };
+
+  const handleSave = async () => {
+    clearAutosaveTimer();
+    const yaml = serializeWorkbenchYaml(state);
+    const suggestedName = buildSuggestedSaveName(state.sourceName);
+
+    try {
+      if (usesPreviewServerSaveRef.current || sourceFileHandleRef.current) {
+        await persistYaml(yaml);
+        setFileMessage(`Saved ${state.sourceName ?? suggestedName}`);
+        return;
+      }
+
+      const pickerWindow = window as FilePickerWindow;
+      const handle = await pickSaveDiagramFile(pickerWindow, suggestedName);
+      if (handle) {
+        await persistYaml(yaml, { handle, savedName: handle.name ?? suggestedName });
+        sourceFileHandleRef.current = handle;
+        setFileMessage(`Saved ${handle.name ?? suggestedName}`);
         return;
       }
 
@@ -200,6 +455,7 @@ export function App() {
       anchor.download = suggestedName;
       anchor.click();
       URL.revokeObjectURL(url);
+      lastSavedYamlRef.current = yaml;
       setState((current) => ({ ...current, sourceName: suggestedName }));
       setFileMessage(`Downloaded ${suggestedName}`);
     } catch (error) {
@@ -255,51 +511,59 @@ export function App() {
             onLoadingChange={setIsIconSearchLoading}
           />
         </label>
-        <div className="preview-theme-selector">
+        <div className="preview-diagram-theme-selector">
           <span className="material-symbols-outlined" aria-hidden="true">
             palette
           </span>
           <Select
-            value={activeTheme}
-            onChange={(event) => setActiveTheme(event.currentTarget.value as any)}
-            aria-label="Theme Selection"
+            value={normalizeDiagramThemeName(state.diagramTheme)}
+            onChange={(event) =>
+              setState((current) => ({ ...current, diagramTheme: event.currentTarget.value }))
+            }
+            aria-label="Diagram theme"
           >
-            <option value="light">Light Theme</option>
-            <option value="dark">Dark Theme</option>
+            {diagramThemes.map((theme) => (
+              <option key={theme.id} value={theme.id}>
+                {theme.label}
+              </option>
+            ))}
           </Select>
         </div>
-        <button
-          type="button"
-          className="preview-header-action"
-          onClick={() => fileInputRef.current?.click()}
-        >
-          <span className="material-symbols-outlined" aria-hidden="true">folder_open</span>
-          Load YML
-        </button>
-        <button
-          type="button"
-          className="preview-header-action"
-          onClick={() => void handleSave()}
-        >
-          <span className="material-symbols-outlined" aria-hidden="true">save</span>
-          Save YML
-        </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".yml,.yaml,.json,application/x-yaml,application/json"
-          hidden
-          onChange={(event) => {
-            void handleLoadFile(event.currentTarget.files?.[0]);
-            event.currentTarget.value = '';
-          }}
-        />
-        <div className="preview-theme-selector" aria-live="polite">
-          <span className="material-symbols-outlined" aria-hidden="true">description</span>
-          <span>{state.sourceName ?? 'Unsaved canvas'}</span>
-          {fileMessage ? <span className="preview-file-message">{fileMessage}</span> : null}
+        <div className="preview-ui-theme-toggle" role="group" aria-label="Preview appearance">
+          <button
+            type="button"
+            className={`preview-theme-toggle-btn ${uiTheme === 'light' ? 'active' : ''}`}
+            aria-label="Light preview UI"
+            aria-pressed={uiTheme === 'light'}
+            onClick={() => setUiTheme('light')}
+          >
+            <span className="material-symbols-outlined" aria-hidden="true">
+              light_mode
+            </span>
+          </button>
+          <button
+            type="button"
+            className={`preview-theme-toggle-btn ${uiTheme === 'dark' ? 'active' : ''}`}
+            aria-label="Dark preview UI"
+            aria-pressed={uiTheme === 'dark'}
+            onClick={() => setUiTheme('dark')}
+          >
+            <span className="material-symbols-outlined" aria-hidden="true">
+              dark_mode
+            </span>
+          </button>
         </div>
       </header>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".yml,.yaml,.json,application/x-yaml,application/json"
+        hidden
+        onChange={(event) => {
+          void handleLoadFile(event.currentTarget.files?.[0]);
+          event.currentTarget.value = '';
+        }}
+      />
       <WorkbenchCanvas
         state={state}
         onStateChange={setState}
@@ -308,7 +572,6 @@ export function App() {
           setComponentSearch('');
           setIsIconSearchLoading(false);
         }}
-        activeTheme={activeTheme}
         loadTrigger={loadTrigger}
         isCatalogOpen={isCatalogOpen}
         isInspectorOpen={isInspectorOpen}
@@ -316,6 +579,22 @@ export function App() {
       <CatalogSidebar
         state={state}
         searchQuery={componentSearch}
+        sourceName={state.sourceName}
+        activeDiagramPath={
+          state.sourceName?.includes('/') ? state.sourceName : undefined
+        }
+        fileMessage={fileMessage}
+        isSaving={isSaving}
+        isWorkspacePickerOpen={isWorkspacePickerOpen}
+        workspaceDiagrams={workspaceDiagrams}
+        onWorkspaceDiagramPick={(path) => {
+          void loadWorkspaceDiagram(path).catch((error) => {
+            setFileMessage(error instanceof Error ? error.message : 'Could not load file.');
+          });
+        }}
+        onWorkspacePickerClose={() => setIsWorkspacePickerOpen(false)}
+        onLoadClick={() => void handleLoadClick()}
+        onSaveClick={() => void handleSave()}
         isOpen={isCatalogOpen}
         onClose={() => setIsCatalogOpen(false)}
         onSelectItem={(selection) => {
@@ -327,8 +606,8 @@ export function App() {
       <aside
         className={`inspector-panel ${!isInspectorOpen ? 'collapsed' : ''}`}
         style={{
-          '--inspector-theme-color': selectedNode?.props?.backgroundColor || selectedConnection?.props?.strokeColor || (activeTheme === 'dark' ? '#1f1f23' : '#18181b'),
-          '--inspector-accent-color': getContrastColor(selectedNode?.props?.backgroundColor || selectedConnection?.props?.strokeColor || (activeTheme === 'dark' ? '#ffffff' : '#18181b'), activeTheme === 'dark'),
+          '--inspector-theme-color': selectedNode?.props?.backgroundColor || selectedConnection?.props?.strokeColor || (uiTheme === 'dark' ? '#1f1f23' : '#18181b'),
+          '--inspector-accent-color': getContrastColor(selectedNode?.props?.backgroundColor || selectedConnection?.props?.strokeColor || (uiTheme === 'dark' ? '#ffffff' : '#18181b'), uiTheme === 'dark'),
         } as React.CSSProperties}
         aria-label="Inspector"
       >

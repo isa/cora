@@ -61,6 +61,7 @@
             "backgroundColor": { "type": "string" },
             "labelColor": { "type": "string" },
             "labelSize": { "type": "number" },
+            "fontFamily": { "type": "string" },
             "titleColor": { "type": "string" },
             "titleSize": { "type": "number" }
           }

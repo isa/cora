@@ -1,5 +1,7 @@
 import { Resvg, type ResvgRenderOptions } from '@resvg/resvg-js';
 
+import { DIAGRAM_FONT_OPTIONS } from '../themes/diagramFonts.js';
+
 /**
  * Capture resvg font-family warnings.
  *
@@ -126,14 +128,13 @@ function collectResolvableFamilies(opts: ResvgRenderOptions): Set<string> {
   if (font.cursiveFamily) set.add(font.cursiveFamily.toLowerCase());
   if (font.fantasyFamily) set.add(font.fantasyFamily.toLowerCase());
   if (font.monospaceFamily) set.add(font.monospaceFamily.toLowerCase());
-  // The renderer's bundled fonts are always Noto Sans (see
-  // assets/fonts/SOURCES.md). If fontBuffers are present, treat
-  // 'Noto Sans' as resolvable regardless of defaultFontFamily.
-  // `fontBuffers` is accepted at the napi boundary but absent from the
-  // exported type; cast for the runtime check.
+  // Bundled diagram fonts (see assets/fonts/ and scripts/sync-diagram-fonts.mjs).
+  // If fontBuffers are present, treat every shipped diagram face as resolvable.
   const buffers = (font as { fontBuffers?: unknown }).fontBuffers;
   if (Array.isArray(buffers) && buffers.length > 0) {
-    set.add('noto sans');
+    for (const family of DIAGRAM_FONT_OPTIONS) {
+      set.add(family.toLowerCase());
+    }
   }
   return set;
 }

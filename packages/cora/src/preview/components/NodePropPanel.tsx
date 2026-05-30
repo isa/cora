@@ -21,8 +21,8 @@ const SECTION_LAYOUT: SectionLayout[] = [
     label: 'Content',
     icon: 'edit',
     rows: [
-      ['iconName'],
       ['iconColor'],
+      ['fontFamily'],
       ['title'],
       ['textColor', 'titleFontSize', 'titleBold'],
       ['subtitle'],

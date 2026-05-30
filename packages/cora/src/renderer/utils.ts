@@ -6,4 +6,6 @@ export function escapeXml(text: string): string {
     .replace(/"/g, '&quot;');
 }
 
-export const FONT_FAMILY = "'Noto Sans', sans-serif";
+import { resolveSvgFontFamily } from './themes/diagramFonts.js';
+
+export const FONT_FAMILY = resolveSvgFontFamily();

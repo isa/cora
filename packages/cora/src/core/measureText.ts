@@ -61,8 +61,8 @@ function resolveFontPath(filename: string): string {
 }
 
 const fontPaths = {
-  node: () => resolveFontPath('NotoSans-SemiBold.woff'),
-  edge: () => resolveFontPath('NotoSans-Regular.woff'),
+  node: () => resolveFontPath('Poppins-SemiBold.woff'),
+  edge: () => resolveFontPath('Poppins-Regular.woff'),
 };
 
 const fontCache: Partial<Record<'node' | 'edge', Font>> = {};

@@ -25,8 +25,10 @@ export interface GroupStyleProps {
   backgroundColor?: string;
   labelColor?: string;
   labelSize?: number;
+  labelFontFamily?: string;
   titleColor?: string;
   titleSize?: number;
+  fontFamily?: string;
 }
 
 export type BorderStyle = 'none' | 'solid' | 'dashed' | 'dotted';
@@ -55,6 +57,7 @@ export interface BoxStyleProps {
   subtitleColor?: string;
   titleFontSize?: number;
   subtitleFontSize?: number;
+  fontFamily?: string;
   titleBold?: boolean;
   subtitleBold?: boolean;
   shadow?: NodeShadow;

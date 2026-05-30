@@ -5,11 +5,17 @@ import { fileURLToPath } from 'node:url';
 
 import { createServer, type InlineConfig, type ViteDevServer } from 'vite';
 
+import { previewSavePlugin } from './previewSavePlugin.js';
+
 export interface PreviewServerOptions {
   host?: string;
   port?: number;
   open?: boolean;
   root?: string;
+  /** Workspace root for server-side diagram read/write (includes subfolders). */
+  workspace?: string;
+  /** Diagram path relative to workspace to open on startup. */
+  openPath?: string;
 }
 
 export interface PreviewServer {
@@ -41,6 +47,12 @@ export function createPreviewServerConfig(options: PreviewServerOptions = {}): I
   return {
     root: resolvePreviewRoot(options.root),
     configFile: false,
+    plugins: [
+      previewSavePlugin({
+        workspace: resolve(options.workspace ?? process.cwd()),
+        openPath: options.openPath,
+      }),
+    ],
     server: {
       host,
       port,

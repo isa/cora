@@ -1,11 +1,12 @@
 import type { CanvasGroup } from '../state.js';
 import type { ControlDefinition } from '../controls/schema.js';
+import { fontFamilyControl } from '../controls/defaults.js';
 import { ControlInput } from './ControlInput.js';
 import { Input } from './ui/index.js';
 
 interface GroupPanelProps {
   group?: CanvasGroup;
-  onGroupChange(patch: Partial<Pick<CanvasGroup, 'label' | 'size' | 'fillColor' | 'labelColor' | 'labelSize'>>): void;
+  onGroupChange(patch: Partial<Pick<CanvasGroup, 'label' | 'size' | 'fillColor' | 'labelColor' | 'labelSize' | 'fontFamily'>>): void;
 }
 
 type GroupStyleControlKey = 'fillColor' | 'labelColor' | 'labelSize';
@@ -37,6 +38,11 @@ export function GroupPanel({ group, onGroupChange }: GroupPanelProps) {
             </span>
           </summary>
           <div className="control-group-content">
+            <ControlInput
+              control={fontFamilyControl as ControlDefinition<Record<'fontFamily', unknown>>}
+              value={group.fontFamily}
+              onChange={(value) => onGroupChange({ fontFamily: value as string })}
+            />
             <label className="field compact field-text">
               <span>Title</span>
               <Input

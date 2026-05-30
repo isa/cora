@@ -1,3 +1,6 @@
+import { existsSync, statSync } from 'node:fs';
+import { resolve } from 'node:path';
+
 import { Command } from 'commander';
 
 import {
@@ -5,6 +8,7 @@ import {
   startPreviewServer,
   type PreviewServer,
 } from '../../preview/server.js';
+import { resolveDiagramPathInWorkspace } from '../../preview/previewWorkspace.js';
 
 export interface RegisterPreviewCommandOptions {
   start?: typeof startPreviewServer;
@@ -52,14 +56,43 @@ export function registerPreviewCommand(
     .option('--host <host>', 'Host interface for the preview server', '127.0.0.1')
     .option('--port <port>', 'Port for the preview server', parsePort, 4173)
     .option('--no-open', 'Do not open the preview in the default browser')
-    .action(async (options: { host: string; port: number; open: boolean }) => {
+    .option(
+      '--workspace <path>',
+      'Directory for diagram read/write, including subfolders (default: current directory)',
+      '.',
+    )
+    .option(
+      '--diagram <path>',
+      'Diagram to open on startup, relative to --workspace',
+    )
+    .action(async (options: {
+      host: string;
+      port: number;
+      open: boolean;
+      workspace: string;
+      diagram?: string;
+    }) => {
+      const workspace = resolve(options.workspace);
+      if (!existsSync(workspace) || !statSync(workspace).isDirectory()) {
+        throw new Error(`Preview workspace is not a directory: ${workspace}`);
+      }
+
+      let openPath: string | undefined;
+      if (options.diagram) {
+        openPath = options.diagram.split(/[/\\]/).join('/');
+        resolveDiagramPathInWorkspace(workspace, openPath);
+      }
+
       const server = await start({
         host: options.host,
         port: options.port,
         open: options.open,
+        workspace,
+        openPath,
       });
 
       process.stdout.write(`Cora preview running at ${server.url}\n`);
+      process.stdout.write(`Workspace: ${workspace}\n`);
 
       if (options.open) {
         await open(server.url);

@@ -20,8 +20,8 @@ diagram:
       label: Redis
       component: box
       position:
-        x: 280.8054956575776
-        y: -81.86745658226977
+        x: 281
+        y: -82
       style:
         title: Redis
         text: Redis
@@ -32,8 +32,8 @@ diagram:
       label: PostgreSQL Primary
       component: box
       position:
-        x: 747.6858822026143
-        y: -93.53448212471451
+        x: 620.376077965076
+        y: -105.47090513836085
       style:
         title: PostgreSQL Primary
         text: PostgreSQL Primary
@@ -68,8 +68,8 @@ diagram:
       label: Dataset Catalog
       component: box
       position:
-        x: 504.95258639109284
-        y: 111.20743534421177
+        x: 505
+        y: 111
       style:
         title: Dataset Catalog
         text: Dataset Catalog

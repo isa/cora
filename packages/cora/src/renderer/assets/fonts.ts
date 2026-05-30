@@ -1,6 +1,8 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+import { DEFAULT_DIAGRAM_FONT } from '../themes/diagramFonts.js';
 
 const base = dirname(fileURLToPath(import.meta.url));
 
@@ -43,35 +45,41 @@ export function resolveFontPath(filename: string): string {
   throw new Error(`Font not found: ${filename} (searched: ${candidates.join(', ')})`);
 }
 
+function bundledWoffFiles(): string[] {
+  const fontsDir = dirname(resolveFontPath(`${DEFAULT_DIAGRAM_FONT.replace(/\s+/g, '')}-Regular.woff`));
+  return readdirSync(fontsDir)
+    .filter((name) => name.endsWith('.woff'))
+    .sort();
+}
+
 let resvgFontBuffersCache: Buffer[] | undefined;
 
 /**
- * Cached WOFF buffers in renderer-stable order (Regular, SemiBold) for
- * `@resvg/resvg-js`. resvg-js does not load WOFF via `fontFiles`; pass
- * the buffers directly through `font.fontBuffers`.
+ * Cached WOFF buffers for every bundled diagram face (Regular + SemiBold
+ * per family) for `@resvg/resvg-js`.
  */
 export function resvgFontBuffers(): Buffer[] {
   if (!resvgFontBuffersCache) {
-    resvgFontBuffersCache = [
-      readFileSync(resolveFontPath('NotoSans-Regular.woff')),
-      readFileSync(resolveFontPath('NotoSans-SemiBold.woff')),
-    ];
+    resvgFontBuffersCache = bundledWoffFiles().map((filename) =>
+      readFileSync(resolveFontPath(filename)),
+    );
   }
   return resvgFontBuffersCache;
 }
 
 let pdfLibFontBuffersCache: { regular: Buffer; semibold: Buffer } | undefined;
 
+const defaultPrefix = DEFAULT_DIAGRAM_FONT.replace(/\s+/g, '');
+
 /**
- * Cached TTF buffers for `pdf-lib` + `@pdf-lib/fontkit`. TTF is the
- * format pdf-lib/fontkit handles most reliably for selectable-text
- * embedding (see SOURCES.md "Why TTF").
+ * Cached TTF buffers for `pdf-lib` + `@pdf-lib/fontkit`. The default
+ * diagram face (Poppins) ships as TTF for selectable-text embedding.
  */
 export function pdfLibFontBuffers(): { regular: Buffer; semibold: Buffer } {
   if (!pdfLibFontBuffersCache) {
     pdfLibFontBuffersCache = {
-      regular: readFileSync(resolveFontPath('NotoSans-Regular.ttf')),
-      semibold: readFileSync(resolveFontPath('NotoSans-SemiBold.ttf')),
+      regular: readFileSync(resolveFontPath(`${defaultPrefix}-Regular.ttf`)),
+      semibold: readFileSync(resolveFontPath(`${defaultPrefix}-SemiBold.ttf`)),
     };
   }
   return pdfLibFontBuffersCache;

@@ -63,7 +63,7 @@ describe('preview persistence', () => {
       return;
     }
 
-    const scene = buildPreviewScene(result.state, 'light', 'fast');
+    const scene = buildPreviewScene(result.state, 'fast');
     const previewBoxes = Object.fromEntries(
       [...scene.renderedNodeBoxesById.entries()].map(([id, box]) => [id, box]),
     );
@@ -93,6 +93,40 @@ describe('preview persistence', () => {
     expect(document.diagram.layout).toBe('preserve');
     expect(document.diagram.nodes[0]?.position).toEqual({ x: 80, y: 64 });
     expect(document.diagram.nodes[0]?.style?.size).toEqual({ width: 120, height: 56 });
+  });
+
+  it('round-trips node and group fontFamily through YAML', async () => {
+    let state = addCatalogItemToCanvas(createDefaultWorkbenchState(), 'label', { x: 40, y: 40 });
+    state = updateNodeProps(state, state.nodes[0]!.id, 'fontFamily', 'Montserrat');
+    state = {
+      ...state,
+      groups: [
+        {
+          id: 'group-1',
+          label: 'Services',
+          position: { x: 20, y: 20 },
+          size: { width: 240, height: 120 },
+          fillColor: 'none',
+          labelColor: '#0f172a',
+          labelSize: 12,
+          fontFamily: 'Roboto',
+        },
+      ],
+      diagramLayout: 'preserve',
+    };
+
+    const yaml = serializeWorkbenchDocument(state);
+    expect(yaml.diagram.nodes[0]?.style?.fontFamily).toBe('Montserrat');
+    expect(yaml.diagram.groups[0]?.style?.fontFamily).toBe('Roboto');
+
+    const loaded = await deserializeWorkbenchState('preview.yaml', JSON.stringify(yaml));
+    expect('state' in loaded).toBe(true);
+    if (!('state' in loaded)) {
+      return;
+    }
+
+    expect(loaded.state.nodes[0]?.props.fontFamily).toBe('Montserrat');
+    expect(loaded.state.groups[0]?.fontFamily).toBe('Roboto');
   });
 
   it('switches loaded auto-layout files to preserve after preview edits', async () => {

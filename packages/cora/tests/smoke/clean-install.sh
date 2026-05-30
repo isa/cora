@@ -52,8 +52,8 @@ fi
 
 # Assertion 3: TTF fonts are in the published tarball (required by default
 # resvg + pdf-lib lane).
-test -f "$SMOKE_DIR/install/node_modules/cora/dist/renderer/assets/fonts/NotoSans-Regular.ttf" \
-  || { echo "[smoke] FAIL: TTF Noto Sans Regular missing from published package"; exit 1; }
+test -f "$SMOKE_DIR/install/node_modules/cora/dist/renderer/assets/fonts/Poppins-Regular.ttf" \
+  || { echo "[smoke] FAIL: TTF Poppins Regular missing from published package"; exit 1; }
 
 # Assertion 4: assert the runtime `playwright` package landed in node_modules
 # (proof we are actually exercising the Playwright postinstall path — without

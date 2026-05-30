@@ -1,3 +1,8 @@
+import {
+  isKnownDiagramTheme,
+  listDiagramThemes,
+  resolveDiagramTheme,
+} from '../renderer/themes/registry.js';
 import type { Diagram, DiagramNode, MeasuredNode, ResolvedStyle, ThemeTokens } from './types.js';
 
 function resolveNodeStyle(
@@ -31,19 +36,21 @@ function resolveNodeStyle(
 
 export function resolveTheme(
   diagram: Diagram,
-  defaultTheme: ThemeTokens,
+  _defaultTheme: ThemeTokens,
 ): { diagram: Diagram; theme: ThemeTokens; nodeStyles: Map<string, ResolvedStyle> } {
   const themeName = diagram.theme ?? 'default';
-  if (themeName !== 'default') {
-    throw new Error(`Unknown theme: ${themeName}. Only 'default' is supported.`);
+  if (!isKnownDiagramTheme(themeName)) {
+    const supported = [...listDiagramThemes().map((theme) => theme.id), 'default'].join(', ');
+    throw new Error(`Unknown theme: ${themeName}. Supported themes: ${supported}.`);
   }
 
+  const theme = resolveDiagramTheme(themeName);
   const nodeStyles = new Map<string, ResolvedStyle>();
   for (const node of diagram.nodes) {
-    nodeStyles.set(node.id, resolveNodeStyle(node, defaultTheme));
+    nodeStyles.set(node.id, resolveNodeStyle(node, theme));
   }
 
-  return { diagram, theme: defaultTheme, nodeStyles };
+  return { diagram, theme, nodeStyles };
 }
 
 export function applyNodeStyles(

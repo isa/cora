@@ -100,8 +100,8 @@ export async function renderToPDF(
   const resvgFont = {
     fontBuffers: resvgFontBuffers(),
     loadSystemFonts: false,
-    defaultFontFamily: 'Noto Sans',
-    sansSerifFamily: 'Noto Sans',
+    defaultFontFamily: 'Poppins',
+    sansSerifFamily: 'Poppins',
   } as unknown as never;
   const probe = rasteriseWithWarningCapture(svg, { font: resvgFont });
   const { png, warnings: rasterWarnings } = rasteriseWithWarningCapture(

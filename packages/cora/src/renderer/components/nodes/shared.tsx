@@ -9,6 +9,7 @@ import { LOOK } from '../../themes/lookTokens.js';
 import { NODE_TITLE_SIZE, NODE_SUBTITLE_SIZE } from '../../themes/fontTokens.js';
 import type { ResolvedStyle, ThemeTokens } from '../../../layout-ir.js';
 import { escapeXml, FONT_FAMILY } from '../../utils.js';
+import { resolveSvgFontFamily } from '../../themes/diagramFonts.js';
 import type { SvgIconComponent } from '../icons.js';
 import { borderDasharray, isNoBorder, resolveComponentSize } from '../styles.js';
 import type { BoxStyleProps, ComponentDimensions, NodeComponentProps, NodeShadow } from '../types.js';
@@ -26,13 +27,17 @@ export function NodeLabel({ node, theme }: NodeComponentProps) {
   const totalHeight = lines.length * lineHeight;
   const firstLineCenter = node.y + node.measuredHeight / 2 - totalHeight / 2 + lineHeight / 2;
   const firstBaseline = baselineYForVisualCenter(firstLineCenter, fontSize, 'node');
+  const fontFamily =
+    typeof node.style?.fontFamily === 'string'
+      ? resolveSvgFontFamily(node.style.fontFamily)
+      : FONT_FAMILY;
 
   return (
     <text
       x={node.x + node.measuredWidth / 2}
       y={firstBaseline}
       textAnchor="middle"
-      fontFamily={FONT_FAMILY}
+      fontFamily={fontFamily}
       fontSize={fontSize}
       fontWeight={theme.nodeLabel.fontWeight}
       fill={fill}
@@ -99,6 +104,7 @@ export function resolvedCatalogFrame(props: CatalogNodeFrameProps) {
     subtitleColor: props.subtitleColor ?? LOOK.text.muted,
     titleFontSize: props.titleFontSize,
     subtitleFontSize: props.subtitleFontSize,
+    fontFamily: props.fontFamily,
     titleBold: props.titleBold ?? false,
     subtitleBold: props.subtitleBold ?? false,
     shadow: props.shadow ?? 'none',
@@ -298,6 +304,7 @@ export function CatalogText({
   minFontSize = 9,
   fontWeight = 400,
   subtitleFontWeight = 400,
+  fontFamily,
   wrapText = true,
 }: {
   x: number;
@@ -314,6 +321,7 @@ export function CatalogText({
   minFontSize?: number;
   fontWeight?: number | string;
   subtitleFontWeight?: number | string;
+  fontFamily?: string;
   wrapText?: boolean;
 }) {
   if (!text && !subtitle) return null;
@@ -338,7 +346,7 @@ export function CatalogText({
       x={x + width / 2}
       y={firstBaseline}
       textAnchor="middle"
-      fontFamily={FONT_FAMILY}
+      fontFamily={resolveSvgFontFamily(fontFamily)}
       fontSize={layout.titleFontSize}
       fontWeight={fontWeight}
       fill={color}

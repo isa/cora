@@ -97,6 +97,7 @@ function nodeCatalogProps(
   component: DiagramComponent
 ) {
   const defaults = catalogDefaultProps(component);
+  const styleOverrides = node.style ?? {};
   return {
     x: node.x,
     y: node.y,
@@ -110,6 +111,7 @@ function nodeCatalogProps(
     radius: defaults.radius,
     titleFontSize: defaults.titleFontSize,
     subtitleFontSize: defaults.subtitleFontSize,
+    fontFamily: typeof styleOverrides.fontFamily === 'string' ? styleOverrides.fontFamily : undefined,
     skeletonColor: defaults.skeletonColor,
     iconColor: defaults.iconColor,
     shadow: style.shadow ? ('cast' as const) : ('none' as const),

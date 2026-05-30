@@ -13,15 +13,21 @@ diagram:
       style:
         title: Browser Client
         text: Browser Client
+        size:
+          width: 120
+          height: 56
     - id: proxy
       label: Edge Proxy
       component: box
       position:
-        x: 240.61328125
-        y: 132.98828125
+        x: 241
+        y: 133
       style:
         title: Edge Proxy
         text: Edge Proxy
+        size:
+          width: 120
+          height: 56
     - id: server
       label: API Server
       component: box
@@ -31,24 +37,33 @@ diagram:
       style:
         title: API Server
         text: API Server
+        size:
+          width: 120
+          height: 56
     - id: worker
       label: Async Worker
       component: box
       position:
-        x: 694.01953125
-        y: 24.40625
+        x: 694
+        y: 24
       style:
         title: Async Worker
         text: Async Worker
+        size:
+          width: 120
+          height: 56
     - id: audit
       label: Audit Log
       component: box
       position:
-        x: 943.07421875
-        y: 23.9375
+        x: 693.9392812848091
+        y: 186.80713775672803
       style:
         title: Audit Log
         text: Audit Log
+        size:
+          width: 120
+          height: 56
   edges:
     - from: client
       to: proxy
@@ -69,7 +84,7 @@ diagram:
       to: audit
       label: write
       startMarker: none
-      endMarker: diamond
+      endMarker: arrow
     - from: server
       to: client
       label: response

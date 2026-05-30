@@ -68,8 +68,8 @@ describe('Tarball Integrity Smoke Test', () => {
       'dist/index.js',
       'dist/core/index.js',
       'dist/renderer/components/index.js',
-      'dist/renderer/assets/fonts/NotoSans-Regular.ttf',
-      'dist/renderer/assets/fonts/NotoSans-SemiBold.ttf',
+      'dist/renderer/assets/fonts/Poppins-Regular.ttf',
+      'dist/renderer/assets/fonts/Poppins-SemiBold.ttf',
       'SKILL.md',
       'package.json'
     ];

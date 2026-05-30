@@ -32,7 +32,7 @@
   ],
   "scripts": {
     "generate:icon-index": "node scripts/generate-icon-index.mjs",
-    "build": "tsdown && vite build src/preview --base ./ --outDir ../../preview-dist --emptyOutDir && mkdir -p dist/renderer/assets && cp -r src/renderer/assets/fonts dist/renderer/assets/",
+    "build": "node scripts/sync-diagram-fonts.mjs && tsdown && vite build src/preview --base ./ --outDir ../../preview-dist --emptyOutDir && mkdir -p dist/renderer/assets && cp -r src/renderer/assets/fonts dist/renderer/assets/",
     "cora": "node dist/cli.js",
     "dev": "tsdown --watch",
     "prepack": "cp ../../SKILL.md SKILL.md",
@@ -64,7 +64,16 @@
     "yaml": "^2.7.0"
   },
   "devDependencies": {
+    "@fontsource/inter": "^5.2.8",
+    "@fontsource/lato": "^5.2.7",
+    "@fontsource/montserrat": "^5.2.8",
     "@fontsource/noto-sans": "5.2.5",
+    "@fontsource/open-sans": "^5.2.7",
+    "@fontsource/oswald": "^5.2.8",
+    "@fontsource/poppins": "^5.2.7",
+    "@fontsource/raleway": "^5.2.8",
+    "@fontsource/roboto": "^5.2.10",
+    "@fontsource/source-sans-3": "^5.2.9",
     "@iconify/json": "^2.2.479",
     "@types/node": "^22.15.21",
     "@types/react": "^19.0.0",

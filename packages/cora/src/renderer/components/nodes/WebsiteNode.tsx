@@ -243,6 +243,7 @@ export function WebsiteNode(props: WebsiteNodeProps) {
         subtitleColor={frame.subtitleColor}
         fontSize={frame.titleFontSize}
         subtitleFontSize={frame.subtitleFontSize}
+        fontFamily={frame.fontFamily}
         fontWeight={frame.titleBold ? 700 : 400}
         subtitleFontWeight={frame.subtitleBold ? 700 : 400}
       />

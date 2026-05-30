@@ -127,6 +127,7 @@ function previewNodePropsFromDiagramNode(node: DiagramNode): PreviewNodeProps {
     skeletonColor: stringValue(style.skeletonColor) ?? defaults.skeletonColor,
     titleFontSize: numberValue(style.titleFontSize) ?? numberValue(style.titleSize) ?? defaults.titleFontSize,
     subtitleFontSize: numberValue(style.subtitleFontSize) ?? defaults.subtitleFontSize,
+    fontFamily: stringValue(style.fontFamily) ?? defaults.fontFamily,
     titleBold: typeof style.titleBold === 'boolean' ? style.titleBold : defaults.titleBold,
     subtitleBold: typeof style.subtitleBold === 'boolean' ? style.subtitleBold : defaults.subtitleBold,
     shadow: shadowValue(style.shadow) ?? defaults.shadow,
@@ -175,6 +176,7 @@ function previewGroupFromDiagramGroup(group: DiagramGroup, index: number): Canva
         : typeof style.titleSize === 'number'
           ? style.titleSize
           : 12,
+    fontFamily: stringValue(style.fontFamily) ?? stringValue(style.labelFontFamily),
   };
 }
 
@@ -425,6 +427,7 @@ function nodeStyleFromPreviewNode(state: WorkbenchState, node: CanvasNode, attac
   assignIfChanged('skeletonColor', props.skeletonColor, defaults.skeletonColor);
   assignIfChanged('titleFontSize', props.titleFontSize, defaults.titleFontSize);
   assignIfChanged('subtitleFontSize', props.subtitleFontSize, defaults.subtitleFontSize);
+  assignIfChanged('fontFamily', props.fontFamily, defaults.fontFamily);
   assignIfChanged('titleBold', props.titleBold, defaults.titleBold);
   assignIfChanged('subtitleBold', props.subtitleBold, defaults.subtitleBold);
   assignIfChanged('shadow', props.shadow, defaults.shadow);
@@ -467,6 +470,9 @@ function groupStyleFromPreviewGroup(group: CanvasGroup): GroupStyle {
   }
   if (group.labelSize !== 12) {
     style.labelSize = group.labelSize;
+  }
+  if (group.fontFamily) {
+    style.fontFamily = group.fontFamily;
   }
 
   return style;

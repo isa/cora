@@ -160,9 +160,11 @@ describe('preview workbench', () => {
     expect(markup).toContain('Layers');
     expect(markup).toContain('Components');
     expect(markup).toContain('Search components and icons...');
-    expect(markup).toContain('aria-label="Theme Selection"');
-    expect(markup).toContain('Light Theme');
-    expect(markup).toContain('Dark Theme');
+    expect(markup).toContain('aria-label="Diagram theme"');
+    expect(markup).toContain('>Light</option>');
+    expect(markup).toContain('>Dark</option>');
+    expect(markup).toContain('aria-label="Light preview UI"');
+    expect(markup).toContain('aria-label="Dark preview UI"');
     expect(markup).toContain('draggable="true"');
     expect(markup).toContain('component-icon');
     expect(markup).toContain('Group');
@@ -397,13 +399,13 @@ describe('preview workbench', () => {
       'document',
       { x: 340, y: 80 },
     );
-    const baseKey = previewSceneKey(state, 'light');
+    const baseKey = previewSceneKey(state);
 
     expect(
-      previewSceneKey(selectCanvasItem(state, { kind: 'node', id: state.nodes[0]!.id }), 'light'),
+      previewSceneKey(selectCanvasItem(state, { kind: 'node', id: state.nodes[0]!.id })),
     ).toBe(baseKey);
     expect(
-      previewSceneKey(selectCanvasItem(state, { kind: 'connection', id: state.connections[0]!.id }), 'light'),
+      previewSceneKey(selectCanvasItem(state, { kind: 'connection', id: state.connections[0]!.id })),
     ).toBe(baseKey);
   });
 
@@ -430,8 +432,8 @@ describe('preview workbench', () => {
 
   it('uses fast preview routing until the settled edge scene is recomputed', () => {
     const state = crossingWorkbenchState();
-    const fast = buildPreviewScene(state, 'light', 'fast');
-    const settled = buildPreviewScene(state, 'light', 'settled');
+    const fast = buildPreviewScene(state, 'fast');
+    const settled = buildPreviewScene(state, 'settled');
 
     expect(fast.renderedConnections).toHaveLength(state.connections.length);
     expect(fast.renderedConnections.some(({ bridgeMaskPath }) => bridgeMaskPath.length > 0)).toBe(false);
