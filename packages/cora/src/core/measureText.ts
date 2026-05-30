@@ -133,7 +133,7 @@ export function baselineYForVisualCenter(
 
 function styleSizeValue(style: Record<string, unknown> | undefined): ComponentSize | undefined {
   const size = style?.size;
-  if (typeof size === 'string') {
+  if (size === 'sm' || size === 'md' || size === 'lg' || size === 'xl' || size === 'xxl') {
     return size;
   }
   if (

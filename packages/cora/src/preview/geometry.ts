@@ -40,6 +40,11 @@ export interface PreviewBox {
   height: number;
 }
 
+export interface PreviewPoint {
+  x: number;
+  y: number;
+}
+
 export interface AttachmentSlot {
   nodeId: string;
   side: Side;
@@ -248,7 +253,15 @@ export function previewLabelContentSize(node: CanvasNode): { width: number; heig
   return { width: layout.contentWidth, height: layout.totalHeight };
 }
 
-export function computeNodeBox(state: WorkbenchState, nodeId: string): PreviewBox | undefined {
+export function computeNodeBox(
+  state: WorkbenchState,
+  nodeId: string,
+  // Points of the connection this node is attached to, as drawn on the canvas
+  // (the shared-layout edge). When supplied, attached label/icon placement walks
+  // these exact points instead of re-deriving them — so an attached icon sits on
+  // the visible line and doesn't bounce as boxes move or text changes.
+  attachedEdgePoints?: Array<{ x: number; y: number }>,
+): PreviewBox | undefined {
   const node = state.nodes.find((item) => item.id === nodeId);
   if (!node) {
     return undefined;
@@ -284,8 +297,10 @@ export function computeNodeBox(state: WorkbenchState, nodeId: string): PreviewBo
       ? computeConnectionLabelIconCenter(state, node.attachedConnectionId, size, {
           x: node.position.x + size.width / 2,
           y: node.position.y + size.height / 2,
-        }, node.attachedEnd, labelIconLayout!.extents)
-      : computeConnectionCenter(state, node.attachedConnectionId)
+        }, node.attachedEnd, labelIconLayout!.extents, attachedEdgePoints)
+      : attachedEdgePoints
+        ? connectionCenter(attachedEdgePoints)
+        : computeConnectionCenter(state, node.attachedConnectionId)
     : undefined;
   let position = node.position;
   if (attachedCenter) {
@@ -733,6 +748,21 @@ export function computeConnectionCenter(
 // own size, so resizing scales it in place rather than sliding it.
 const LABEL_ICON_LINE_OFFSET = 40;
 
+// Decide which end of a point list a reference point is nearer to.
+function nearestEndOfPoints(
+  points: Array<{ x: number; y: number }>,
+  point: { x: number; y: number },
+): 'source' | 'target' {
+  if (points.length < 2) {
+    return 'source';
+  }
+  const source = points[0]!;
+  const target = points[points.length - 1]!;
+  const sourceDistance = Math.hypot(point.x - source.x, point.y - source.y);
+  const targetDistance = Math.hypot(point.x - target.x, point.y - target.y);
+  return targetDistance < sourceDistance ? 'target' : 'source';
+}
+
 // Decide which end of a connection a point is nearer to. Used once when an icon
 // is placed/dragged; the result is persisted so later box moves can't flip it.
 export function connectionLabelIconEnd(
@@ -744,15 +774,7 @@ export function connectionLabelIconEnd(
   if (!connection) {
     return undefined;
   }
-  const points = computeConnectionPoints(state, connection);
-  if (points.length < 2) {
-    return 'source';
-  }
-  const source = points[0]!;
-  const target = points[points.length - 1]!;
-  const sourceDistance = Math.hypot(point.x - source.x, point.y - source.y);
-  const targetDistance = Math.hypot(point.x - target.x, point.y - target.y);
-  return targetDistance < sourceDistance ? 'target' : 'source';
+  return nearestEndOfPoints(computeConnectionPoints(state, connection), point);
 }
 
 // Room reserved between the node's content and the line ending so the shaft and
@@ -779,19 +801,22 @@ export function computeConnectionLabelIconCenter(
   // The node's content reach from the icon centre: half its width, and how far
   // the content extends above (icon) and below (text) the icon centre.
   extents?: { halfWidth: number; up: number; down: number },
+  // The connection's drawn points (shared-layout edge). When omitted, the points
+  // are re-derived locally — kept only as a fallback for callers without a layout.
+  pointsOverride?: Array<{ x: number; y: number }>,
 ): { x: number; y: number } | undefined {
   const connection = state.connections.find((item) => item.id === connectionId);
   if (!connection) {
     return undefined;
   }
-  const points = computeConnectionPoints(state, connection);
+  const points = pointsOverride ?? computeConnectionPoints(state, connection);
   void size;
   // A persisted end wins: it keeps the icon on the same side no matter how the
   // connected boxes are moved. Fall back to the nearest-end heuristic only when
   // no end has been recorded yet (e.g. legacy diagrams).
   const resolvedEnd = end
     ?? (preferredPoint && points.length > 1
-      ? connectionLabelIconEnd(state, connectionId, preferredPoint)
+      ? nearestEndOfPoints(points, preferredPoint)
       : undefined);
   const walk = resolvedEnd === 'target' ? [...points].reverse() : points;
 

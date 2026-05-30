@@ -2367,11 +2367,38 @@ function buildGroupsFromElk(
   });
 }
 
+/** Explicit group bounds carried on the group style (set by the interactive preview). */
+function explicitGroupBounds(
+  style: unknown,
+): { x: number; y: number; width: number; height: number } | undefined {
+  if (!style || typeof style !== 'object') {
+    return undefined;
+  }
+  const position = (style as { position?: unknown }).position;
+  const size = (style as { size?: unknown }).size;
+  if (
+    position && typeof position === 'object' &&
+    size && typeof size === 'object' &&
+    typeof (position as { x?: unknown }).x === 'number' &&
+    typeof (position as { y?: unknown }).y === 'number' &&
+    typeof (size as { width?: unknown }).width === 'number' &&
+    typeof (size as { height?: unknown }).height === 'number'
+  ) {
+    return {
+      x: (position as { x: number }).x,
+      y: (position as { y: number }).y,
+      width: (size as { width: number }).width,
+      height: (size as { height: number }).height,
+    };
+  }
+  return undefined;
+}
+
 function layoutPreserve(
   diagram: Diagram,
   measuredNodes: MeasuredNode[],
   theme: ThemeTokens,
-  options?: { offset?: boolean },
+  options?: { offset?: boolean; preserveGroupBounds?: boolean },
 ): LayoutedDiagram {
   const missing = measuredNodes
     .filter(
@@ -2408,6 +2435,19 @@ function layoutPreserve(
   }));
 
   updateGroupBoundsFromContainedNodes(groups, nodeById);
+  if (options?.preserveGroupBounds) {
+    // The preview owns its group rectangles (users move/resize them freely);
+    // route around the bounds it actually paints rather than an auto-fit box.
+    for (const group of groups) {
+      const bounds = explicitGroupBounds(group.style);
+      if (bounds) {
+        group.x = bounds.x;
+        group.y = bounds.y;
+        group.width = bounds.width;
+        group.height = bounds.height;
+      }
+    }
+  }
   optimizeVerticalLaneRoutes(edges, nodes, groups);
   unshareOverlappingEdgeSegments(edges, nodes, groups);
   avoidObstacles(edges, nodes, groups);
@@ -2456,9 +2496,11 @@ export function computePreservedLayout(input: {
   measuredNodes: MeasuredNode[];
   theme: ThemeTokens;
   offset?: boolean;
+  preserveGroupBounds?: boolean;
 }): LayoutedDiagram {
   return layoutPreserve(input.diagram, input.measuredNodes, input.theme, {
     offset: input.offset,
+    preserveGroupBounds: input.preserveGroupBounds,
   });
 }
 

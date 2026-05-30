@@ -1,15 +1,20 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 
-import { computePreservedLayout } from '../../src/core/layout.js';
-import { measureNodes } from '../../src/core/measureText.js';
-import { applyNodeStyles, resolveTheme } from '../../src/core/themeResolver.js';
 import { App, shouldFocusSearchFromShortcut } from '../../src/preview/App.js';
 import { connectionDefaults } from '../../src/preview/controls/defaults.js';
 import { filterComponents } from '../../src/preview/components/CatalogSidebar.js';
 import { ControlInput } from '../../src/preview/components/ControlInput.js';
 import { GroupPanel } from '../../src/preview/components/GroupPanel.js';
-import { attachedLabelMaskRects, measureCanvasObstructions, WorkbenchCanvas } from '../../src/preview/components/WorkbenchCanvas.js';
+import {
+  attachedLabelMaskRects,
+  buildPreviewScene,
+  isSettledPreviewSceneBlocked,
+  measureCanvasObstructions,
+  previewSceneKey,
+  sharedPreviewLayout,
+  WorkbenchCanvas,
+} from '../../src/preview/components/WorkbenchCanvas.js';
 import {
   applyConnectionMarkerInsets,
   computeConnectionPoints,
@@ -18,42 +23,18 @@ import {
   previewNodeSize,
 } from '../../src/preview/geometry.js';
 import { searchPreviewIcons } from '../../src/preview/iconSearch.js';
-import { serializeWorkbenchDocument } from '../../src/preview/persistence.js';
 import { addNodeToCanvas, createDefaultWorkbenchState, selectCanvasItem } from '../../src/preview/state.js';
 import {
   edgeBridgeMaskPathData,
   edgeLineMarkerPoints,
   edgeLinePathData,
 } from '../../src/renderer/components/edges/edgePath.js';
-import { defaultTheme } from '../../src/renderer/themes/default.js';
 
 function renderedPreviewLayout(state: ReturnType<typeof createDefaultWorkbenchState>) {
-  const document = serializeWorkbenchDocument(state);
-  const attachedNodeIds = new Set(
-    state.nodes.filter((node) => node.attachedConnectionId).map((node) => node.id),
-  );
-
-  document.diagram.nodes = document.diagram.nodes.filter((node) => !attachedNodeIds.has(node.id));
-  if (document.diagram.groups) {
-    document.diagram.groups = document.diagram.groups
-      .map((group) => ({
-        ...group,
-        contains: group.contains?.filter((nodeId) => !attachedNodeIds.has(nodeId)),
-      }))
-      .filter((group) => (group.contains?.length ?? 0) > 0);
-  }
-
-  const { nodeStyles, theme } = resolveTheme(document.diagram, defaultTheme);
-  // Mirror production: size nodes exactly as the export renderer does (measureNodes),
-  // so the shared layout engine routes around the same boxes that get drawn.
-  const layout = computePreservedLayout({
-    diagram: document.diagram,
-    measuredNodes: applyNodeStyles(measureNodes(document.diagram.nodes), nodeStyles),
-    theme,
-    offset: false,
-  });
-
-  return layout;
+  // Use the exact same layout the canvas renders with, so tests can never drift
+  // from production routing (it sizes nodes at previewNodeSize and preserves the
+  // user's group bounds).
+  return sharedPreviewLayout(state)!;
 }
 
 function renderedConnectionPoints(state: ReturnType<typeof createDefaultWorkbenchState>, index: number) {
@@ -410,6 +391,29 @@ describe('preview workbench', () => {
     expect(routedPoints).toHaveLength(4);
   });
 
+  it('keeps the preview scene cache key stable across selection-only updates', () => {
+    const state = addNodeToCanvas(
+      addNodeToCanvas(createDefaultWorkbenchState(), 'box', { x: 80, y: 80 }),
+      'document',
+      { x: 340, y: 80 },
+    );
+    const baseKey = previewSceneKey(state, 'light');
+
+    expect(
+      previewSceneKey(selectCanvasItem(state, { kind: 'node', id: state.nodes[0]!.id }), 'light'),
+    ).toBe(baseKey);
+    expect(
+      previewSceneKey(selectCanvasItem(state, { kind: 'connection', id: state.connections[0]!.id }), 'light'),
+    ).toBe(baseKey);
+  });
+
+  it('defers settled preview routing while the canvas fit animation is running', () => {
+    expect(isSettledPreviewSceneBlocked(undefined, true)).toBe(true);
+    expect(isSettledPreviewSceneBlocked({ kind: 'node', id: 'node-1' }, false)).toBe(true);
+    expect(isSettledPreviewSceneBlocked(undefined, false, true)).toBe(true);
+    expect(isSettledPreviewSceneBlocked({ kind: 'pan' }, false)).toBe(false);
+  });
+
   it('renders bridge overlays when preview connections cross', () => {
     const state = crossingWorkbenchState();
     const layout = renderedPreviewLayout(state);
@@ -422,6 +426,16 @@ describe('preview workbench', () => {
 
     expect(bridgeMaskPath).toBeTruthy();
     expect(markup.split(`d="${bridgeMaskPath}"`).length - 1).toBe(2);
+  });
+
+  it('uses fast preview routing until the settled edge scene is recomputed', () => {
+    const state = crossingWorkbenchState();
+    const fast = buildPreviewScene(state, 'light', 'fast');
+    const settled = buildPreviewScene(state, 'light', 'settled');
+
+    expect(fast.renderedConnections).toHaveLength(state.connections.length);
+    expect(fast.renderedConnections.some(({ bridgeMaskPath }) => bridgeMaskPath.length > 0)).toBe(false);
+    expect(settled.renderedConnections.some(({ bridgeMaskPath }) => bridgeMaskPath.length > 0)).toBe(true);
   });
 
   it('filters sidebar components by search text', () => {

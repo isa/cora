@@ -13,6 +13,7 @@ import { validateDocument } from '../core/validator.js';
 import { measureNodes } from '../core/measureText.js';
 import { defaultTheme } from '../renderer/themes/default.js';
 import { builtInPack } from './pack/builtins.js';
+import { previewNodeSize } from './geometry.js';
 import type { PreviewNodeProps } from './controls/defaults.js';
 import {
   createDefaultWorkbenchState,
@@ -173,18 +174,23 @@ function previewGroupFromDiagramGroup(group: DiagramGroup, index: number): Canva
   };
 }
 
-async function layoutDiagramForPreview(diagram: Diagram) {
+async function layoutDiagramForPreview(
+  diagram: Diagram,
+  // Sizes the canvas actually paints (previewNodeSize), so auto-layout spaces
+  // nodes for what's drawn rather than the export renderer's measureNodes box.
+  sizeOverrides?: Map<string, { width: number; height: number }>,
+) {
   if ((diagram.layout ?? 'auto') === 'preserve' && diagram.nodes.every((node) => node.position)) {
     return undefined;
   }
 
   const { computeLayout } = await import('../core/layout.js');
   const { nodeStyles, theme } = resolveTheme(diagram, defaultTheme);
-  return computeLayout({
-    diagram,
-    measuredNodes: applyNodeStyles(measureNodes(diagram.nodes), nodeStyles),
-    theme,
+  const measuredNodes = applyNodeStyles(measureNodes(diagram.nodes), nodeStyles).map((node) => {
+    const size = sizeOverrides?.get(node.id);
+    return size ? { ...node, measuredWidth: size.width, measuredHeight: size.height } : node;
   });
+  return computeLayout({ diagram, measuredNodes, theme });
 }
 
 export async function autoLayoutWorkbenchState(state: WorkbenchState): Promise<WorkbenchState> {
@@ -222,7 +228,12 @@ export async function autoLayoutWorkbenchState(state: WorkbenchState): Promise<W
       .filter((group) => (group.contains?.length ?? 0) > 0);
   }
 
-  const layouted = await layoutDiagramForPreview(document.diagram);
+  const previewSizeById = new Map(
+    state.nodes
+      .filter((node) => !attachedNodeIds.has(node.id))
+      .map((node) => [node.id, previewNodeSize(node)] as const),
+  );
+  const layouted = await layoutDiagramForPreview(document.diagram, previewSizeById);
   if (!layouted) {
     return state;
   }

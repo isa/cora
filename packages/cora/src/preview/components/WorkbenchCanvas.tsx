@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type DragEvent, type MutableRefObject, type PointerEvent, type RefObject } from 'react';
+import { startTransition, useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type MutableRefObject, type PointerEvent, type RefObject } from 'react';
 
 import type { LayoutedEdge, LayoutedNode, ThemeTokens } from '../../layout-ir.js';
 import { computePreservedLayout } from '../../core/layout.js';
@@ -157,6 +157,7 @@ type EndpointDrag = {
 const DEFAULT_VIEWPORT = { width: 960, height: 640 };
 const ATTACHED_LABEL_GAP_X = 4;
 const ATTACHED_LABEL_GAP_Y = 3;
+const SETTLED_PREVIEW_LAYOUT_DELAY_MS = 120;
 // Icon-label nodes read better a touch smaller than the sm preset the first
 // time they're dropped onto a line (20% down from the standalone sm size).
 const DROPPED_LABEL_ICON_SIZE = {
@@ -167,6 +168,47 @@ const DROPPED_LABEL_ICON_SIZE = {
 type PreviewPoint = { x: number; y: number };
 
 interface MaskRect { x: number; y: number; width: number; height: number; }
+
+type PreviewSceneMode = 'fast' | 'settled';
+type PreviewNodeBox = NonNullable<ReturnType<typeof computeNodeBox>>;
+
+interface RenderedConnectionPreview {
+  connection: CanvasConnection;
+  edge: LayoutedEdge;
+  shaftPoints: PreviewPoint[];
+  shaftPath: string;
+  maskRects: MaskRect[];
+  maskBounds?: MaskRect;
+  hitPath: string;
+  bridgeMaskPath: string;
+  markerCarrierPath: string;
+  hasMarkers: boolean;
+  connectionStrokeColor: string;
+}
+
+interface PreviewScene {
+  themeTokens: ThemeTokens;
+  renderedEdgesByConnectionId: Map<string, LayoutedEdge>;
+  renderedNodeBoxesById: Map<string, PreviewNodeBox>;
+  renderedConnections: RenderedConnectionPreview[];
+}
+
+export function isSettledPreviewSceneBlocked(
+  dragTarget: DragTarget | undefined,
+  isCanvasAnimating: boolean,
+  hasPendingCanvasFit = false,
+): boolean {
+  return (
+    hasPendingCanvasFit ||
+    isCanvasAnimating ||
+    dragTarget?.kind === 'node' ||
+    dragTarget?.kind === 'nodes' ||
+    dragTarget?.kind === 'node-resize' ||
+    dragTarget?.kind === 'group' ||
+    dragTarget?.kind === 'group-resize' ||
+    dragTarget?.kind === 'connection-endpoint'
+  );
+}
 
 // Rectangles (in canvas space) where the connection stroke must be knocked out
 // because an attached label / icon-label node sits on the line. We mask the
@@ -250,6 +292,16 @@ function resolvePreviewTheme(
   return defaultTheme;
 }
 
+function samePreviewColor(a: string | undefined, b: string | undefined): boolean {
+  if (a === b) {
+    return true;
+  }
+  if (!a || !b) {
+    return false;
+  }
+  return a.toLowerCase() === b.toLowerCase();
+}
+
 function previewLayoutNodes(state: WorkbenchState): LayoutedNode[] {
   return state.nodes
     .filter((node) => !node.attachedConnectionId)
@@ -292,7 +344,7 @@ function previewLayoutEdge(
   return edge;
 }
 
-function sharedPreviewLayout(state: WorkbenchState) {
+export function sharedPreviewLayout(state: WorkbenchState) {
   if (state.nodes.length === 0 || state.connections.length === 0) {
     return undefined;
   }
@@ -316,20 +368,145 @@ function sharedPreviewLayout(state: WorkbenchState) {
 
   const { nodeStyles, theme } = resolveTheme(document.diagram, defaultTheme);
 
-  // Measure nodes exactly as the export renderer does (renderToSVG/PNG/PDF all go
-  // through measureNodes). The preview MUST share the renderer's sizing or the
-  // layout engine routes edges around boxes that don't match what gets drawn.
-  // Do NOT substitute previewNodeSize here: it imposes catalog-default minimums
-  // (e.g. a 140px-wide box floor) the renderer doesn't, so edges get routed for
-  // inflated boxes sitting at positions computed for content-fit sizes — which
-  // shows up as overshooting, jagged connectors in the canvas only.
+  // Route edges against the SAME box each node is drawn at on this canvas, i.e.
+  // previewNodeSize — not measureNodes. The two diverge for box/label nodes
+  // (measureNodes uses font-metric + catalog floors; previewNodeSize uses the
+  // live content-fit size the canvas actually paints), so feeding measureNodes
+  // here routes edges to phantom boxes: lines leave/arrive off-centre and the
+  // path looks non-orthogonal relative to the visible node. previewNodeSize
+  // keeps the routed box identical to the painted box. Component nodes (app,
+  // database, …) resolve to the same preset size either way, so this only
+  // corrects box/label.
+  const previewSizeById = new Map(state.nodes.map((node) => [node.id, previewNodeSize(node)] as const));
+  const measuredNodes = applyNodeStyles(measureNodes(document.diagram.nodes), nodeStyles).map((node) => {
+    const size = previewSizeById.get(node.id);
+    return size ? { ...node, measuredWidth: size.width, measuredHeight: size.height } : node;
+  });
+
   return computePreservedLayout({
     diagram: document.diagram,
-    measuredNodes: applyNodeStyles(measureNodes(document.diagram.nodes), nodeStyles),
+    measuredNodes,
     theme,
     // Keep preview geometry in the same canvas coordinate space as the live nodes.
     offset: false,
+    // Route around the group rectangle the user actually sees (their resized/
+    // positioned bounds), not an auto-fit box recomputed from node extents.
+    preserveGroupBounds: true,
   });
+}
+
+function connectionStrokeColorFor(
+  connection: CanvasConnection,
+  activeTheme: 'light' | 'dark',
+  themeTokens: ThemeTokens,
+): string {
+  return activeTheme === 'dark' && samePreviewColor(connection.props.strokeColor, connectionDefaults.strokeColor)
+    ? themeTokens.edge.stroke
+    : connection.props.strokeColor;
+}
+
+export function previewSceneKey(
+  state: WorkbenchState,
+  activeTheme: 'light' | 'dark',
+): string {
+  return JSON.stringify({
+    activeTheme,
+    diagramKind: state.diagramKind,
+    diagramTheme: state.diagramTheme,
+    diagramDirection: state.diagramDirection,
+    nodes: state.nodes.map((node) => ({
+      id: node.id,
+      componentId: node.componentId,
+      position: node.position,
+      attachedConnectionId: node.attachedConnectionId,
+      attachedEnd: node.attachedEnd,
+      props: node.props,
+    })),
+    groups: state.groups.map((group) => ({
+      id: group.id,
+      label: group.label,
+      position: group.position,
+      size: group.size,
+      fillColor: group.fillColor,
+      labelColor: group.labelColor,
+      labelSize: group.labelSize,
+    })),
+    connections: state.connections.map((connection) => ({
+      id: connection.id,
+      fromNodeId: connection.fromNodeId,
+      toNodeId: connection.toNodeId,
+      label: connection.label,
+      props: connection.props,
+    })),
+  });
+}
+
+export function buildPreviewScene(
+  state: WorkbenchState,
+  activeTheme: 'light' | 'dark',
+  mode: PreviewSceneMode,
+): PreviewScene {
+  const themeTokens = resolvePreviewTheme(activeTheme);
+  const labelLayoutNodes = previewLayoutNodes(state);
+  const sharedLayout = mode === 'settled' ? sharedPreviewLayout(state) : undefined;
+  const renderedEdgesByConnectionId = new Map(
+    state.connections.flatMap((connection, index) => {
+      const edge = sharedLayout?.edges[index];
+      return edge ? [[connection.id, edge] as const] : [];
+    }),
+  );
+  const renderedNodeBoxesById = new Map(
+    state.nodes.flatMap((node) => {
+      const box = renderedNodeBox(state, node.id, renderedEdgesByConnectionId);
+      return box ? [[node.id, box] as const] : [];
+    }),
+  );
+
+  const renderedConnections = state.connections.map((connection, index) => {
+    const edge = sharedLayout?.edges[index] ?? previewLayoutEdge(state, connection, labelLayoutNodes);
+    const markerCarrierPoints = edgeLineMarkerPoints(edge, {
+      markerSize: connection.props.arrowSize,
+    });
+    const markerCarrierPath = edgeMarkerCarrierPathData(edge, {
+      markerSize: connection.props.arrowSize,
+    });
+    const shaftPoints = applyConnectionMarkerInsets(markerCarrierPoints, connection.props);
+    const shaftPath = edgeLinePathData(edge, {
+      trimForMarkers: true,
+      markerSize: connection.props.arrowSize,
+    });
+    const maskRects = attachedLabelMaskRects(
+      state,
+      connection,
+      (nodeId) => renderedNodeBoxesById.get(nodeId) ?? computeNodeBox(state, nodeId),
+    );
+    const maskBounds = maskRects.length ? maskCoverageBounds(shaftPoints, maskRects) : undefined;
+    const hitPath = linePathData(edge.points);
+    const bridgeMaskPath = edgeBridgeMaskPathData(edge);
+    const hasMarkers =
+      connection.props.startMarker !== 'none' || connection.props.endMarker !== 'none';
+
+    return {
+      connection,
+      edge,
+      shaftPoints,
+      shaftPath,
+      maskRects,
+      maskBounds,
+      hitPath,
+      bridgeMaskPath,
+      markerCarrierPath,
+      hasMarkers,
+      connectionStrokeColor: connectionStrokeColorFor(connection, activeTheme, themeTokens),
+    };
+  });
+
+  return {
+    themeTokens,
+    renderedEdgesByConnectionId,
+    renderedNodeBoxesById,
+    renderedConnections,
+  };
 }
 
 function renderedNodeBox(
@@ -346,11 +523,14 @@ function renderedNodeBox(
     return computeNodeBox(state, nodeId);
   }
 
+  const edge = renderedEdgesByConnectionId.get(node.attachedConnectionId);
+
   if (node.componentId === 'labelIcon') {
-    return computeNodeBox(state, nodeId);
+    // Walk the *drawn* edge so the icon sits on the visible line (and tracks it
+    // smoothly as boxes move), not a separately re-derived route.
+    return computeNodeBox(state, nodeId, edge?.points);
   }
 
-  const edge = renderedEdgesByConnectionId.get(node.attachedConnectionId);
   if (!edge) {
     return computeNodeBox(state, nodeId);
   }
@@ -606,6 +786,7 @@ function animateCanvasFit(options: {
   panRef: RefObject<{ x: number; y: number }>;
   setZoom(value: number): void;
   setPan(value: { x: number; y: number }): void;
+  setIsCanvasAnimating(value: boolean): void;
   animateFrameRef: MutableRefObject<number | null>;
   cancelCenteringAnimation(): void;
 }) {
@@ -620,6 +801,7 @@ function animateCanvasFit(options: {
     panRef,
     setZoom,
     setPan,
+    setIsCanvasAnimating,
     animateFrameRef,
     cancelCenteringAnimation,
   } = options;
@@ -673,6 +855,7 @@ function animateCanvasFit(options: {
   const startTime = performance.now();
   const duration = 500;
 
+  setIsCanvasAnimating(true);
   const tick = (now: number) => {
     const elapsed = now - startTime;
     const progress = Math.min(elapsed / duration, 1);
@@ -691,6 +874,7 @@ function animateCanvasFit(options: {
       animateFrameRef.current = requestAnimationFrame(tick);
     } else {
       animateFrameRef.current = null;
+      setIsCanvasAnimating(false);
     }
   };
 
@@ -712,6 +896,36 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
   const [panMode, setPanMode] = useState(false);
   const [marquee, setMarquee] = useState<MarqueeRect | undefined>();
   const [isAutoLayouting, setIsAutoLayouting] = useState(false);
+  const [isCanvasAnimating, setIsCanvasAnimating] = useState(false);
+  const sceneKey = useMemo(
+    () => previewSceneKey(state, activeTheme),
+    [
+      activeTheme,
+      state.connections,
+      state.diagramDirection,
+      state.diagramKind,
+      state.diagramTheme,
+      state.groups,
+      state.nodes,
+    ],
+  );
+  const fastScene = useMemo(
+    () => buildPreviewScene(state, activeTheme, 'fast'),
+    [sceneKey],
+  );
+  const [settledScene, setSettledScene] = useState<{ key: string; scene: PreviewScene }>(() => {
+    if (typeof window === 'undefined') {
+      return {
+        key: sceneKey,
+        scene: buildPreviewScene(state, activeTheme, 'settled'),
+      };
+    }
+
+    return {
+      key: '',
+      scene: buildPreviewScene(state, activeTheme, 'fast'),
+    };
+  });
   const multiDragRef = useRef<
     { start: PreviewPoint; nodes: Map<string, PreviewPoint>; groups: Map<string, PreviewPoint> } | undefined
   >(undefined);
@@ -721,7 +935,7 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
     { center: PreviewPoint; baseWidth: number; baseHeight: number } | undefined
   >(undefined);
   const groupResizeRef = useRef<
-    { center: PreviewPoint; baseWidth: number; baseHeight: number } | undefined
+    { topLeft: PreviewPoint; baseWidth: number; baseHeight: number } | undefined
   >(undefined);
   const viewBox = zoomViewBox(zoom, pan, viewport);
 
@@ -742,6 +956,7 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
       cancelAnimationFrame(animateFrameRef.current);
       animateFrameRef.current = null;
     }
+    setIsCanvasAnimating(false);
   };
 
   // Cleanup animation on unmount
@@ -759,6 +974,47 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
     stateRef.current = state;
   }, [state]);
 
+  const hasPendingLoadFit =
+    loadTrigger !== undefined && loadTrigger !== lastAppliedTriggerRef.current;
+  const settledLayoutBlocked = isSettledPreviewSceneBlocked(
+    dragTarget,
+    isCanvasAnimating,
+    hasPendingLoadFit,
+  );
+
+  useEffect(() => {
+    if (settledScene.key === sceneKey || settledLayoutBlocked) {
+      return;
+    }
+
+    let cancelled = false;
+    let frame = 0;
+    const timeout = window.setTimeout(() => {
+      frame = window.requestAnimationFrame(() => {
+        if (cancelled) {
+          return;
+        }
+
+        const currentState = stateRef.current;
+        const key = previewSceneKey(currentState, activeTheme);
+        const scene = buildPreviewScene(currentState, activeTheme, 'settled');
+        if (cancelled) {
+          return;
+        }
+
+        startTransition(() => {
+          setSettledScene({ key, scene });
+        });
+      });
+    }, SETTLED_PREVIEW_LAYOUT_DELAY_MS);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeout);
+      window.cancelAnimationFrame(frame);
+    };
+  }, [activeTheme, sceneKey, settledLayoutBlocked, settledScene.key]);
+
   const fitCanvasToView = useCallback((targetState: WorkbenchState) => {
     animateCanvasFit({
       state: targetState,
@@ -771,6 +1027,7 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
       panRef,
       setZoom,
       setPan,
+      setIsCanvasAnimating,
       animateFrameRef,
       cancelCenteringAnimation,
     });
@@ -839,72 +1096,13 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
       svg.removeEventListener('pointerdown', handlePointerDownCapture, { capture: true });
     };
   }, []);
-  const themeTokens = resolvePreviewTheme(activeTheme);
-  const labelLayoutNodes = previewLayoutNodes(state);
-  const sharedLayout = sharedPreviewLayout(state);
-  const renderedEdgesByConnectionId = new Map(
-    state.connections.flatMap((connection, index) => {
-      const edge = sharedLayout?.edges[index];
-      return edge ? [[connection.id, edge] as const] : [];
-    }),
-  );
-  const renderedNodeBoxesById = new Map(
-    state.nodes.flatMap((node) => {
-      const box = renderedNodeBox(state, node.id, renderedEdgesByConnectionId);
-      return box ? [[node.id, box] as const] : [];
-    }),
-  );
-  const renderedConnections = state.connections.map((connection, index) => {
-    const edge = sharedLayout?.edges[index] ?? previewLayoutEdge(state, connection, labelLayoutNodes);
-    const markerCarrierPoints = edgeLineMarkerPoints(edge, {
-      markerSize: connection.props.arrowSize,
-    });
-    const markerCarrierPath = edgeMarkerCarrierPathData(edge, {
-      markerSize: connection.props.arrowSize,
-    });
-    const shaftPoints = applyConnectionMarkerInsets(markerCarrierPoints, connection.props);
-    const shaftPath = edgeLinePathData(edge, {
-      trimForMarkers: true,
-      markerSize: connection.props.arrowSize,
-    });
-    // Attached label / icon-label nodes knock the stroke out via an SVG mask
-    // (drawn full, masked where the node sits) rather than by splitting the path.
-    const maskRects = attachedLabelMaskRects(
-      state,
-      connection,
-      (nodeId) => renderedNodeBoxesById.get(nodeId) ?? computeNodeBox(state, nodeId),
-    );
-    const maskBounds = maskRects.length ? maskCoverageBounds(shaftPoints, maskRects) : undefined;
-    const hitPath = linePathData(edge.points);
-    const bridgeMaskPath = edgeBridgeMaskPathData(edge);
-    const hasMarkers =
-      connection.props.startMarker !== 'none' || connection.props.endMarker !== 'none';
-    const selected = state.selectedConnectionIds.includes(connection.id);
-    const isSameColor = (c1: string, c2: string) => {
-      if (c1 === c2) return true;
-      if (!c1 || !c2) return false;
-      return c1.toLowerCase() === c2.toLowerCase();
-    };
-    const connectionStrokeColor =
-      activeTheme === 'dark' && isSameColor(connection.props.strokeColor, connectionDefaults.strokeColor)
-        ? themeTokens.edge.stroke
-        : connection.props.strokeColor;
-
-    return {
-      connection,
-      edge,
-      shaftPoints,
-      shaftPath,
-      maskRects,
-      maskBounds,
-      hitPath,
-      bridgeMaskPath,
-      markerCarrierPath,
-      hasMarkers,
-      selected,
-      connectionStrokeColor,
-    };
-  });
+  const previewScene = settledScene.key === sceneKey ? settledScene.scene : fastScene;
+  const {
+    themeTokens,
+    renderedEdgesByConnectionId,
+    renderedNodeBoxesById,
+    renderedConnections,
+  } = previewScene;
 
   useEffect(() => {
     const region = canvasRegionRef.current;
@@ -1159,14 +1357,13 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
       if (!resize || resize.baseWidth === 0 || resize.baseHeight === 0) {
         return;
       }
-      const halfWidth = Math.max(MIN_GROUP_WIDTH / 2, Math.abs(point.x - resize.center.x));
-      const halfHeight = Math.max(MIN_GROUP_HEIGHT / 2, Math.abs(point.y - resize.center.y));
-      const width = halfWidth * 2;
-      const height = halfHeight * 2;
+      // Top-left stays pinned; the box grows from there toward the pointer.
+      const width = Math.max(MIN_GROUP_WIDTH, point.x - resize.topLeft.x);
+      const height = Math.max(MIN_GROUP_HEIGHT, point.y - resize.topLeft.y);
       onStateChange(
         setGroupSizeAndPosition(currentState, group.id, { width, height }, {
-          x: resize.center.x - width / 2,
-          y: resize.center.y - height / 2,
+          x: resize.topLeft.x,
+          y: resize.topLeft.y,
         }),
       );
       return;
@@ -1312,10 +1509,9 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
     const group = state.groups.find((item) => item.id === id);
     if (group) {
       groupResizeRef.current = {
-        center: {
-          x: group.position.x + group.size.width / 2,
-          y: group.position.y + group.size.height / 2,
-        },
+        // Groups scale from their fixed top-left corner (the bottom-right handle
+        // grows the box toward the pointer), unlike body-centred node scaling.
+        topLeft: { x: group.position.x, y: group.position.y },
         baseWidth: group.size.width,
         baseHeight: group.size.height,
       };
