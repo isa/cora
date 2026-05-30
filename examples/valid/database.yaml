@@ -1,39 +1,97 @@
 version: 1
-
 diagram:
   kind: database
+  layout: preserve
   direction: LR
   nodes:
     - id: app
       label: Application
       component: box
+      position:
+        x: 24
+        y: 38
+      style:
+        title: Application
+        text: Application
+        size:
+          width: 120
+          height: 56
     - id: cache
       label: Redis
       component: box
+      position:
+        x: 280.8054956575776
+        y: -81.86745658226977
+      style:
+        title: Redis
+        text: Redis
+        size:
+          width: 120
+          height: 56
     - id: primary
       label: PostgreSQL Primary
       component: box
+      position:
+        x: 747.6858822026143
+        y: -93.53448212471451
+      style:
+        title: PostgreSQL Primary
+        text: PostgreSQL Primary
+        size:
+          width: 162
+          height: 56
     - id: replica
       label: PostgreSQL Replica
       component: box
+      position:
+        x: 567
+        y: 207
+      style:
+        title: PostgreSQL Replica
+        text: PostgreSQL Replica
+        size:
+          width: 162
+          height: 56
     - id: analytics
       label: Analytics View
       component: box
+      position:
+        x: 826
+        y: 207
+      style:
+        title: Analytics View
+        text: Analytics View
+        size:
+          width: 132
+          height: 56
     - id: catalog
       label: Dataset Catalog
       component: box
+      position:
+        x: 504.95258639109284
+        y: 111.20743534421177
+      style:
+        title: Dataset Catalog
+        text: Dataset Catalog
+        size:
+          width: 140
+          height: 56
   edges:
     - from: app
       to: cache
       label: session lookup
+      startMarker: none
       endMarker: circle
     - from: app
       to: primary
       label: writes
+      startMarker: none
       endMarker: filledCircle
     - from: app
       to: replica
       label: reads
+      startMarker: none
+      endMarker: arrow
     - from: primary
       to: replica
       label: streaming
@@ -42,8 +100,11 @@ diagram:
     - from: replica
       to: analytics
       label: snapshots
+      startMarker: none
       endMarker: diamond
     - from: primary
       to: catalog
       label: schema changes
       startMarker: filledDiamond
+      endMarker: arrow
+  groups: []

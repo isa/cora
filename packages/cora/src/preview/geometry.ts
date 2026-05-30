@@ -98,9 +98,9 @@ function previewBaseSize(node: CanvasNode): { width: number; height: number } {
             ? resolveWebsiteComponentSize(node.props.size, WEBSITE_SIZE_PRESETS.lg)
             : node.componentId === 'labelIcon'
               ? resolveLabelIconComponentSize(node.props.size, LABEL_ICON_SIZE_PRESETS.lg)
-              : node.componentId === 'icon'
-                ? resolveAppComponentSize(node.props.size, APP_SIZE_PRESETS.lg)
-                : resolveComponentSize(node.props.size, { width: 140, height: 56 });
+                : node.componentId === 'icon'
+                  ? resolveAppComponentSize(node.props.size, APP_SIZE_PRESETS.lg)
+                : resolveComponentSize(node.props.size, { width: 120, height: 56 });
 }
 
 export function previewNodeSize(node: CanvasNode): { width: number; height: number } {
@@ -209,6 +209,10 @@ export function previewNodeSize(node: CanvasNode): { width: number; height: numb
   return base;
 }
 
+export function canvasNodeSize(node: CanvasNode): { width: number; height: number } {
+  return node.layoutSize ?? previewNodeSize(node);
+}
+
 /**
  * Intrinsic height of an icon-label node's *visible* content (icon + text below
  * it), top-aligned within the node box. The node box height is clamped up to the
@@ -266,7 +270,7 @@ export function computeNodeBox(
   if (!node) {
     return undefined;
   }
-  const size = previewNodeSize(node);
+  const size = canvasNodeSize(node);
   // For an attached icon-label, where the icon centre sits on the line and how
   // far the content reaches around it (icon above, text below) — fed to the
   // anchor maths so the content always clears the line ending.

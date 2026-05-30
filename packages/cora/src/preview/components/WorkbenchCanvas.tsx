@@ -1,6 +1,6 @@
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type MutableRefObject, type PointerEvent, type RefObject } from 'react';
 
-import type { LayoutedEdge, LayoutedNode, ThemeTokens } from '../../layout-ir.js';
+import type { LayoutedDiagram, LayoutedEdge, LayoutedNode, ThemeTokens } from '../../layout-ir.js';
 import { computePreservedLayout } from '../../core/layout.js';
 import { resolveGridConfig, snapPoint, snapSize } from '../../core/grid.js';
 import { updateLabeledEdgePlacements } from '../../core/labeledEdgeExpansion.js';
@@ -31,11 +31,11 @@ import {
   computeConnectionCenter,
   computeConnectionPoints,
   computeNodeBox,
+  canvasNodeSize,
   nodeResizeCenter,
   positionForResizeAnchor,
   previewLabelContentSize,
   previewLabelIconContentHeight,
-  previewNodeSize,
 } from '../geometry.js';
 import { shouldSnap } from '../gridSnap.js';
 import {
@@ -379,7 +379,7 @@ export function sharedPreviewLayout(state: WorkbenchState) {
   // keeps the routed box identical to the painted box. Component nodes (app,
   // database, …) resolve to the same preset size either way, so this only
   // corrects box/label.
-  const previewSizeById = new Map(state.nodes.map((node) => [node.id, previewNodeSize(node)] as const));
+  const previewSizeById = new Map(state.nodes.map((node) => [node.id, canvasNodeSize(node)] as const));
   const measuredNodes = applyNodeStyles(measureNodes(document.diagram.nodes), nodeStyles).map((node) => {
     const size = previewSizeById.get(node.id);
     return size ? { ...node, measuredWidth: size.width, measuredHeight: size.height } : node;
@@ -420,6 +420,7 @@ export function previewSceneKey(
       id: node.id,
       componentId: node.componentId,
       position: node.position,
+      layoutSize: node.layoutSize,
       attachedConnectionId: node.attachedConnectionId,
       attachedEnd: node.attachedEnd,
       props: node.props,
@@ -447,10 +448,23 @@ export function buildPreviewScene(
   state: WorkbenchState,
   activeTheme: 'light' | 'dark',
   mode: PreviewSceneMode,
+  layouted?: LayoutedDiagram,
 ): PreviewScene {
   const themeTokens = resolvePreviewTheme(activeTheme);
   const labelLayoutNodes = previewLayoutNodes(state);
-  const sharedLayout = mode === 'settled' ? sharedPreviewLayout(state) : undefined;
+  const sharedLayout = layouted ?? state.layoutSnapshot ?? (mode === 'settled' ? sharedPreviewLayout(state) : undefined);
+  const layoutedNodeBoxesById = new Map(
+    (sharedLayout?.nodes ?? []).map((node) => [
+      node.id,
+      {
+        id: node.id,
+        x: node.x,
+        y: node.y,
+        width: node.measuredWidth,
+        height: node.measuredHeight,
+      },
+    ] as const),
+  );
   const renderedEdgesByConnectionId = new Map(
     state.connections.flatMap((connection, index) => {
       const edge = sharedLayout?.edges[index];
@@ -459,7 +473,7 @@ export function buildPreviewScene(
   );
   const renderedNodeBoxesById = new Map(
     state.nodes.flatMap((node) => {
-      const box = renderedNodeBox(state, node.id, renderedEdgesByConnectionId);
+      const box = renderedNodeBox(state, node.id, renderedEdgesByConnectionId, layoutedNodeBoxesById);
       return box ? [[node.id, box] as const] : [];
     }),
   );
@@ -515,6 +529,7 @@ function renderedNodeBox(
   state: WorkbenchState,
   nodeId: string,
   renderedEdgesByConnectionId: Map<string, LayoutedEdge>,
+  layoutedNodeBoxesById: Map<string, NonNullable<ReturnType<typeof computeNodeBox>>>,
 ): ReturnType<typeof computeNodeBox> {
   const node = state.nodes.find((item) => item.id === nodeId);
   if (!node) {
@@ -522,6 +537,10 @@ function renderedNodeBox(
   }
 
   if (!node.attachedConnectionId) {
+    const layoutedBox = layoutedNodeBoxesById.get(nodeId);
+    if (layoutedBox) {
+      return layoutedBox;
+    }
     return computeNodeBox(state, nodeId);
   }
 
@@ -537,7 +556,7 @@ function renderedNodeBox(
     return computeNodeBox(state, nodeId);
   }
 
-  const size = previewNodeSize(node);
+  const size = canvasNodeSize(node);
   const center = connectionCenter(edge.points);
   if (!center) {
     return computeNodeBox(state, nodeId);
@@ -888,6 +907,9 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
   const toolbarRef = useRef<HTMLDivElement | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const panStartRef = useRef<{ clientX: number; clientY: number; pan: { x: number; y: number } } | undefined>(undefined);
+  const dragStartClientRef = useRef<{ x: number; y: number } | null>(null);
+  const hasDraggedRef = useRef<boolean>(false);
+  const pendingSelectionToggleRef = useRef<string | null>(null);
   const [dragTarget, setDragTarget] = useState<DragTarget | undefined>();
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [endpointDrag, setEndpointDrag] = useState<EndpointDrag | undefined>();
@@ -896,7 +918,7 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
   const [viewport, setViewport] = useState(DEFAULT_VIEWPORT);
   const [isSpaceDown, setIsSpaceDown] = useState(false);
   const [isShiftDown, setIsShiftDown] = useState(false);
-  const [snapEnabled, setSnapEnabled] = useState(true);
+  const [snapEnabled, setSnapEnabled] = useState(false);
   const [panMode, setPanMode] = useState(false);
   const [marquee, setMarquee] = useState<MarqueeRect | undefined>();
   const [isAutoLayouting, setIsAutoLayouting] = useState(false);
@@ -944,7 +966,6 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
   const viewBox = zoomViewBox(zoom, pan, viewport);
   const gridConfig = useMemo(() => resolveGridConfig(), []);
   const gridSpacing = gridConfig.spacing;
-  const gridMajorSpacing = gridSpacing * gridConfig.majorEvery;
 
   const snapPositionIfEnabled = (position: { x: number; y: number }) => {
     if (!shouldSnap(snapEnabled, isShiftDown)) {
@@ -1018,11 +1039,11 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
 
         const currentState = stateRef.current;
         const key = previewSceneKey(currentState, activeTheme);
+
         const scene = buildPreviewScene(currentState, activeTheme, 'settled');
         if (cancelled) {
           return;
         }
-
         startTransition(() => {
           setSettledScene({ key, scene });
         });
@@ -1287,21 +1308,19 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
         : (componentId === 'label' || componentId === 'labelIcon') && state.selected?.kind !== 'connection'
           ? selectNearestConnection(state, point)
         : state;
-    const dropSize =
-      componentId === 'group' ? { width: 280, height: 160 }
-      : componentId === 'website' ? WEBSITE_SIZE_PRESETS.lg
-      : componentId === 'api' ? API_SIZE_PRESETS.lg
-      : componentId === 'database' ? DATABASE_SIZE_PRESETS.lg
-      : componentId === 'app' ? APP_SIZE_PRESETS.lg
-      : componentId === 'document' ? DOCUMENT_SIZE_PRESETS.lg
-      : componentId === 'icon' ? APP_SIZE_PRESETS.lg
-      : componentId === 'labelIcon' ? DROPPED_LABEL_ICON_SIZE
-      : componentId === 'box' ? { width: 140, height: 37 }
-      : { width: 176, height: 72 };
-    let nextState = addCatalogItemToCanvas(dropState, componentId, {
+    const definition = state.pack.components.find((item) => item.id === componentId);
+    const dropSize = componentId === 'group'
+      ? { width: 280, height: 160 }
+      : canvasNodeSize({
+          id: '__drop__',
+          componentId,
+          props: { ...(definition?.defaultProps ?? {}), ...props },
+          position: { x: 0, y: 0 },
+        });
+    let nextState = addCatalogItemToCanvas(dropState, componentId, snapPositionIfEnabled({
       x: Math.max(16, point.x - dropSize.width / 2),
       y: Math.max(16, point.y - dropSize.height / 2),
-    }, props);
+    }), props);
     // Pin the icon to whichever end of the line it was dropped near, so moving
     // the connected boxes later never flips it to the other side.
     if (componentId === 'labelIcon') {
@@ -1324,6 +1343,14 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
   const onPointerMove = (event: PointerEvent<SVGSVGElement>) => {
     if (!dragTarget || event.buttons !== 1) {
       return;
+    }
+    if (dragStartClientRef.current) {
+      const dx = event.clientX - dragStartClientRef.current.x;
+      const dy = event.clientY - dragStartClientRef.current.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist > 3) {
+        hasDraggedRef.current = true;
+      }
     }
     const currentState = stateRef.current;
     if (dragTarget.kind === 'pan') {
@@ -1464,12 +1491,17 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
     event: PointerEvent<SVGGElement>,
     target: DragTarget,
     position: { x: number; y: number },
+    targetState?: WorkbenchState,
   ) => {
     const point = toCanvasPoint(event.clientX, event.clientY);
     svgRef.current?.setPointerCapture(event.pointerId);
     setDragTarget(target);
     setDragOffset({ x: point.x - position.x, y: point.y - position.y });
-    onStateChange(selectCanvasItem(state, target as CanvasSelection));
+    if (targetState) {
+      onStateChange(targetState);
+    } else {
+      onStateChange(selectCanvasItem(state, target as CanvasSelection));
+    }
   };
 
   const beginPan = (event: PointerEvent<Element>) => {
@@ -1484,31 +1516,62 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
 
   const multiSelectionCount = () => state.selectedNodeIds.length + state.selectedGroupIds.length;
 
-  const startMultiDrag = (event: PointerEvent<SVGGElement>) => {
+  const startMultiDrag = (event: PointerEvent<SVGGElement>, targetState?: WorkbenchState) => {
     event.stopPropagation();
     svgRef.current?.setPointerCapture(event.pointerId);
+    const activeState = targetState || state;
     multiDragRef.current = {
       start: toCanvasPoint(event.clientX, event.clientY),
       nodes: new Map(
-        state.nodes.filter((item) => state.selectedNodeIds.includes(item.id)).map((item) => [item.id, { ...item.position }]),
+        activeState.nodes.filter((item) => activeState.selectedNodeIds.includes(item.id)).map((item) => [item.id, { ...item.position }]),
       ),
       groups: new Map(
-        state.groups.filter((item) => state.selectedGroupIds.includes(item.id)).map((item) => [item.id, { ...item.position }]),
+        activeState.groups.filter((item) => activeState.selectedGroupIds.includes(item.id)).map((item) => [item.id, { ...item.position }]),
       ),
     };
     setDragTarget({ kind: 'nodes' });
+    if (targetState) {
+      onStateChange(targetState);
+    }
   };
 
   const beginNodePointerDown = (event: PointerEvent<SVGGElement>, node: CanvasNode) => {
-    // Shift/Cmd/Ctrl-click toggles the node in the multi-selection.
+    // Record start position and reset dragging flag
+    dragStartClientRef.current = { x: event.clientX, y: event.clientY };
+    hasDraggedRef.current = false;
+    pendingSelectionToggleRef.current = null;
+
+    // Shift/Cmd/Ctrl-click logic
     if (event.shiftKey || event.metaKey || event.ctrlKey) {
       event.stopPropagation();
-      onStateChange(toggleNodeSelection(state, node.id));
+      
+      const isSelected = state.selectedNodeIds.includes(node.id);
+      if (isSelected) {
+        // Delay toggling selection (deselect) until pointer up
+        pendingSelectionToggleRef.current = node.id;
+        
+        // Start dragging the existing selection
+        if (multiSelectionCount() > 1) {
+          startMultiDrag(event, state);
+        } else {
+          beginDrag(event, { kind: 'node', id: node.id }, node.position, state);
+        }
+      } else {
+        // Toggle selection (select) immediately on pointer down
+        const nextState = toggleNodeSelection(state, node.id);
+        const nextMultiCount = nextState.selectedNodeIds.length + nextState.selectedGroupIds.length;
+        if (nextMultiCount > 1) {
+          startMultiDrag(event, nextState);
+        } else {
+          beginDrag(event, { kind: 'node', id: node.id }, node.position, nextState);
+        }
+      }
       return;
     }
+
     // Dragging any node in a multi-selection moves the whole set (nodes + groups).
     if (multiSelectionCount() > 1 && state.selectedNodeIds.includes(node.id)) {
-      startMultiDrag(event);
+      startMultiDrag(event, state);
       return;
     }
     beginDrag(event, { kind: 'node', id: node.id }, node.position);
@@ -1563,7 +1626,7 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
     const currentState = stateRef.current;
     const node = currentState.nodes.find((item) => item.id === id);
     if (node) {
-      const frame = previewNodeSize(node);
+      const frame = canvasNodeSize(node);
       const center = nodeResizeCenter(currentState, id) ?? {
         x: node.position.x + frame.width / 2,
         y: node.position.y + frame.height / 2,
@@ -1631,6 +1694,13 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
         onStateChange(setSelectedItems(state, { nodeIds, connectionIds, groupIds }));
       }
     }
+    if (pendingSelectionToggleRef.current && !hasDraggedRef.current) {
+      onStateChange(toggleNodeSelection(stateRef.current, pendingSelectionToggleRef.current));
+    }
+    pendingSelectionToggleRef.current = null;
+    hasDraggedRef.current = false;
+    dragStartClientRef.current = null;
+
     multiDragRef.current = undefined;
     resizeRef.current = undefined;
     groupResizeRef.current = undefined;
@@ -1678,35 +1748,21 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
         >
         <defs>
           {gridConfig.visible ? (
-            <>
-              <pattern
-                id="preview-grid-minor"
-                width={gridSpacing}
-                height={gridSpacing}
-                patternUnits="userSpaceOnUse"
-              >
-                <path
-                  d={`M ${gridSpacing} 0 L 0 0 0 ${gridSpacing}`}
-                  fill="none"
-                  stroke="var(--preview-grid-dot)"
-                  strokeWidth={1}
-                />
-              </pattern>
-              <pattern
-                id="preview-grid-major"
-                width={gridMajorSpacing}
-                height={gridMajorSpacing}
-                patternUnits="userSpaceOnUse"
-              >
-                <path
-                  d={`M ${gridMajorSpacing} 0 L 0 0 0 ${gridMajorSpacing}`}
-                  fill="none"
-                  stroke="var(--preview-muted)"
-                  strokeWidth={1}
-                  opacity={0.55}
-                />
-              </pattern>
-            </>
+            <pattern
+              id="preview-grid-minor"
+              width={gridSpacing}
+              height={gridSpacing}
+              patternUnits="userSpaceOnUse"
+            >
+              <path
+                d={`M ${gridSpacing} 0 V ${gridSpacing} M 0 ${gridSpacing} H ${gridSpacing}`}
+                fill="none"
+                stroke="var(--preview-grid-dot)"
+                strokeWidth={1}
+                shapeRendering="crispEdges"
+                vectorEffect="non-scaling-stroke"
+              />
+            </pattern>
           ) : null}
           {state.connections.map((connection) => {
             const isSameColor = (c1: string, c2: string) => {
@@ -1729,24 +1785,14 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
           })}
         </defs>
         {gridConfig.visible ? (
-          <>
-            <rect
-              x={viewBox.x}
-              y={viewBox.y}
-              width={viewBox.width}
-              height={viewBox.height}
-              fill="url(#preview-grid-minor)"
-              pointerEvents="none"
-            />
-            <rect
-              x={viewBox.x}
-              y={viewBox.y}
-              width={viewBox.width}
-              height={viewBox.height}
-              fill="url(#preview-grid-major)"
-              pointerEvents="none"
-            />
-          </>
+          <rect
+            x={viewBox.x}
+            y={viewBox.y}
+            width={viewBox.width}
+            height={viewBox.height}
+            fill="url(#preview-grid-minor)"
+            pointerEvents="none"
+          />
         ) : null}
         {state.groups.map((group) => {
           const groupPosition = group.position;
@@ -2058,7 +2104,7 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
             className={`canvas-tool${snapEnabled ? ' active' : ''}`}
             aria-label="Snap to grid"
             aria-pressed={snapEnabled}
-            title="Snap to grid (hold Shift to temporarily disable)"
+            title={snapEnabled ? "Snap to grid (hold Shift to temporarily disable)" : "Snap to grid (hold Shift to temporarily enable)"}
             onClick={() => setSnapEnabled((value) => !value)}
           >
             <span className="material-symbols-outlined" aria-hidden="true">
@@ -2068,39 +2114,42 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, act
           <span className="canvas-toolbar-divider" aria-hidden="true" />
           <button
             type="button"
-            className="preview-btn preview-btn-icon preview-btn-zoom"
+            className="canvas-tool layout-btn"
             disabled={state.nodes.length === 0 || isAutoLayouting}
             aria-label="Auto layout and fit"
             title="Auto layout and fit"
             onClick={() => void handleAutoLayout()}
           >
-            <span className="material-symbols-outlined preview-btn-icon-glyph" aria-hidden="true">account_tree</span>
+            <span className="material-symbols-outlined" aria-hidden="true">account_tree</span>
           </button>
           <button
             type="button"
-            className="preview-btn preview-btn-icon preview-btn-zoom"
+            className="canvas-tool clear-btn"
             disabled={state.nodes.length === 0 && state.connections.length === 0 && state.groups.length === 0}
             aria-label="Clear canvas"
+            title="Clear canvas"
             onClick={() => onClear?.()}
           >
-            <span className="material-symbols-outlined preview-btn-icon-glyph" aria-hidden="true">delete_sweep</span>
+            <span className="material-symbols-outlined" aria-hidden="true">delete_sweep</span>
           </button>
           <span className="canvas-toolbar-divider" aria-hidden="true" />
           <button
             type="button"
-            className="preview-btn preview-btn-icon preview-btn-zoom"
+            className="canvas-tool"
             aria-label="Zoom in"
+            title="Zoom in"
             onClick={() => changeZoom(0.15)}
           >
-            <span className="material-symbols-outlined preview-btn-icon-glyph" aria-hidden="true">zoom_in</span>
+            <span className="material-symbols-outlined" aria-hidden="true">zoom_in</span>
           </button>
           <button
             type="button"
-            className="preview-btn preview-btn-icon preview-btn-zoom"
+            className="canvas-tool"
             aria-label="Zoom out"
+            title="Zoom out"
             onClick={() => changeZoom(-0.15)}
           >
-            <span className="material-symbols-outlined preview-btn-icon-glyph" aria-hidden="true">zoom_out</span>
+            <span className="material-symbols-outlined" aria-hidden="true">zoom_out</span>
           </button>
           <span className="canvas-zoom-readout">{Math.round(zoom * 100)}%</span>
         </div>

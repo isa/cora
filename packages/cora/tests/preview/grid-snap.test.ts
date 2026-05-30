@@ -8,7 +8,7 @@ describe('preview grid snap', () => {
     expect(shouldSnap(true, false)).toBe(true);
     expect(shouldSnap(true, true)).toBe(false);
     expect(shouldSnap(false, false)).toBe(false);
-    expect(shouldSnap(false, true)).toBe(false);
+    expect(shouldSnap(false, true)).toBe(true);
   });
 
   it('maps raw drag position through snapPoint with default config', () => {

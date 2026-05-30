@@ -13,7 +13,7 @@ import { validateDocument } from '../core/validator.js';
 import { measureNodes } from '../core/measureText.js';
 import { defaultTheme } from '../renderer/themes/default.js';
 import { builtInPack } from './pack/builtins.js';
-import { previewNodeSize } from './geometry.js';
+import { canvasNodeSize } from './geometry.js';
 import type { PreviewNodeProps } from './controls/defaults.js';
 import {
   createDefaultWorkbenchState,
@@ -89,11 +89,15 @@ function cloneStyle(style: unknown): Record<string, unknown> {
 }
 
 function previewNodePropsFromDiagramNode(node: DiagramNode): PreviewNodeProps {
+  const componentId = node.component ?? 'box';
   const defaults = (
-    builtInPack.components.find((component) => component.id === (node.component ?? 'box'))?.defaultProps ??
+    builtInPack.components.find((component) => component.id === componentId)?.defaultProps ??
     builtInPack.components.find((component) => component.id === 'box')!.defaultProps
   ) as PreviewNodeProps;
   const style = cloneStyle(node.style);
+  const defaultSize = componentId === 'box' || componentId === 'label'
+    ? undefined
+    : defaults.size;
   const borderStyle =
     typeof style.borderStyle === 'string'
       ? style.borderStyle
@@ -127,7 +131,7 @@ function previewNodePropsFromDiagramNode(node: DiagramNode): PreviewNodeProps {
     subtitleBold: typeof style.subtitleBold === 'boolean' ? style.subtitleBold : defaults.subtitleBold,
     shadow: shadowValue(style.shadow) ?? defaults.shadow,
     shadowColor: stringValue(style.shadowColor) ?? defaults.shadowColor,
-    size: sizeValue(style.size) ?? defaults.size,
+    size: sizeValue(style.size) ?? defaultSize,
     iconColor: stringValue(style.iconColor) ?? defaults.iconColor,
     iconName: stringValue(style.iconName) ?? iconReferenceForNode(node) ?? defaults.iconName,
     iconType: iconTypeValue(style.iconType) ?? defaults.iconType,
@@ -176,9 +180,6 @@ function previewGroupFromDiagramGroup(group: DiagramGroup, index: number): Canva
 
 async function layoutDiagramForPreview(
   diagram: Diagram,
-  // Sizes the canvas actually paints (previewNodeSize), so auto-layout spaces
-  // nodes for what's drawn rather than the export renderer's measureNodes box.
-  sizeOverrides?: Map<string, { width: number; height: number }>,
 ) {
   if ((diagram.layout ?? 'auto') === 'preserve' && diagram.nodes.every((node) => node.position)) {
     return undefined;
@@ -186,10 +187,7 @@ async function layoutDiagramForPreview(
 
   const { computeLayout } = await import('../core/layout.js');
   const { nodeStyles, theme } = resolveTheme(diagram, defaultTheme);
-  const measuredNodes = applyNodeStyles(measureNodes(diagram.nodes), nodeStyles).map((node) => {
-    const size = sizeOverrides?.get(node.id);
-    return size ? { ...node, measuredWidth: size.width, measuredHeight: size.height } : node;
-  });
+  const measuredNodes = applyNodeStyles(measureNodes(diagram.nodes), nodeStyles);
   return computeLayout({ diagram, measuredNodes, theme });
 }
 
@@ -228,18 +226,15 @@ export async function autoLayoutWorkbenchState(state: WorkbenchState): Promise<W
       .filter((group) => (group.contains?.length ?? 0) > 0);
   }
 
-  const previewSizeById = new Map(
-    state.nodes
-      .filter((node) => !attachedNodeIds.has(node.id))
-      .map((node) => [node.id, previewNodeSize(node)] as const),
-  );
-  const layouted = await layoutDiagramForPreview(document.diagram, previewSizeById);
+  const layouted = await layoutDiagramForPreview(document.diagram);
   if (!layouted) {
     return state;
   }
 
   return {
     ...state,
+    diagramLayout: 'auto',
+    layoutSnapshot: layouted,
     nodes: state.nodes.map((node) => {
       if (attachedNodeIds.has(node.id)) {
         return node;
@@ -255,6 +250,10 @@ export async function autoLayoutWorkbenchState(state: WorkbenchState): Promise<W
         position: {
           x: Math.round(layoutedNode.x),
           y: Math.round(layoutedNode.y),
+        },
+        layoutSize: {
+          width: Math.round(layoutedNode.measuredWidth),
+          height: Math.round(layoutedNode.measuredHeight),
         },
       };
     }),
@@ -341,6 +340,12 @@ export async function deserializeWorkbenchState(
         x: Math.round(layoutedNode?.x ?? node.position?.x ?? 0),
         y: Math.round(layoutedNode?.y ?? node.position?.y ?? 0),
       },
+      layoutSize: layoutedNode
+        ? {
+            width: Math.round(layoutedNode.measuredWidth),
+            height: Math.round(layoutedNode.measuredHeight),
+          }
+        : undefined,
       attachedConnectionId:
         typeof attachedEdgeIndex === 'number'
           ? connectionIdByIndex.get(attachedEdgeIndex)
@@ -366,8 +371,10 @@ export async function deserializeWorkbenchState(
     state: {
       ...createDefaultWorkbenchState(),
       diagramKind: document.diagram.kind,
+      diagramLayout: document.diagram.layout ?? 'auto',
       diagramTheme: document.diagram.theme,
       diagramDirection: document.diagram.direction,
+      layoutSnapshot: layouted,
       sourceName,
       nodes,
       groups,
@@ -393,6 +400,7 @@ function nodeStyleFromPreviewNode(state: WorkbenchState, node: CanvasNode, attac
   const defaults = componentDefaultsFor(state, node.componentId);
   const style: NodeStyle = {};
   const props = node.props;
+  const shouldPersistVisualSize = state.diagramLayout !== 'auto';
 
   const assignIfChanged = (key: keyof PreviewNodeProps | 'attachedEdgeIndex', value: unknown, baseline?: unknown) => {
     if (value === undefined) {
@@ -421,7 +429,11 @@ function nodeStyleFromPreviewNode(state: WorkbenchState, node: CanvasNode, attac
   assignIfChanged('subtitleBold', props.subtitleBold, defaults.subtitleBold);
   assignIfChanged('shadow', props.shadow, defaults.shadow);
   assignIfChanged('shadowColor', props.shadowColor, defaults.shadowColor);
-  assignIfChanged('size', props.size, defaults.size);
+  if (shouldPersistVisualSize) {
+    style.size = canvasNodeSize(node);
+  } else {
+    assignIfChanged('size', props.size, defaults.size);
+  }
   assignIfChanged('iconColor', props.iconColor, defaults.iconColor);
   assignIfChanged('iconType', props.iconType, defaults.iconType);
   assignIfChanged('strokeColor', props.strokeColor, defaults.strokeColor);
@@ -510,7 +522,7 @@ export function serializeWorkbenchDocument(state: WorkbenchState): DiagramFile {
     version: 1,
     diagram: {
       kind: state.diagramKind,
-      layout: 'preserve',
+      layout: state.diagramLayout ?? 'auto',
       theme: state.diagramTheme,
       direction: state.diagramDirection,
       nodes,

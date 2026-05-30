@@ -1213,6 +1213,22 @@ function repairEndpointNodeCrossings(
   nodeById: Map<string, LayoutedNode>,
   groups?: LayoutedGroup[],
 ): void {
+  const isPointOnNodeSide = (point: { x: number; y: number }, node: LayoutedNode, side: EndpointSide): boolean => {
+    if (side === 'left') {
+      return Math.abs(point.x - node.x) < EPSILON;
+    }
+    if (side === 'right') {
+      return Math.abs(point.x - (node.x + node.measuredWidth)) < EPSILON;
+    }
+    if (side === 'top') {
+      return Math.abs(point.y - node.y) < EPSILON;
+    }
+    if (side === 'bottom') {
+      return Math.abs(point.y - (node.y + node.measuredHeight)) < EPSILON;
+    }
+    return false;
+  };
+
   for (const edge of edges) {
     const from = nodeById.get(edge.from);
     const to = nodeById.get(edge.to);
@@ -1228,7 +1244,7 @@ function repairEndpointNodeCrossings(
     const currentSourceSide = endpointSideForPoint(from, edge.points[0]!);
     if (
       shouldRepairEndpointNode(from) &&
-      (currentSourceSide !== sides.sourceSide || sourceCrossing)
+      (currentSourceSide !== sides.sourceSide || sourceCrossing || !isPointOnNodeSide(edge.points[0]!, from, sides.sourceSide))
     ) {
       trimEndpointInteriorPoints(edge.points, 'source', from);
       setEndpointOnSide(
@@ -1247,7 +1263,7 @@ function repairEndpointNodeCrossings(
     const currentTargetSide = endpointSideForPoint(to, edge.points.at(-1)!);
     if (
       shouldRepairEndpointNode(to) &&
-      (currentTargetSide !== sides.targetSide || targetCrossing)
+      (currentTargetSide !== sides.targetSide || targetCrossing || !isPointOnNodeSide(edge.points.at(-1)!, to, sides.targetSide))
     ) {
       trimEndpointInteriorPoints(edge.points, 'target', to);
       setEndpointOnSide(
@@ -1539,6 +1555,10 @@ function detourSharedSegment(
     for (const attempt of attempts) {
       edge.points.splice(0, edge.points.length, ...original.map((point) => ({ ...point })));
       attempt();
+      if (nodes) {
+        const nodeById = new Map(nodes.map((n) => [n.id, n]));
+        repairEndpointNodeCrossings([edge], nodeById, groups);
+      }
       cleanEdgePoints(edge, nodes, groups);
       ensureEndpointRunway([edge]);
       cleanEdgePoints(edge, nodes, groups);

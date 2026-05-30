@@ -2,7 +2,7 @@ import type { PackManifest, PreviewComponentDefinition } from './pack/types.js';
 import { builtInPack } from './pack/builtins.js';
 import { connectionControls, connectionDefaults, type ConnectionProps, type PreviewNodeProps } from './controls/defaults.js';
 import { isValidControlValue } from './controls/schema.js';
-import type { DiagramKind } from '../core/types.js';
+import type { DiagramKind, LayoutedDiagram } from '../core/types.js';
 
 export interface PreviewPosition {
   x: number;
@@ -16,6 +16,7 @@ export interface CanvasNode {
   componentId: string;
   props: PreviewNodeProps;
   position: PreviewPosition;
+  layoutSize?: { width: number; height: number };
   attachedConnectionId?: string;
   // Which end of the connection an on-line icon anchors to. Persisted so moving
   // the connected boxes never flips the icon to the other side of the line.
@@ -48,6 +49,8 @@ export type CanvasSelection =
 export interface WorkbenchState {
   pack: PackManifest;
   diagramKind: DiagramKind;
+  diagramLayout?: 'auto' | 'preserve' | 'hybrid';
+  layoutSnapshot?: LayoutedDiagram;
   diagramTheme?: string;
   diagramDirection?: 'LR' | 'TB';
   sourceName?: string;
@@ -102,10 +105,23 @@ function roundGroupPatch(patch: GroupPatch): GroupPatch {
   return rounded;
 }
 
+function editedCanvasState(
+  state: WorkbenchState,
+  patch: Partial<WorkbenchState>,
+): WorkbenchState {
+  return {
+    ...state,
+    ...patch,
+    diagramLayout: 'preserve',
+    layoutSnapshot: undefined,
+  };
+}
+
 export function createDefaultWorkbenchState(pack = builtInPack): WorkbenchState {
   return {
     pack,
     diagramKind: 'box-arrows',
+    diagramLayout: 'auto',
     nodes: [],
     groups: [],
     connections: [],
@@ -124,8 +140,7 @@ export function addCatalogItemToCanvas(
 ): WorkbenchState {
   if (componentId === 'group') {
     const id = nextItemId(state, 'group');
-    return {
-      ...state,
+    return editedCanvasState(state, {
       groups: [
         ...state.groups,
         {
@@ -143,7 +158,7 @@ export function addCatalogItemToCanvas(
       selectedConnectionIds: [],
       selectedGroupIds: [id],
       nextId: state.nextId + 1,
-    };
+    });
   }
 
   const definition = componentById(state.pack, componentId);
@@ -176,8 +191,7 @@ export function addCatalogItemToCanvas(
         }]
       : [];
 
-  return {
-    ...state,
+  return editedCanvasState(state, {
     nodes: [...state.nodes, nextNode],
     connections: [...state.connections, ...connection],
     selected: { kind: 'node', id },
@@ -185,7 +199,7 @@ export function addCatalogItemToCanvas(
     selectedConnectionIds: [],
     selectedGroupIds: [],
     nextId: state.nextId + 1 + connection.length,
-  };
+  });
 }
 
 export const addNodeToCanvas = addCatalogItemToCanvas;
@@ -272,14 +286,13 @@ export function updateNodeProps(
     return state;
   }
 
-  return {
-    ...state,
+  return editedCanvasState(state, {
     nodes: state.nodes.map((item) =>
       item.id === nodeId
-        ? { ...item, props: { ...item.props, [key]: value } }
+        ? { ...item, props: { ...item.props, [key]: value }, layoutSize: undefined }
         : item,
     ),
-  };
+  });
 }
 
 export function updateConnectionProps(
@@ -298,14 +311,13 @@ export function updateConnectionProps(
     return state;
   }
 
-  return {
-    ...state,
+  return editedCanvasState(state, {
     connections: state.connections.map((connection) =>
       connection.id === connectionId
         ? { ...connection, props: { ...connection.props, [key]: value } }
         : connection,
     ),
-  };
+  });
 }
 
 export function reconnectConnectionEndpoint(
@@ -331,13 +343,12 @@ export function reconnectConnectionEndpoint(
   if (fromNodeId === connection.fromNodeId && toNodeId === connection.toNodeId) {
     return state;
   }
-  return {
-    ...state,
+  return editedCanvasState(state, {
     connections: state.connections.map((item) =>
       item.id === connectionId ? { ...item, fromNodeId, toNodeId } : item,
     ),
     selected: { kind: 'connection', id: connectionId },
-  };
+  });
 }
 
 export function updateGroup(
@@ -346,12 +357,11 @@ export function updateGroup(
   patch: GroupPatch,
 ): WorkbenchState {
   const roundedPatch = roundGroupPatch(patch);
-  return {
-    ...state,
+  return editedCanvasState(state, {
     groups: state.groups.map((group) =>
       group.id === groupId ? { ...group, ...roundedPatch } : group,
     ),
-  };
+  });
 }
 
 export function setNodePosition(
@@ -359,10 +369,9 @@ export function setNodePosition(
   nodeId: string,
   position: PreviewPosition,
 ): WorkbenchState {
-  return {
-    ...state,
+  return editedCanvasState(state, {
     nodes: state.nodes.map((node) => node.id === nodeId ? { ...node, position } : node),
-  };
+  });
 }
 
 export function setNodeAttachedEnd(
@@ -370,12 +379,11 @@ export function setNodeAttachedEnd(
   nodeId: string,
   attachedEnd: AttachedEnd,
 ): WorkbenchState {
-  return {
-    ...state,
+  return editedCanvasState(state, {
     nodes: state.nodes.map((node) =>
       node.id === nodeId && node.attachedEnd !== attachedEnd ? { ...node, attachedEnd } : node,
     ),
-  };
+  });
 }
 
 export function setNodePositions(
@@ -383,10 +391,9 @@ export function setNodePositions(
   positions: Array<{ id: string; position: PreviewPosition }>,
 ): WorkbenchState {
   const byId = new Map(positions.map((entry) => [entry.id, entry.position]));
-  return {
-    ...state,
+  return editedCanvasState(state, {
     nodes: state.nodes.map((node) => (byId.has(node.id) ? { ...node, position: byId.get(node.id)! } : node)),
-  };
+  });
 }
 
 export function setGroupPositions(
@@ -394,10 +401,9 @@ export function setGroupPositions(
   positions: Array<{ id: string; position: PreviewPosition }>,
 ): WorkbenchState {
   const byId = new Map(positions.map((entry) => [entry.id, roundPosition(entry.position)]));
-  return {
-    ...state,
+  return editedCanvasState(state, {
     groups: state.groups.map((group) => (byId.has(group.id) ? { ...group, position: byId.get(group.id)! } : group)),
-  };
+  });
 }
 
 export function setNodeSize(
@@ -406,12 +412,11 @@ export function setNodeSize(
   size: { width: number; height: number },
 ): WorkbenchState {
   const explicit = { width: Math.round(size.width), height: Math.round(size.height) };
-  return {
-    ...state,
+  return editedCanvasState(state, {
     nodes: state.nodes.map((node) =>
-      node.id === nodeId ? { ...node, props: { ...node.props, size: explicit } } : node,
+      node.id === nodeId ? { ...node, props: { ...node.props, size: explicit }, layoutSize: explicit } : node,
     ),
-  };
+  });
 }
 
 /** Resize a node while pinning its top-left to `position` (used to keep the
@@ -424,12 +429,11 @@ export function setNodeSizeAndPosition(
 ): WorkbenchState {
   const explicit = { width: Math.round(size.width), height: Math.round(size.height) };
   const pos = roundPosition(position);
-  return {
-    ...state,
+  return editedCanvasState(state, {
     nodes: state.nodes.map((node) =>
-      node.id === nodeId ? { ...node, props: { ...node.props, size: explicit }, position: pos } : node,
+      node.id === nodeId ? { ...node, props: { ...node.props, size: explicit }, position: pos, layoutSize: explicit } : node,
     ),
-  };
+  });
 }
 
 export function setGroupPosition(
@@ -455,9 +459,11 @@ export function setGroupSizeAndPosition(
   size: { width: number; height: number },
   position: PreviewPosition,
 ): WorkbenchState {
-  return updateGroup(state, groupId, {
-    size: { width: Math.round(size.width), height: Math.round(size.height) },
-    position: roundPosition(position),
+  return editedCanvasState(state, {
+    groups: updateGroup(state, groupId, {
+      size: { width: Math.round(size.width), height: Math.round(size.height) },
+      position: roundPosition(position),
+    }).groups,
   });
 }
 
@@ -475,15 +481,14 @@ export function duplicateSelected(state: WorkbenchState): WorkbenchState {
       position: { x: node.position.x + 28, y: node.position.y + 28 },
       attachedConnectionId: undefined,
     }));
-    return {
-      ...state,
+    return editedCanvasState(state, {
       nodes: [...state.nodes, ...copies],
       selected: undefined,
       selectedNodeIds: copies.map((node) => node.id),
       selectedConnectionIds: [],
       selectedGroupIds: [],
       nextId: state.nextId + copies.length,
-    };
+    });
   }
   if (!state.selected) {
     return state;
@@ -504,8 +509,7 @@ export function duplicateSelected(state: WorkbenchState): WorkbenchState {
             props: { ...connectionDefaults },
           }]
         : [];
-    return {
-      ...state,
+    return editedCanvasState(state, {
       nodes: [
         ...state.nodes,
         {
@@ -521,7 +525,7 @@ export function duplicateSelected(state: WorkbenchState): WorkbenchState {
       selectedConnectionIds: [],
       selectedGroupIds: [],
       nextId: state.nextId + 1 + connection.length,
-    };
+    });
   }
   if (state.selected.kind === 'group') {
     const group = state.groups.find((item) => item.id === state.selected?.id);
@@ -529,8 +533,7 @@ export function duplicateSelected(state: WorkbenchState): WorkbenchState {
       return state;
     }
     const id = nextItemId(state, 'group');
-    return {
-      ...state,
+    return editedCanvasState(state, {
       groups: [
         ...state.groups,
         {
@@ -545,7 +548,7 @@ export function duplicateSelected(state: WorkbenchState): WorkbenchState {
       selectedConnectionIds: [],
       selectedGroupIds: [id],
       nextId: state.nextId + 1,
-    };
+    });
   }
   return state;
 }
@@ -565,8 +568,7 @@ export function deleteSelected(state: WorkbenchState): WorkbenchState {
     return state;
   }
 
-  return {
-    ...state,
+  return editedCanvasState(state, {
     connections: state.connections.filter((connection) => !removedConnectionIds.has(connection.id)),
     nodes: state.nodes.filter(
       (node) => !nodeIds.has(node.id) && !removedConnectionIds.has(node.attachedConnectionId ?? ''),
@@ -576,12 +578,11 @@ export function deleteSelected(state: WorkbenchState): WorkbenchState {
     selectedNodeIds: [],
     selectedConnectionIds: [],
     selectedGroupIds: [],
-  };
+  });
 }
 
 export function clearCanvas(state: WorkbenchState): WorkbenchState {
-  return {
-    ...state,
+  return editedCanvasState(state, {
     nodes: [],
     groups: [],
     connections: [],
@@ -589,5 +590,5 @@ export function clearCanvas(state: WorkbenchState): WorkbenchState {
     selectedNodeIds: [],
     selectedConnectionIds: [],
     selectedGroupIds: [],
-  };
+  });
 }
