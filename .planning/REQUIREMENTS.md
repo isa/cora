@@ -81,6 +81,17 @@
 - [x] **ASCII-04**: Validation and render failures keep the existing structured JSON error behavior when `--format json` is requested
 - [x] **ASCII-05**: Documentation explains text export limitations versus SVG/PDF, including layout simplification and unsupported visual styling
 
+### Grid Capability
+
+- [ ] **GRID-01**: Optional `diagram.grid` in JSON Schema with `spacing`, `majorEvery`, and `visible` fields
+- [ ] **GRID-02**: Core exports grid snap helpers (`resolveGridConfig`, `snapPoint`, `snapSize`) via `cora/core`
+- [ ] **GRID-03**: Default grid is 16px spacing, origin (0, 0), major lines every 5 cells when fields omitted
+- [ ] **GRID-04**: Preview edit surface visual grid matches core spacing with major-line hierarchy
+- [ ] **GRID-05**: Preview snap toggle (default ON), Shift temporarily disables snap, live snap on node/group move and resize
+- [ ] **GRID-06**: SVG, PDF, PNG, and text exports are unaffected by `diagram.grid` (edit-time only)
+- [ ] **GRID-07**: ELK auto-layout does not post-snap positions to grid by default
+- [ ] **GRID-08**: AGENTS.md documents grid schema, snap semantics, export boundaries, and Phase 4 save-time rounding contract
+
 ### Interactive Canvas
 
 - [ ] **SRV-01**: Canvas supports drag/pin of nodes and groups
@@ -214,12 +225,20 @@ Deferred to post-v1. Tracked but not in current roadmap.
 | CLI-07 | Phase 6 | Pending |
 | AGT-02 | Phase 6 | Pending |
 | AGT-04 | Phase 3.4 | Done (3.4-04) |
+| GRID-01 | Phase 3.8 | Pending |
+| GRID-02 | Phase 3.8 | Pending |
+| GRID-03 | Phase 3.8 | Pending |
+| GRID-04 | Phase 3.8 | Pending |
+| GRID-05 | Phase 3.8 | Pending |
+| GRID-06 | Phase 3.8 | Pending |
+| GRID-07 | Phase 3.8 | Pending |
+| GRID-08 | Phase 3.8 | Pending |
 
 **Coverage:**
-- v1 requirements: 66 total
-- Mapped to phases: 66
+- v1 requirements: 74 total
+- Mapped to phases: 74
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-05-21*
-*Last updated: 2026-05-23 during Phase 3.4 execution*
+*Last updated: 2026-05-29 during Phase 3.8 planning*

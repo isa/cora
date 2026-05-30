@@ -438,10 +438,23 @@ Plans:
 - Avoid making preview-only helpers part of the package surface after Phase 3.7 locks distribution rules
 - Preserve pinned-node and layout-mode semantics from earlier phases
 
-**Plans:** 0 plans
+**Plans:** 4 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 3.8 to break down)
+**Wave 1**
+- [ ] 03.8-01-PLAN.md — Core grid module, diagram.grid schema, cora/core exports, unit tests
+
+**Wave 2 *(blocked on Wave 1 completion)***
+- [ ] 03.8-02-PLAN.md — Preview world-aligned 16px visual grid with major lines every 5 cells
+- [ ] 03.8-03-PLAN.md — Preview snap toggle, Shift override, live node/group snap wiring
+
+**Wave 3 *(blocked on Waves 1–2 completion)***
+- [ ] 03.8-04-PLAN.md — Render/text regression gates, grid-config example, AGENTS.md contract
+
+Cross-cutting constraints:
+- Grid is edit-time only — static SVG/PDF/PNG/text exports must not show or depend on grid visuals.
+- ELK auto-layout must not post-snap to grid by default (golden stability).
+- Phase 4 canvas save rounds positions via core/grid helpers — document only in this phase.
 
 ---
 
