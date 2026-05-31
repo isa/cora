@@ -108,6 +108,25 @@ export interface LayoutedNode extends MeasuredNode {
   y: number;
 }
 
+/**
+ * An edge label is authored as a `label`/`labelIcon` node bound to an edge via
+ * `style.attachedEdgeIndex`. There is no `edge.label` field anymore — an attached
+ * label node is the single representation of an edge label, shared by the preview
+ * and the renderer. Returns the bound edge index, or `undefined` for ordinary nodes.
+ */
+export function attachedEdgeIndexOf(node: {
+  component?: DiagramComponent;
+  style?: Record<string, unknown>;
+}): number | undefined {
+  if (node.component !== 'label' && node.component !== 'labelIcon') {
+    return undefined;
+  }
+  const index = node.style?.attachedEdgeIndex;
+  return typeof index === 'number' && Number.isInteger(index) && index >= 0
+    ? index
+    : undefined;
+}
+
 export interface EdgeLabelPlacement {
   x: number;
   y: number;

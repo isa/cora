@@ -56,20 +56,20 @@ bun run cora -- <command> ...
 
 ```bash
 # Validate (human-readable in a TTY)
-bun run cora validate examples/valid/box-arrows.yaml
+bun run cora validate diagram.yaml
 
 # Validate for CI / agents (JSON array on stdout)
-bun run cora validate examples/valid/box-arrows.yaml --format json
+bun run cora validate diagram.yaml --format json
 
 # Render SVG
-bun run cora render examples/valid/box-arrows.yaml -o /tmp/diagram.svg
+bun run cora render diagram.yaml -o /tmp/diagram.svg
 
 # Render PNG (default 2× scale)
-bun run cora render examples/valid/box-arrows.yaml -o /tmp/diagram.png
+bun run cora render diagram.yaml -o /tmp/diagram.png
 
 # Render text to stdout or a .txt file
-bun run cora render examples/valid/box-arrows.yaml
-bun run cora render examples/valid/box-arrows.yaml -o /tmp/diagram.txt
+bun run cora render diagram.yaml
+bun run cora render diagram.yaml -o /tmp/diagram.txt
 
 # Export JSON Schema
 bun run cora schema --out cora-schema.json
@@ -105,10 +105,10 @@ Validate a diagram YAML or JSON file against the v1 JSON Schema and semantic rul
 
 ```bash
 # Human-readable errors (colored in a TTY)
-cora validate examples/invalid/missing-version.yaml
+cora validate diagram.yaml
 
 # Machine-readable errors for agents and CI
-cora validate examples/invalid/missing-edge-target.yaml --format json
+cora validate diagram.yaml --format json
 
 # Piped stdout is treated as JSON even without --format json
 cora validate diagram.yaml | jq .
@@ -142,13 +142,13 @@ Parse, validate, layout, and render to **SVG**, **PNG**, **PDF**, or simplified 
 
 ```bash
 # SVG (vector, locked default component look)
-cora render examples/valid/flowchart.yaml -o out.svg
+cora render diagram.yaml -o out.svg
 
 # PNG at default resolution (2×)
-cora render examples/valid/microservice.yaml -o out.png
+cora render diagram.yaml -o out.png
 
 # High-resolution PNG for slides or print
-cora render examples/valid/microservice.yaml -o out.png --size xxl
+cora render diagram.yaml -o out.png --size xxl
 
 # Simplified terminal output for Markdown, pull requests, and agent logs
 cora render diagram.yaml
@@ -156,19 +156,19 @@ cora render diagram.yaml -o diagram.txt
 cora render diagram.yaml --charset ascii
 
 # PDF, browser-free by default
-cora render examples/valid/infra.yaml -o out.pdf
-cora render examples/valid/infra.yaml -o out.pdf --page a4
+cora render diagram.yaml -o out.pdf
+cora render diagram.yaml -o out.pdf --page a4
 
 # Optional Playwright/Chromium PDF lane
-cora render examples/valid/infra.yaml -o out.pdf --quality high --yes
+cora render diagram.yaml -o out.pdf --quality high --yes
 
 # Print-friendly / documentation variants
-cora render examples/valid/infra.yaml -o out.svg --monochrome
-cora render examples/valid/infra.yaml -o out.svg --without-shadow
-cora render examples/valid/infra.yaml -o out.svg --monochrome --without-shadow
+cora render diagram.yaml -o out.svg --monochrome
+cora render diagram.yaml -o out.svg --without-shadow
+cora render diagram.yaml -o out.svg --monochrome --without-shadow
 
 # JSON errors when render fails validation (same shape as validate)
-cora render examples/invalid/missing-version.yaml -o out.svg --format json
+cora render diagram.yaml -o out.svg --format json
 
 # JSON diagram input works too
 cora render diagram.json -o out.svg
@@ -273,26 +273,6 @@ Nodes may set `icon` to:
 
 The older `provider: default` + `service: database` form remains supported and resolves to the built-in default database icon. Unknown icon sets fail with `MISSING_EXTENSION`; unknown icon names fail with `UNKNOWN_SERVICE`.
 
-## Examples
-
-| File | Purpose |
-|------|---------|
-| `examples/valid/minimal.yaml` | Small box-arrows diagram using box nodes |
-| `examples/valid/box-arrows.yaml` | Box-arrows with box nodes and mixed markers |
-| `examples/valid/components.yaml` | Preserve-layout box-node catalog with marker shapes |
-| `examples/valid/flowchart.yaml` | Flowchart with box steps and retry markers |
-| `examples/valid/icon-gallery.yaml` | Box-only graph retained as a compatibility fixture |
-| `examples/valid/markers.yaml` | Box-arrows covering circle, filled-circle, diamond, square, and filled-square markers |
-| `examples/valid/marker-cycle.yaml` | Flowchart loop with box nodes and marker endpoints |
-| `examples/valid/microservice.yaml` | Large microservice topology with groups, box service nodes, and labeled cross-domain edges |
-| `examples/valid/infra.yaml` | Infra diagram with box DNS/cloud/queue/data nodes and grouped regions |
-| `examples/valid/database.yaml` | Database kind with cache, primary, replica, analytics, and dataset box nodes |
-| `examples/invalid/malformed-icon.yaml` | `UNKNOWN_SERVICE` for malformed Iconify id |
-| `examples/invalid/missing-version.yaml` | `SCHEMA_VIOLATION` |
-| `examples/invalid/missing-edge-target.yaml` | `MISSING_EDGE_TARGET` |
-| `examples/invalid/unknown-service.yaml` | `MISSING_EXTENSION` for missing icon provider |
-| `examples/invalid/service-without-provider.yaml` | `UNKNOWN_SERVICE` |
-
 ## Validation errors
 
 `cora validate --format json` and `cora render --format json` (on failure) print a **JSON array** on stdout:
@@ -365,12 +345,10 @@ bun run build
 bun run typecheck
 (cd packages/cora && bun x vitest run)
 
-# Golden render regression (all five kinds)
-(cd packages/cora && node tests/render-golden.mjs)
-# or: (cd packages/cora && bun run test:golden)
-
-# Clean install/package smoke
-bash packages/cora/tests/smoke/clean-install.sh
+# Legacy suites (archived — not run in CI)
+(cd packages/cora && bun run test:legacy)
+(cd packages/cora && bun run test:legacy:golden)
+bash packages/cora/tests/legacy/smoke/clean-install.sh
 ```
 
 Programmatic use (after build):

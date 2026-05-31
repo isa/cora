@@ -297,6 +297,62 @@ export function updateNodeProps(
   });
 }
 
+function pickCompatibleNodeProps(
+  pack: PackManifest,
+  targetComponentId: string,
+  sourceProps: PreviewNodeProps,
+): Partial<PreviewNodeProps> {
+  const definition = componentById(pack, targetComponentId);
+  const picked: Partial<PreviewNodeProps> = {};
+  for (const control of definition.controls) {
+    const key = control.key as keyof PreviewNodeProps;
+    const value = sourceProps[key];
+    if (value !== undefined && isValidControlValue(control, value)) {
+      picked[key] = value;
+    }
+  }
+  if (sourceProps.size !== undefined) {
+    picked.size = sourceProps.size;
+  }
+  return picked;
+}
+
+/** Swap a canvas node's component type in place, keeping id/position/connections. */
+export function replaceNodeComponent(
+  state: WorkbenchState,
+  nodeId: string,
+  componentId: string,
+  propsOverride: Partial<PreviewNodeProps> = {},
+): WorkbenchState {
+  const node = state.nodes.find((item) => item.id === nodeId);
+  if (!node || node.componentId === 'label' || node.componentId === 'labelIcon') {
+    return state;
+  }
+  const definition = componentById(state.pack, componentId);
+  const nextProps: PreviewNodeProps = {
+    ...definition.defaultProps,
+    ...pickCompatibleNodeProps(state.pack, componentId, node.props),
+    ...propsOverride,
+  };
+  return editedCanvasState(state, {
+    nodes: state.nodes.map((item) =>
+      item.id === nodeId
+        ? {
+            ...item,
+            componentId,
+            props: nextProps,
+            attachedConnectionId: undefined,
+            attachedEnd: undefined,
+          }
+        : item,
+    ),
+    selected: { kind: 'node', id: nodeId },
+    selectedNodeIds: [nodeId],
+    selectedConnectionIds: [],
+    selectedGroupIds: [],
+  });
+}
+
 export function updateConnectionProps(
   state: WorkbenchState,
   connectionId: string,

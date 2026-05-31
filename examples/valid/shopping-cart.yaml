@@ -1,0 +1,348 @@
+version: 1
+diagram:
+  kind: microservice
+  layout: preserve
+  theme: folio-dark
+  direction: TB
+  nodes:
+    - id: mobile
+      label: Mobile App
+      component: app
+      position:
+        x: 78
+        y: 53
+      style:
+        title: Mobile App
+        text: Mobile App
+        textColor: "#1e293b"
+        size:
+          width: 102
+          height: 96
+        iconColor: "#f43f5e"
+    - id: web
+      label: Web Store
+      component: website
+      position:
+        x: 222
+        y: 48
+      style:
+        title: Web Store
+        text: Web Store
+        backgroundColor: "#ffffff"
+        textColor: "#1e293b"
+        skeletonColor: "#94a3b8"
+        size:
+          width: 108
+          height: 120
+    - id: gateway
+      label: API Gateway
+      component: api
+      position:
+        x: 94
+        y: 262
+      style:
+        title: API Gateway
+        text: API Gateway
+        textColor: "#1e293b"
+        size:
+          width: 110
+          height: 96
+        iconColor: "#f59e0b"
+    - id: cart
+      label: Cart Service
+      component: api
+      position:
+        x: 166
+        y: 584
+      style:
+        title: Cart Service
+        text: Cart Service
+        textColor: "#1e293b"
+        size:
+          width: 117
+          height: 96
+        iconColor: "#f59e0b"
+    - id: catalog
+      label: Product Catalog
+      component: api
+      position:
+        x: 48
+        y: 740
+      style:
+        title: Product Catalog
+        text: Product Catalog
+        textColor: "#1e293b"
+        size:
+          width: 140
+          height: 96
+        iconColor: "#f59e0b"
+    - id: orders
+      label: Order Service
+      component: api
+      position:
+        x: 216
+        y: 424
+      style:
+        title: Order Service
+        text: Order Service
+        textColor: "#1e293b"
+        size:
+          width: 125
+          height: 96
+        iconColor: "#f59e0b"
+    - id: cache
+      label: Redis
+      component: database
+      position:
+        x: 177
+        y: 951
+      style:
+        title: Redis
+        text: Redis
+        textColor: "#1e293b"
+        size:
+          width: 96
+          height: 96
+        iconColor: "#10b981"
+    - id: db
+      label: PostgreSQL
+      component: database
+      position:
+        x: 313
+        y: 951
+      style:
+        title: PostgreSQL
+        text: PostgreSQL
+        textColor: "#1e293b"
+        size:
+          width: 102
+          height: 96
+        iconColor: "#10b981"
+    - id: edge-label-connection-1
+      label: add / update items
+      component: label
+      position:
+        x: 48
+        y: 165
+      style:
+        title: add / update items
+        text: add / update items
+        textColor: "#1e293b"
+        size:
+          width: 162
+          height: 30
+        attachedEdgeIndex: 0
+    - id: edge-label-connection-2
+      label: add / update items
+      component: label
+      position:
+        x: 195
+        y: 179
+      style:
+        title: add / update items
+        text: add / update items
+        textColor: "#1e293b"
+        size:
+          width: 162
+          height: 30
+        attachedEdgeIndex: 1
+    - id: edge-label-connection-3
+      label: cart API
+      component: label
+      position:
+        x: 114
+        y: 489
+      style:
+        title: cart API
+        text: cart API
+        textColor: "#1e293b"
+        size:
+          width: 88
+          height: 30
+        attachedEdgeIndex: 2
+    - id: edge-label-connection-4
+      label: browse products
+      component: label
+      position:
+        x: 38.465813708769204
+        y: 441.3214608448489
+      style:
+        title: browse products
+        text: browse products
+        textColor: "#1e293b"
+        size:
+          width: 140
+          height: 30
+        attachedEdgeIndex: 3
+    - id: edge-label-connection-5
+      label: checkout
+      component: label
+      position:
+        x: 235
+        y: 301
+      style:
+        title: checkout
+        text: checkout
+        textColor: "#1e293b"
+        size:
+          width: 88
+          height: 30
+        attachedEdgeIndex: 4
+    - id: edge-label-connection-6
+      label: session carts
+      component: label
+      position:
+        x: 162
+        y: 713
+      style:
+        title: session carts
+        text: session carts
+        textColor: "#1e293b"
+        size:
+          width: 125
+          height: 30
+        attachedEdgeIndex: 5
+    - id: edge-label-connection-7
+      label: price & stock
+      component: label
+      position:
+        x: 145
+        y: 683
+      style:
+        title: price & stock
+        text: price & stock
+        textColor: "#1e293b"
+        size:
+          width: 125
+          height: 30
+        attachedEdgeIndex: 6
+    - id: edge-label-connection-8
+      label: persist carts
+      component: label
+      position:
+        x: 236
+        y: 805
+      style:
+        title: persist carts
+        text: persist carts
+        textColor: "#1e293b"
+        size:
+          width: 125
+          height: 30
+        attachedEdgeIndex: 7
+    - id: edge-label-connection-9
+      label: finalize cart
+      component: label
+      position:
+        x: 207
+        y: 524
+      style:
+        title: finalize cart
+        text: finalize cart
+        textColor: "#1e293b"
+        size:
+          width: 125
+          height: 30
+        attachedEdgeIndex: 8
+    - id: edge-label-connection-10
+      label: orders & inventory
+      component: label
+      position:
+        x: 206
+        y: 557
+      style:
+        title: orders & inventory
+        text: orders & inventory
+        textColor: "#1e293b"
+        size:
+          width: 162
+          height: 30
+        attachedEdgeIndex: 9
+  edges:
+    - from: mobile
+      to: gateway
+      startMarker: none
+      endMarker: arrow
+    - from: web
+      to: gateway
+      startMarker: none
+      endMarker: arrow
+    - from: gateway
+      to: cart
+      startMarker: none
+      endMarker: arrow
+    - from: gateway
+      to: catalog
+      startMarker: none
+      endMarker: arrow
+    - from: gateway
+      to: orders
+      startMarker: none
+      endMarker: arrow
+    - from: cart
+      to: cache
+      startMarker: none
+      endMarker: arrow
+    - from: cart
+      to: catalog
+      startMarker: none
+      endMarker: arrow
+    - from: cart
+      to: db
+      startMarker: none
+      endMarker: arrow
+    - from: orders
+      to: cart
+      startMarker: none
+      endMarker: arrow
+    - from: orders
+      to: db
+      startMarker: none
+      endMarker: arrow
+  groups:
+    - id: clients
+      label: Clients
+      contains:
+        - mobile
+        - web
+      style:
+        position:
+          x: 28
+          y: 24
+        size:
+          width: 298
+          height: 168
+    - id: services
+      label: Backend
+      contains:
+        - gateway
+        - cart
+        - catalog
+        - orders
+        - edge-label-connection-3
+        - edge-label-connection-4
+        - edge-label-connection-5
+        - edge-label-connection-6
+        - edge-label-connection-7
+        - edge-label-connection-8
+        - edge-label-connection-9
+        - edge-label-connection-10
+      style:
+        position:
+          x: 24
+          y: 240
+        size:
+          width: 314
+          height: 625
+    - id: data
+      label: Data
+      contains:
+        - cache
+        - db
+      style:
+        position:
+          x: 126
+          y: 927
+        size:
+          width: 286
+          height: 144

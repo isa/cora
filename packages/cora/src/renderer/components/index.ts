@@ -73,7 +73,6 @@ export {
 } from './defaultIcons.js';
 
 
-export { EdgeLabel } from './edges/EdgeLabel.js';
 export {
   bridgeHalfSpan,
   EDGE_BRIDGE_RADIUS,

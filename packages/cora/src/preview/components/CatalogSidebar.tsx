@@ -161,7 +161,7 @@ export function CatalogSidebar({
               </button>
             </div>
             {workspaceDiagrams.length === 0 ? (
-              <p className="catalog-empty">No YAML diagrams found in this workspace.</p>
+              <p className="catalog-empty">No YAML diagrams found in examples/.</p>
             ) : (
               <div className="workspace-diagram-groups">
                 {diagramGroups.map((group) => (

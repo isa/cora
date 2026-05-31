@@ -40,7 +40,8 @@
     "postpack": "rm -f SKILL.md",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
-    "test:golden": "node tests/render-golden.mjs",
+    "test:legacy": "vitest run --config vitest.legacy.config.ts",
+    "test:legacy:golden": "node tests/legacy/render-golden.mjs",
     "postinstall": "node -e \"console.log('cora: Chromium for --quality=high is downloaded on first use; see AGENTS.md')\""
   },
   "dependencies": {

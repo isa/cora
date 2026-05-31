@@ -1,5 +1,12 @@
 import { existsSync, readdirSync, statSync } from 'node:fs';
-import { extname, relative, resolve, sep } from 'node:path';
+import { dirname, extname, relative, resolve, sep } from 'node:path';
+
+import {
+  defaultWorkspaceDiagramPath,
+  PREVIEW_DIAGRAMS_DIR,
+} from './previewDevSave.js';
+
+export { defaultWorkspaceDiagramPath, PREVIEW_DIAGRAMS_DIR };
 
 const DIAGRAM_EXTENSIONS = new Set(['.yaml', '.yml', '.json']);
 const WORKSPACE_LIST_EXTENSIONS = new Set(['.yaml', '.yml']);
@@ -21,7 +28,39 @@ export function isWorkspaceListableDiagramFileName(name: string): boolean {
   return WORKSPACE_LIST_EXTENSIONS.has(extname(name).toLowerCase());
 }
 
-export function resolveDiagramPathInWorkspace(workspaceRoot: string, diagramPath: string): string {
+export function resolvePreviewWorkspace(startDir: string = process.cwd()): string {
+  let current = resolve(startDir);
+  while (true) {
+    const examplesDir = joinPath(current, PREVIEW_DIAGRAMS_DIR);
+    if (existsSync(examplesDir) && statSync(examplesDir).isDirectory()) {
+      return current;
+    }
+    const parent = dirname(current);
+    if (parent === current) {
+      break;
+    }
+    current = parent;
+  }
+  return resolve(startDir);
+}
+
+export function resolvePreviewDiagramsDirectory(
+  workspaceRoot: string,
+  diagramsDir: string = PREVIEW_DIAGRAMS_DIR,
+): string {
+  const root = resolve(workspaceRoot);
+  const target = resolve(root, diagramsDir);
+  if (!existsSync(target) || !statSync(target).isDirectory()) {
+    throw new Error(`Preview examples directory not found: ${target}`);
+  }
+  return target;
+}
+
+export function resolveDiagramPathInWorkspace(
+  workspaceRoot: string,
+  diagramPath: string,
+  options?: { diagramsDir?: string },
+): string {
   const root = resolve(workspaceRoot);
   if (!existsSync(root) || !statSync(root).isDirectory()) {
     throw new Error(`Preview workspace is not a directory: ${root}`);
@@ -33,11 +72,23 @@ export function resolveDiagramPathInWorkspace(workspaceRoot: string, diagramPath
     throw new Error('Diagram path must stay inside the preview workspace.');
   }
 
+  const diagramsDir = options?.diagramsDir ?? PREVIEW_DIAGRAMS_DIR;
+  const diagramsRoot = resolvePreviewDiagramsDirectory(root, diagramsDir);
+  const relToExamples = relative(diagramsRoot, target);
+  if (relToExamples.startsWith('..') || relToExamples.includes(`..${sep}`)) {
+    throw new Error(`Diagram path must stay inside ${diagramsDir}/.`);
+  }
+
   return target;
 }
 
-export function listDiagramPathsInWorkspace(workspaceRoot: string): string[] {
+export function listDiagramPathsInWorkspace(
+  workspaceRoot: string,
+  options?: { diagramsDir?: string },
+): string[] {
   const root = resolve(workspaceRoot);
+  const diagramsDir = options?.diagramsDir ?? PREVIEW_DIAGRAMS_DIR;
+  const diagramsRoot = resolvePreviewDiagramsDirectory(root, diagramsDir);
   const paths: string[] = [];
 
   const walk = (directory: string) => {
@@ -61,7 +112,7 @@ export function listDiagramPathsInWorkspace(workspaceRoot: string): string[] {
     }
   };
 
-  walk(root);
+  walk(diagramsRoot);
   return paths.sort((a, b) => a.localeCompare(b));
 }
 

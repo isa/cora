@@ -64,7 +64,6 @@ export interface DiagramNode {
 export interface DiagramEdge {
   from: string;
   to: string;
-  label?: string;
   startMarker?: EdgeMarker;
   endMarker?: EdgeMarker;
 }

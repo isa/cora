@@ -81,8 +81,6 @@ diagram:
 - **Preview workbench:** Snap toggle defaults ON; hold **Shift** to temporarily disable snap while dragging. Nodes and groups snap live during move/resize; connection endpoint drags stay free-form.
 - **Phase 4 (`cora serve`):** Canvas save will round node/group `position` values with `snapPoint` before YAML writeback — documented here, not implemented in Phase 3.8.
 
-See `examples/valid/grid-config.yaml` for a minimal valid fixture.
-
 ## Recommended agent loop
 
 1. Write or edit a diagram YAML/JSON file (`version: 1` required).
@@ -231,7 +229,6 @@ Default push pipeline — no Chromium download needed:
 - run: bun run build
 - run: bun x vitest run
   working-directory: packages/cora
-- run: bash packages/cora/tests/smoke/clean-install.sh
 ```
 
 To exercise `--quality=high` in a downstream CI workflow (note: ~170MB Chromium download on first run, then cached):
@@ -412,26 +409,6 @@ Typography, stroke widths, and fonts come from the active theme (`folio-light` u
 - Edge labels: 10px Regular
 
 `catalogDefaultProps()` in `packages/cora/src/renderer/themes/componentDefaults.ts` still defines structural defaults (radius, sizes, shadows) shared with the preview workbench.
-
-## Examples
-
-| File | Purpose |
-|------|---------|
-| `examples/valid/minimal.yaml` | Small box-arrows diagram using box nodes |
-| `examples/valid/box-arrows.yaml` | Box-arrows with box nodes and mixed markers |
-| `examples/valid/components.yaml` | Preserve-layout box-node catalog with marker shapes |
-| `examples/valid/flowchart.yaml` | Flowchart with box steps and retry markers |
-| `examples/valid/icon-gallery.yaml` | Box-only graph retained as a compatibility fixture |
-| `examples/valid/markers.yaml` | Box-arrows covering circle, filled-circle, diamond, square, and filled-square markers |
-| `examples/valid/marker-cycle.yaml` | Flowchart loop with box nodes and marker endpoints |
-| `examples/valid/microservice.yaml` | Large microservice topology with groups, box service nodes, and labeled cross-domain edges |
-| `examples/valid/infra.yaml` | Infra diagram with box DNS/cloud/queue/data nodes and grouped regions |
-| `examples/valid/database.yaml` | Database kind with cache, primary, replica, analytics, and dataset box nodes |
-| `examples/invalid/malformed-icon.yaml` | Triggers `UNKNOWN_SERVICE` |
-| `examples/invalid/missing-version.yaml` | Triggers `SCHEMA_VIOLATION` |
-| `examples/invalid/missing-edge-target.yaml` | Triggers `MISSING_EDGE_TARGET` |
-| `examples/invalid/unknown-service.yaml` | Triggers `MISSING_EXTENSION` |
-| `examples/invalid/service-without-provider.yaml` | Triggers `UNKNOWN_SERVICE` |
 
 ## Deferred commands
 

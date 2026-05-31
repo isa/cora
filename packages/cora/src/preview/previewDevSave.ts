@@ -2,6 +2,8 @@ export type PreviewServerSaveWindow = Window & {
   __CORA_PREVIEW_WORKSPACE__?: string;
 };
 
+export const PREVIEW_DIAGRAMS_DIR = 'examples';
+
 export function displayNameForWorkspaceDiagram(diagramPath: string): string {
   const segments = diagramPath.split(/[/\\]/);
   return segments[segments.length - 1] ?? diagramPath;
@@ -14,6 +16,14 @@ export function folderPathForWorkspaceDiagram(diagramPath: string): string | nul
     return null;
   }
   return normalized.slice(0, lastSlash);
+}
+
+export function defaultWorkspaceDiagramPath(
+  diagramsDir: string = PREVIEW_DIAGRAMS_DIR,
+  fileName: string = 'diagram.yml',
+): string {
+  const normalizedName = fileName.replace(/^[/\\]+/, '');
+  return `${diagramsDir.replace(/[/\\]+$/, '')}/${normalizedName}`.replace(/\\/g, '/');
 }
 
 export interface WorkspaceDiagramGroup {
@@ -43,6 +53,8 @@ export function groupWorkspaceDiagramsByFolder(paths: string[]): WorkspaceDiagra
 
 export interface PreviewServerConfig {
   workspace: string;
+  diagramsDir: string;
+  defaultSavePath: string;
   openPath: string | null;
 }
 

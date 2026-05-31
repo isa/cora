@@ -19,6 +19,7 @@ import {
 } from './edgeMarkers.js';
 import { runElkLayout } from './layoutWorker.js';
 import { measureLabel } from './measureText.js';
+import { attachedEdgeIndexOf } from '../layout-ir.js';
 import type {
   Diagram,
   DiagramEdge,
@@ -173,10 +174,88 @@ function lcaContainerOffset(
   return ctx.containerOffset.get(lca) ?? { x: 0, y: 0 };
 }
 
+/** The visible text of an edge-label node (`label`/`labelIcon`). */
+function edgeLabelNodeText(node: MeasuredNode): string | undefined {
+  const fromStyle =
+    typeof node.style?.title === 'string'
+      ? node.style.title
+      : typeof node.style?.text === 'string'
+        ? node.style.text
+        : undefined;
+  const text = (fromStyle ?? node.label ?? '').trim();
+  return text || undefined;
+}
+
+interface EdgeLabelPartition {
+  /** Nodes that participate in graph layout (everything except edge-label nodes). */
+  graphNodes: MeasuredNode[];
+  /** Edge-label nodes keyed by the edge index they annotate. */
+  labelNodeByEdgeIndex: Map<number, MeasuredNode>;
+}
+
+/**
+ * Split edge-label nodes (a `label`/`labelIcon` node bound via
+ * `style.attachedEdgeIndex`) out of the graph. They are not laid out by ELK or
+ * treated as routing obstacles — they ride on their edge and are positioned onto
+ * the edge's computed label placement afterwards (see {@link positionEdgeLabelNodes}).
+ */
+function partitionEdgeLabelNodes(
+  measuredNodes: MeasuredNode[],
+  edgeCount: number,
+): EdgeLabelPartition {
+  const graphNodes: MeasuredNode[] = [];
+  const labelNodeByEdgeIndex = new Map<number, MeasuredNode>();
+  for (const node of measuredNodes) {
+    const edgeIndex = attachedEdgeIndexOf(node);
+    if (
+      edgeIndex !== undefined &&
+      edgeIndex < edgeCount &&
+      !labelNodeByEdgeIndex.has(edgeIndex)
+    ) {
+      labelNodeByEdgeIndex.set(edgeIndex, node);
+      continue;
+    }
+    graphNodes.push(node);
+  }
+  return { graphNodes, labelNodeByEdgeIndex };
+}
+
+/**
+ * Place each edge-label node at its edge's computed label placement, centred like
+ * the preview canvas does, and return them as laid-out nodes. Called after edge
+ * routing + {@link updateLabeledEdgePlacements} so `edge.labelPlacement` is final.
+ */
+function positionEdgeLabelNodes(
+  labelNodeByEdgeIndex: Map<number, MeasuredNode>,
+  edges: LayoutedEdge[],
+): LayoutedNode[] {
+  const result: LayoutedNode[] = [];
+  for (const [index, node] of labelNodeByEdgeIndex) {
+    const edge = edges[index];
+    const center = edge?.labelPlacement
+      ? { x: edge.labelPlacement.x, y: edge.labelPlacement.y }
+      : edge?.labelX !== undefined && edge?.labelY !== undefined
+        ? { x: edge.labelX, y: edge.labelY }
+        : undefined;
+    if (!center) {
+      // Orphaned label (edge missing/unrouted): fall back to authored position.
+      result.push({ ...node, x: node.position?.x ?? 0, y: node.position?.y ?? 0 });
+      continue;
+    }
+    result.push({
+      ...node,
+      x: center.x - node.measuredWidth / 2,
+      y: center.y - node.measuredHeight / 2,
+    });
+  }
+  return result;
+}
+
 function buildLayoutedEdges(
   edges: DiagramEdge[],
   nodeById: Map<string, LayoutedNode>,
   elkRoot: ElkNode | undefined,
+  labelNodeByEdgeIndex: Map<number, MeasuredNode>,
 ): LayoutedEdge[] {
   const ctx: ElkContext = {
     edges: new Map(),
@@ -204,8 +283,10 @@ function buildLayoutedEdges(
       points = straightEdgePoints(from, to);
     }
 
+    const labelNode = labelNodeByEdgeIndex.get(index);
     return {
       ...edge,
+      label: labelNode ? edgeLabelNodeText(labelNode) : undefined,
       points,
     };
   });
@@ -2420,7 +2501,12 @@ function layoutPreserve(
   theme: ThemeTokens,
   options?: { offset?: boolean; preserveGroupBounds?: boolean },
 ): LayoutedDiagram {
-  const missing = measuredNodes
+  const { graphNodes, labelNodeByEdgeIndex } = partitionEdgeLabelNodes(
+    measuredNodes,
+    diagram.edges.length,
+  );
+
+  const missing = graphNodes
     .filter(
       (node) =>
         node.position?.x === undefined || node.position?.y === undefined,
@@ -2434,14 +2520,19 @@ function layoutPreserve(
     );
   }
 
-  const nodes: LayoutedNode[] = measuredNodes.map((node) => ({
+  const nodes: LayoutedNode[] = graphNodes.map((node) => ({
     ...node,
     x: node.position!.x,
     y: node.position!.y,
   }));
 
   const nodeById = new Map(nodes.map((node) => [node.id, node]));
-  const edges = buildLayoutedEdges(diagram.edges, nodeById, undefined);
+  const edges = buildLayoutedEdges(
+    diagram.edges,
+    nodeById,
+    undefined,
+    labelNodeByEdgeIndex,
+  );
   updateLabeledEdgePlacements(nodes, edges);
   const groups: LayoutedGroup[] = (diagram.groups ?? []).map((group) => ({
     id: group.id,
@@ -2494,6 +2585,10 @@ function layoutPreserve(
   finalizeEdgeGeometry(edges, nodeById, nodes, groups);
   updateLabeledEdgePlacements(nodes, edges);
   assertOrthogonalEdges(edges);
+
+  // Edge-label nodes ride on their edge: position them once placement is final.
+  nodes.push(...positionEdgeLabelNodes(labelNodeByEdgeIndex, edges));
+
   if (options?.offset !== false) {
     offsetDiagram(nodes, groups, edges);
   }
@@ -2536,12 +2631,17 @@ export async function computeLayout(input: {
     return layoutPreserve(diagram, measuredNodes, theme);
   }
 
-  const elkGraph = buildElkGraph(diagram, measuredNodes);
+  const { graphNodes, labelNodeByEdgeIndex } = partitionEdgeLabelNodes(
+    measuredNodes,
+    diagram.edges.length,
+  );
+
+  const elkGraph = buildElkGraph(diagram, graphNodes);
   const laidOut = await runElkLayout(elkGraph);
   const elkById = new Map<string, ElkNode>();
   flattenElkNodes(laidOut, elkById);
 
-  const nodes: LayoutedNode[] = measuredNodes.map((node) => {
+  const nodes: LayoutedNode[] = graphNodes.map((node) => {
     const elkNode = elkById.get(node.id);
     return {
       ...node,
@@ -2551,7 +2651,12 @@ export async function computeLayout(input: {
   });
 
   const nodeById = new Map(nodes.map((node) => [node.id, node]));
-  const edges = buildLayoutedEdges(diagram.edges, nodeById, laidOut);
+  const edges = buildLayoutedEdges(
+    diagram.edges,
+    nodeById,
+    laidOut,
+    labelNodeByEdgeIndex,
+  );
   const groups = buildGroupsFromElk(diagram, laidOut);
   expandLayoutForLabeledEdges(nodes, edges, groups, diagram.direction);
   updateGroupBoundsFromContainedNodes(groups, nodeById);
@@ -2581,6 +2686,10 @@ export async function computeLayout(input: {
   finalizeEdgeGeometry(edges, nodeById, nodes, groups);
   updateLabeledEdgePlacements(nodes, edges);
   assertOrthogonalEdges(edges);
+
+  // Edge-label nodes ride on their edge: position them once placement is final,
+  // then let offsetDiagram translate them alongside everything else.
+  nodes.push(...positionEdgeLabelNodes(labelNodeByEdgeIndex, edges));
 
   offsetDiagram(nodes, groups, edges);
   applyEdgeBridges(edges);

@@ -6,7 +6,6 @@ import {
   ConfigurationNode,
   DatabaseNode,
   DecisionNode,
-  EdgeLabel,
   Group,
   IconNode,
   LabelIconNode,
@@ -63,8 +62,25 @@ function renderNode(node: LayoutedNode, diagram: LayoutedDiagram) {
   );
 
   switch (component) {
-    case 'label':
-      return <LabelNode key={node.id} {...catalogProps} backgroundColor="transparent" borderStyle="none" />;
+    case 'label': {
+      // An edge label: opaque pill (theme.background) + edge-label typography by
+      // default, so it matches the preview and hides the edge line behind it.
+      const styleBg =
+        typeof node.style?.backgroundColor === 'string' ? node.style.backgroundColor : undefined;
+      const styleText =
+        typeof node.style?.textColor === 'string' ? node.style.textColor : undefined;
+      return (
+        <LabelNode
+          key={node.id}
+          {...catalogProps}
+          backgroundColor={styleBg ?? diagram.theme.background}
+          textColor={styleText ?? diagram.theme.edgeLabel.fill}
+          titleFontSize={diagram.theme.edgeLabel.fontSize}
+          titleBold={diagram.theme.edgeLabel.fontWeight >= 600}
+          borderStyle="none"
+        />
+      );
+    }
     case 'icon':
       return (
         <IconNode
@@ -280,15 +296,6 @@ export function Diagram({ diagram }: DiagramProps) {
             />
           ) : null;
         })}
-      </g>
-      <g id="edge-labels">
-        {diagram.edges.map((edge) => (
-          <EdgeLabel
-            key={`label-${edge.from}-${edge.to}-${edge.label ?? ''}`}
-            edge={edge}
-            theme={diagram.theme}
-          />
-        ))}
       </g>
     </svg>
   );

@@ -22,10 +22,10 @@ function listen(server: Server): Promise<number> {
 }
 
 describe('previewSavePlugin', () => {
-  it('reads and writes diagrams anywhere under the workspace root', async () => {
+  it('reads and writes diagrams under examples/', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'cora-preview-save-'));
-    mkdirSync(join(dir, 'nested'));
-    const diagramPath = join(dir, 'nested', 'diagram.yaml');
+    mkdirSync(join(dir, 'examples', 'nested'), { recursive: true });
+    const diagramPath = join(dir, 'examples', 'nested', 'diagram.yaml');
     writeFileSync(diagramPath, 'version: 1\n', 'utf8');
 
     const middleware = createPreviewSaveMiddleware({ workspace: dir });
@@ -40,19 +40,28 @@ describe('previewSavePlugin', () => {
     try {
       const base = `http://127.0.0.1:${port}`;
 
+      const config = await fetch(`${base}/__cora/preview/config`);
+      expect(config.ok).toBe(true);
+      const configJson = (await config.json()) as {
+        diagramsDir: string;
+        defaultSavePath: string;
+      };
+      expect(configJson.diagramsDir).toBe('examples');
+      expect(configJson.defaultSavePath).toBe('examples/diagram.yml');
+
       const list = await fetch(`${base}/__cora/preview/diagrams`);
       expect(list.ok).toBe(true);
       const listJson = (await list.json()) as { paths: string[] };
-      expect(listJson.paths).toContain('nested/diagram.yaml');
+      expect(listJson.paths).toContain('examples/nested/diagram.yaml');
 
-      const source = await fetch(`${base}/__cora/preview/source?path=nested/diagram.yaml`);
+      const source = await fetch(`${base}/__cora/preview/source?path=examples/nested/diagram.yaml`);
       expect(source.ok).toBe(true);
 
       const save = await fetch(`${base}/__cora/preview/save`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          path: 'nested/diagram.yaml',
+          path: 'examples/nested/diagram.yaml',
           yaml: 'version: 1\ndiagram:\n  kind: box-arrows\n  nodes: []\n  edges: []\n',
         }),
       });

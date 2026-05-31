@@ -6,7 +6,6 @@ import { resolveGridConfig, snapPoint, snapSize } from '../../core/grid.js';
 import { updateLabeledEdgePlacements } from '../../core/labeledEdgeExpansion.js';
 import { measureNodes } from '../../core/measureText.js';
 import { applyNodeStyles, resolveTheme } from '../../core/themeResolver.js';
-import { EdgeLabel } from '../../renderer/components/edges/EdgeLabel.js';
 import {
   edgeBridgeMaskPathData,
   edgeLinePathData,
@@ -49,6 +48,7 @@ import {
   clearSelection,
   deleteSelected,
   reconnectConnectionEndpoint,
+  replaceNodeComponent,
   selectCanvasItem,
   setGroupPosition,
   setGroupPositions,
@@ -65,17 +65,9 @@ import {
   type CanvasNode,
   type CanvasConnection,
 } from '../state.js';
-import { autoLayoutWorkbenchState, serializeWorkbenchDocument } from '../persistence.js';
+import { autoLayoutWorkbenchState, edgeLabelTextForConnection, serializeWorkbenchDocument } from '../persistence.js';
 
-interface WorkbenchCanvasProps {
-  state: WorkbenchState;
-  onStateChange(state: WorkbenchState): void;
-  onClear?(): void;
-  onIconDrop?(): void;
-  loadTrigger?: number;
-  isCatalogOpen?: boolean;
-  isInspectorOpen?: boolean;
-}
+import type { WorkbenchStateChangeOptions } from '../useWorkbenchHistory.js';
 
 type DragTarget =
   | { kind: 'node'; id: string }
@@ -86,6 +78,34 @@ type DragTarget =
   | { kind: 'connection-endpoint'; id: string; endpoint: 'from' | 'to' }
   | { kind: 'marquee' }
   | { kind: 'pan' };
+
+interface WorkbenchCanvasProps {
+  state: WorkbenchState;
+  onStateChange(state: WorkbenchState, options?: WorkbenchStateChangeOptions): void;
+  onHistoryGestureStart?(): void;
+  onHistoryGestureEnd?(): void;
+  canUndo?: boolean;
+  canRedo?: boolean;
+  onUndo?(): void;
+  onRedo?(): void;
+  onClear?(): void;
+  onIconDrop?(): void;
+  loadTrigger?: number;
+  isCatalogOpen?: boolean;
+  isInspectorOpen?: boolean;
+}
+
+const MUTATING_DRAG_KINDS = new Set<DragTarget['kind']>([
+  'node',
+  'nodes',
+  'group',
+  'group-resize',
+  'node-resize',
+]);
+
+function isMutatingDragKind(kind: DragTarget['kind'] | undefined): boolean {
+  return kind !== undefined && MUTATING_DRAG_KINDS.has(kind);
+}
 
 type MarqueeRect = { start: PreviewPoint; current: PreviewPoint };
 
@@ -266,6 +286,44 @@ export function attachedLabelMaskRects(
   return rects;
 }
 
+/** Pointer target for a node; attached labels use the visible text/icon bounds, not the full layout box. */
+export function nodePointerHitRect(
+  node: CanvasNode,
+  box: NonNullable<ReturnType<typeof computeNodeBox>>,
+): MaskRect {
+  if (!node.attachedConnectionId) {
+    return { x: box.x, y: box.y, width: box.width, height: box.height };
+  }
+  if (node.componentId === 'labelIcon') {
+    const contentHeight = previewLabelIconContentHeight(node);
+    const pad = 8;
+    return {
+      x: box.x - pad,
+      y: box.y - pad,
+      width: box.width + pad * 2,
+      height: contentHeight + pad * 2,
+    };
+  }
+  if (node.componentId === 'label') {
+    const content = previewLabelContentSize(node);
+    const pad = 8;
+    return {
+      x: box.x + box.width / 2 - content.width / 2 - pad,
+      y: box.y + box.height / 2 - content.height / 2 - pad,
+      width: content.width + pad * 2,
+      height: content.height + pad * 2,
+    };
+  }
+  return { x: box.x, y: box.y, width: box.width, height: box.height };
+}
+
+function isAttachedLineLabelNode(node: CanvasNode): boolean {
+  return Boolean(
+    node.attachedConnectionId &&
+      (node.componentId === 'label' || node.componentId === 'labelIcon'),
+  );
+}
+
 // Bounding rect for a connection's mask: the line plus its knock-out rects,
 // padded so the white "show everything" backdrop fully covers the stroke.
 export function maskCoverageBounds(points: PreviewPoint[], rects: MaskRect[]): MaskRect {
@@ -322,7 +380,7 @@ function previewLayoutEdge(
   const edge: LayoutedEdge = {
     from: connection.fromNodeId,
     to: connection.toNodeId,
-    label: connection.label,
+    label: edgeLabelTextForConnection(state.nodes, connection.id),
     startMarker: connection.props.startMarker,
     endMarker: connection.props.endMarker,
     points: computeConnectionPoints(state, connection).map((point) => ({ ...point })),
@@ -341,21 +399,11 @@ export function sharedPreviewLayout(state: WorkbenchState) {
   }
 
   const document = serializeWorkbenchDocument(state);
-  const attachedNodeIds = new Set(
-    state.nodes
-      .filter((node) => node.attachedConnectionId)
-      .map((node) => node.id),
-  );
 
-  document.diagram.nodes = document.diagram.nodes.filter((node) => !attachedNodeIds.has(node.id));
-  if (document.diagram.groups) {
-    document.diagram.groups = document.diagram.groups
-      .map((group) => ({
-        ...group,
-        contains: group.contains?.filter((nodeId) => !attachedNodeIds.has(nodeId)),
-      }))
-      .filter((group) => (group.contains?.length ?? 0) > 0);
-  }
+  // Edge-label nodes (label/labelIcon bound to an edge) stay in the document: the
+  // core layout folds them onto their edge — excluded from routing, then centred on
+  // the edge's computed label placement — exactly as the SVG export does, so the
+  // preview and the render agree on where every label sits.
 
   const { nodeStyles, theme } = resolveTheme(document.diagram, defaultTheme);
 
@@ -423,7 +471,6 @@ export function previewSceneKey(state: WorkbenchState): string {
       id: connection.id,
       fromNodeId: connection.fromNodeId,
       toNodeId: connection.toNodeId,
-      label: connection.label,
       props: connection.props,
     })),
   });
@@ -536,12 +583,22 @@ function renderedNodeBox(
     return computeNodeBox(state, nodeId, edge?.points);
   }
 
+  // A plain edge label: prefer the core-folded placement (shaft midpoint +
+  // node-avoidance) so the preview sits the label exactly where the SVG export
+  // does. Fall back to the edge's own placement, then the path midpoint.
+  const layoutedBox = layoutedNodeBoxesById.get(nodeId);
+  if (layoutedBox) {
+    return layoutedBox;
+  }
+
   if (!edge) {
     return computeNodeBox(state, nodeId);
   }
 
   const size = canvasNodeSize(node);
-  const center = connectionCenter(edge.points);
+  const center = edge.labelPlacement
+    ? { x: edge.labelPlacement.x, y: edge.labelPlacement.y }
+    : connectionCenter(edge.points);
   if (!center) {
     return computeNodeBox(state, nodeId);
   }
@@ -663,12 +720,36 @@ function renderNode(
     node.componentId === 'icon' || node.componentId === 'labelIcon'
       ? { icon: getPreviewIcon(effectiveProps.iconName ? String(effectiveProps.iconName) : undefined) }
       : {};
+  // An edge label renders as a content-tight pill (theme.background) with
+  // edge-label typography, drawn by LabelNode itself — identical to the SVG
+  // export. Explicit, non-theme overrides on the node still win.
+  const themeTokens = resolvePreviewTheme(state);
+  const labelOverrides =
+    node.componentId === 'label'
+      ? {
+          backgroundColor:
+            typeof effectiveProps.backgroundColor === 'string' &&
+            effectiveProps.backgroundColor !== 'transparent' &&
+            effectiveProps.backgroundColor !== 'none' &&
+            !isThemeOwnedNodeColor(effectiveProps.backgroundColor, 'label', 'backgroundColor')
+              ? effectiveProps.backgroundColor
+              : themeTokens.background,
+          textColor:
+            typeof effectiveProps.textColor === 'string' &&
+            !isThemeOwnedNodeColor(effectiveProps.textColor, 'label', 'textColor')
+              ? effectiveProps.textColor
+              : themeTokens.edgeLabel.fill,
+          titleFontSize: themeTokens.edgeLabel.fontSize,
+          titleBold: themeTokens.edgeLabel.fontWeight >= 600,
+        }
+      : {};
   const props = {
     ...effectiveProps,
     size: { width: box.width, height: box.height },
     x: box.x,
     y: box.y,
     ...iconProps,
+    ...labelOverrides,
   };
 
 
@@ -678,18 +759,6 @@ function renderNode(
       className={state.selectedNodeIds.includes(node.id) ? 'preview-node selected' : 'preview-node'}
       data-node-id={node.id}
     >
-      {node.attachedConnectionId && node.componentId === 'label' && effectiveProps.backgroundColor && effectiveProps.backgroundColor !== 'transparent' && effectiveProps.backgroundColor !== 'none' ? (
-        <rect
-          x={box.x - 4}
-          y={box.y - 3}
-          width={box.width + 8}
-          height={box.height + 6}
-          rx={effectiveProps.radius ?? 12}
-          ry={effectiveProps.radius ?? 12}
-          fill={effectiveProps.backgroundColor}
-          stroke="none"
-        />
-      ) : null}
       <Component {...props} />
     </g>
   );
@@ -893,7 +962,22 @@ function animateCanvasFit(options: {
   animateFrameRef.current = requestAnimationFrame(tick);
 }
 
-export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, loadTrigger, isCatalogOpen, isInspectorOpen }: WorkbenchCanvasProps) {
+export function WorkbenchCanvas({
+  state,
+  onStateChange,
+  onHistoryGestureStart,
+  onHistoryGestureEnd,
+  canUndo = false,
+  canRedo = false,
+  onUndo,
+  onRedo,
+  onClear,
+  onIconDrop,
+  loadTrigger,
+  isCatalogOpen,
+  isInspectorOpen,
+}: WorkbenchCanvasProps) {
+  const previewState = (next: WorkbenchState) => onStateChange(next, { record: false });
   const canvasRegionRef = useRef<HTMLElement | null>(null);
   const toolbarRef = useRef<HTMLDivElement | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -1264,15 +1348,33 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, loa
       try {
         const parsed = JSON.parse(iconPayload) as { name: string; fullName: string };
         const isLabelIcon = Boolean(nearestConnectionId);
-        iconProps = {
-          title: isLabelIcon ? '' : parsed.name,
-          subtitle: '',
-          iconName: parsed.fullName,
-          // Icons sitting on a line read better small; standalone icons stay large.
-          size: isLabelIcon ? DROPPED_LABEL_ICON_SIZE : 'lg',
-          ...(isLabelIcon ? { titleFontSize: 28 } : {}),
-        };
-        componentId = isLabelIcon ? 'labelIcon' : 'icon';
+        if (isLabelIcon) {
+          iconProps = {
+            title: '',
+            subtitle: '',
+            iconName: parsed.fullName,
+            // Icons sitting on a line read better small; standalone icons stay large.
+            size: DROPPED_LABEL_ICON_SIZE,
+            titleFontSize: 28,
+          };
+          componentId = 'labelIcon';
+        } else {
+          const targetNodeId = nodeAtPoint(point);
+          if (targetNodeId) {
+            onStateChange(replaceNodeComponent(state, targetNodeId, 'icon', {
+              iconName: parsed.fullName,
+            }));
+            onIconDrop?.();
+            return;
+          }
+          iconProps = {
+            title: parsed.name,
+            subtitle: '',
+            iconName: parsed.fullName,
+            size: 'lg',
+          };
+          componentId = 'icon';
+        }
       } catch {
         iconProps = undefined;
       }
@@ -1384,7 +1486,7 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, loa
       });
       let next = setNodePositions(currentState, [...drag.nodes.entries()].map(shift));
       next = setGroupPositions(next, [...drag.groups.entries()].map(shift));
-      onStateChange(next);
+      previewState(next);
       return;
     }
     const point = toCanvasPoint(event.clientX, event.clientY);
@@ -1411,7 +1513,7 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, loa
         x: resize.topLeft.x,
         y: resize.topLeft.y,
       });
-      onStateChange(setGroupSizeAndPosition(currentState, group.id, size, topLeft));
+      previewState(setGroupSizeAndPosition(currentState, group.id, size, topLeft));
       return;
     }
     if (dragTarget.kind === 'node-resize') {
@@ -1429,7 +1531,7 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, loa
           width: Math.max(MIN_NODE_WIDTH, point.x - box.x),
           height: Math.max(MIN_NODE_HEIGHT, point.y - box.y),
         };
-        onStateChange(setNodeSize(currentState, node.id, snapSizeIfEnabled(rawBoxSize)));
+        previewState(setNodeSize(currentState, node.id, snapSizeIfEnabled(rawBoxSize)));
         return;
       }
       // Every other sizable node scales from its icon/body centre (excluding text).
@@ -1446,10 +1548,10 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, loa
 
       if (node.attachedConnectionId) {
         // Attached labels are auto-centred on their line; only the size matters.
-        onStateChange(setNodeSize(currentState, dragTarget.id, size));
+        previewState(setNodeSize(currentState, dragTarget.id, size));
         return;
       }
-      onStateChange(
+      previewState(
         setNodeSizeAndPosition(
           currentState,
           dragTarget.id,
@@ -1471,10 +1573,10 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, loa
           next = setNodeAttachedEnd(next, dragTarget.id, end);
         }
       }
-      onStateChange(next);
+      previewState(next);
       return;
     }
-    onStateChange(setGroupPosition(currentState, dragTarget.id, position));
+    previewState(setGroupPosition(currentState, dragTarget.id, position));
   };
 
   const beginDrag = (
@@ -1484,13 +1586,16 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, loa
     targetState?: WorkbenchState,
   ) => {
     const point = toCanvasPoint(event.clientX, event.clientY);
+    if (isMutatingDragKind(target.kind)) {
+      onHistoryGestureStart?.();
+    }
     svgRef.current?.setPointerCapture(event.pointerId);
     setDragTarget(target);
     setDragOffset({ x: point.x - position.x, y: point.y - position.y });
     if (targetState) {
-      onStateChange(targetState);
+      previewState(targetState);
     } else {
-      onStateChange(selectCanvasItem(state, target as CanvasSelection));
+      previewState(selectCanvasItem(state, target as CanvasSelection));
     }
   };
 
@@ -1519,17 +1624,21 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, loa
         activeState.groups.filter((item) => activeState.selectedGroupIds.includes(item.id)).map((item) => [item.id, { ...item.position }]),
       ),
     };
+    onHistoryGestureStart?.();
     setDragTarget({ kind: 'nodes' });
     if (targetState) {
-      onStateChange(targetState);
+      previewState(targetState);
     }
   };
 
   const beginNodePointerDown = (event: PointerEvent<SVGGElement>, node: CanvasNode) => {
+    event.stopPropagation();
     // Record start position and reset dragging flag
     dragStartClientRef.current = { x: event.clientX, y: event.clientY };
     hasDraggedRef.current = false;
     pendingSelectionToggleRef.current = null;
+    const box = renderedNodeBoxesById.get(node.id) ?? computeNodeBox(state, node.id);
+    const dragOrigin = box ? { x: box.x, y: box.y } : node.position;
 
     // Shift/Cmd/Ctrl-click logic
     if (event.shiftKey || event.metaKey || event.ctrlKey) {
@@ -1544,7 +1653,7 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, loa
         if (multiSelectionCount() > 1) {
           startMultiDrag(event, state);
         } else {
-          beginDrag(event, { kind: 'node', id: node.id }, node.position, state);
+          beginDrag(event, { kind: 'node', id: node.id }, dragOrigin, state);
         }
       } else {
         // Toggle selection (select) immediately on pointer down
@@ -1553,7 +1662,7 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, loa
         if (nextMultiCount > 1) {
           startMultiDrag(event, nextState);
         } else {
-          beginDrag(event, { kind: 'node', id: node.id }, node.position, nextState);
+          beginDrag(event, { kind: 'node', id: node.id }, dragOrigin, nextState);
         }
       }
       return;
@@ -1564,7 +1673,24 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, loa
       startMultiDrag(event, state);
       return;
     }
-    beginDrag(event, { kind: 'node', id: node.id }, node.position);
+    beginDrag(event, { kind: 'node', id: node.id }, dragOrigin);
+  };
+
+  const attachedLineLabelNodeAtPoint = (point: PreviewPoint): CanvasNode | undefined => {
+    for (let index = state.nodes.length - 1; index >= 0; index--) {
+      const node = state.nodes[index]!;
+      if (!isAttachedLineLabelNode(node)) {
+        continue;
+      }
+      const box = renderedNodeBoxesById.get(node.id) ?? computeNodeBox(state, node.id);
+      if (!box) {
+        continue;
+      }
+      if (pointInRect(point, nodePointerHitRect(node, box))) {
+        return node;
+      }
+    }
+    return undefined;
   };
 
   const beginGroupPointerDown = (
@@ -1602,8 +1728,9 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, loa
         baseHeight: group.size.height,
       };
     }
+    onHistoryGestureStart?.();
     setDragTarget({ kind: 'group-resize', id });
-    onStateChange(selectCanvasItem(state, { kind: 'group', id }));
+    previewState(selectCanvasItem(state, { kind: 'group', id }));
   };
 
   const beginNodeResize = (
@@ -1627,8 +1754,9 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, loa
         baseHeight: frame.height,
       };
     }
+    onHistoryGestureStart?.();
     setDragTarget({ kind: 'node-resize', id });
-    onStateChange(selectCanvasItem(currentState, { kind: 'node', id }));
+    previewState(selectCanvasItem(currentState, { kind: 'node', id }));
   };
 
   const beginEndpointDrag = (
@@ -1648,6 +1776,7 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, loa
   };
 
   const endDrag = () => {
+    const mutatingGesture = isMutatingDragKind(dragTarget?.kind);
     if (dragTarget?.kind === 'connection-endpoint' && endpointDrag) {
       const targetNodeId = nodeAtPoint(endpointDrag.point);
       if (targetNodeId) {
@@ -1698,6 +1827,9 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, loa
     setDragTarget(undefined);
     setEndpointDrag(undefined);
     panStartRef.current = undefined;
+    if (mutatingGesture) {
+      onHistoryGestureEnd?.();
+    }
   };
 
   const changeZoom = (delta: number) => {
@@ -1907,11 +2039,6 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, loa
             ) : null
           ))}
         </g>
-        <g id="preview-edge-labels">
-          {renderedConnections.map(({ connection, edge }) => (
-            edge.label ? <EdgeLabel key={`label-${connection.id}`} edge={edge} theme={themeTokens} /> : null
-          ))}
-        </g>
         <g id="preview-edge-hits">
           {renderedConnections.map(({ connection, hitPath }) => (
             <path
@@ -1920,16 +2047,25 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, loa
               className="connection-hit"
               onPointerDown={(event) => {
                 event.stopPropagation();
+                const point = toCanvasPoint(event.clientX, event.clientY);
+                const attachedLabel = attachedLineLabelNodeAtPoint(point);
+                if (attachedLabel) {
+                  onStateChange(selectCanvasItem(state, { kind: 'node', id: attachedLabel.id }));
+                  return;
+                }
                 onStateChange(selectCanvasItem(state, { kind: 'connection', id: connection.id }));
               }}
             />
           ))}
         </g>
-        {state.nodes.map((node) => {
+        {[...state.nodes]
+          .sort((left, right) => Number(isAttachedLineLabelNode(left)) - Number(isAttachedLineLabelNode(right)))
+          .map((node) => {
           const box = renderedNodeBoxesById.get(node.id) ?? computeNodeBox(state, node.id);
           if (!box) {
             return null;
           }
+          const hitRect = nodePointerHitRect(node, box);
           const isResizing = dragTarget?.kind === 'node-resize' && dragTarget.id === node.id;
           const isSelected = state.selectedNodeIds.includes(node.id);
           return (
@@ -1943,10 +2079,10 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, loa
               onPointerDown={(event) => beginNodePointerDown(event, node)}
             >
               <rect
-                x={box.x}
-                y={box.y}
-                width={box.width}
-                height={box.height}
+                x={hitRect.x}
+                y={hitRect.y}
+                width={hitRect.width}
+                height={hitRect.height}
                 className="node-hit-target"
               />
               {isSelected ? (
@@ -2093,6 +2229,27 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, loa
             <span className="material-symbols-outlined" aria-hidden="true">
               {snapEnabled ? 'grid_on' : 'grid_off'}
             </span>
+          </button>
+          <span className="canvas-toolbar-divider" aria-hidden="true" />
+          <button
+            type="button"
+            className="canvas-tool"
+            disabled={!canUndo}
+            aria-label="Undo"
+            title="Undo (⌘Z)"
+            onClick={() => onUndo?.()}
+          >
+            <span className="material-symbols-outlined" aria-hidden="true">undo</span>
+          </button>
+          <button
+            type="button"
+            className="canvas-tool"
+            disabled={!canRedo}
+            aria-label="Redo"
+            title="Redo (⌘⇧Z)"
+            onClick={() => onRedo?.()}
+          >
+            <span className="material-symbols-outlined" aria-hidden="true">redo</span>
           </button>
           <span className="canvas-toolbar-divider" aria-hidden="true" />
           <button

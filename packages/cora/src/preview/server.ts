@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { createServer, type InlineConfig, type ViteDevServer } from 'vite';
 
 import { previewSavePlugin } from './previewSavePlugin.js';
+import { resolvePreviewWorkspace } from './previewWorkspace.js';
 
 export interface PreviewServerOptions {
   host?: string;
@@ -49,7 +50,7 @@ export function createPreviewServerConfig(options: PreviewServerOptions = {}): I
     configFile: false,
     plugins: [
       previewSavePlugin({
-        workspace: resolve(options.workspace ?? process.cwd()),
+        workspace: resolve(options.workspace ?? resolvePreviewWorkspace(process.cwd())),
         openPath: options.openPath,
       }),
     ],

@@ -3,15 +3,18 @@ import { resolve } from 'node:path';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { Plugin } from 'vite';
 
-import { displayNameForWorkspaceDiagram } from './previewDevSave.js';
+import { displayNameForWorkspaceDiagram, defaultWorkspaceDiagramPath } from './previewDevSave.js';
 import {
   listDiagramPathsInWorkspace,
+  PREVIEW_DIAGRAMS_DIR,
   resolveDiagramPathInWorkspace,
 } from './previewWorkspace.js';
 
 export interface PreviewSavePluginOptions {
   /** Absolute workspace root; diagrams in this tree may be read and written. */
   workspace: string;
+  /** Diagram folder relative to workspace (default: examples). */
+  diagramsDir?: string;
   /** Optional diagram path relative to workspace to open on startup. */
   openPath?: string;
 }
@@ -46,7 +49,9 @@ function readDiagramQueryPath(req: IncomingMessage): string | null {
 
 export function createPreviewSaveMiddleware(options: PreviewSavePluginOptions) {
   const workspaceRoot = resolve(options.workspace);
+  const diagramsDir = options.diagramsDir ?? PREVIEW_DIAGRAMS_DIR;
   const openPath = options.openPath;
+  const pathOptions = { diagramsDir };
 
   return async (req: IncomingMessage, res: ServerResponse, next: () => void) => {
     const url = req.url?.split('?')[0];
@@ -54,6 +59,8 @@ export function createPreviewSaveMiddleware(options: PreviewSavePluginOptions) {
     if (url === '/__cora/preview/config' && req.method === 'GET') {
       sendJson(res, 200, {
         workspace: workspaceRoot,
+        diagramsDir,
+        defaultSavePath: defaultWorkspaceDiagramPath(diagramsDir),
         openPath: openPath ?? null,
       });
       return;
@@ -61,7 +68,7 @@ export function createPreviewSaveMiddleware(options: PreviewSavePluginOptions) {
 
     if (url === '/__cora/preview/diagrams' && req.method === 'GET') {
       try {
-        sendJson(res, 200, { paths: listDiagramPathsInWorkspace(workspaceRoot) });
+        sendJson(res, 200, { paths: listDiagramPathsInWorkspace(workspaceRoot, pathOptions) });
       } catch (error) {
         sendJson(res, 500, {
           error: error instanceof Error ? error.message : 'Could not list workspace diagrams.',
@@ -78,7 +85,7 @@ export function createPreviewSaveMiddleware(options: PreviewSavePluginOptions) {
       }
 
       try {
-        const absolutePath = resolveDiagramPathInWorkspace(workspaceRoot, diagramPath);
+        const absolutePath = resolveDiagramPathInWorkspace(workspaceRoot, diagramPath, pathOptions);
         const content = readFileSync(absolutePath, 'utf8');
         sendJson(res, 200, {
           path: diagramPath,
@@ -106,7 +113,7 @@ export function createPreviewSaveMiddleware(options: PreviewSavePluginOptions) {
           return;
         }
 
-        const absolutePath = resolveDiagramPathInWorkspace(workspaceRoot, diagramPath);
+        const absolutePath = resolveDiagramPathInWorkspace(workspaceRoot, diagramPath, pathOptions);
         writeFileSync(absolutePath, body.yaml, 'utf8');
         sendJson(res, 200, {
           path: diagramPath,

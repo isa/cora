@@ -23,7 +23,7 @@ const repoRoot = join(__dirname, '../../../..');
 
 describe('preview persistence', () => {
   it('preserves diagram edge labels and layout mode when loading and saving YAML', async () => {
-    const input = readFileSync(join(repoRoot, 'examples/valid/infra.yaml'), 'utf8');
+    const input = readFileSync(join(__dirname, '../fixtures/valid/infra.yaml'), 'utf8');
     const result = await deserializeWorkbenchState('infra.yaml', input);
 
     expect('state' in result).toBe(true);
@@ -33,9 +33,12 @@ describe('preview persistence', () => {
 
     expect(result.state.diagramLayout).toBe('auto');
 
-    const labels = result.state.connections.map((connection) => connection.label).filter(Boolean);
+    const labels = result.state.nodes
+      .filter((node) => node.attachedConnectionId && node.componentId === 'label')
+      .map((node) => String(node.props.text ?? node.props.title ?? ''));
     expect(labels).toContain('replicate');
     expect(labels).toContain('private ingress');
+    expect(result.state.connections.every((connection) => !connection.label)).toBe(true);
 
     const document = serializeWorkbenchDocument(result.state);
     expect(document.diagram.layout).toBe('auto');
@@ -47,7 +50,7 @@ describe('preview persistence', () => {
   });
 
   it('matches the renderer layout exactly when loading database.yaml without edits', async () => {
-    const input = readFileSync(join(repoRoot, 'examples/valid/database.yaml'), 'utf8');
+    const input = readFileSync(join(__dirname, '../fixtures/valid/database.yaml'), 'utf8');
     const document = parseYaml(input) as DiagramFile;
     const { nodeStyles, theme } = resolveTheme(document.diagram, defaultTheme);
     const measured = applyNodeStyles(measureNodes(document.diagram.nodes), nodeStyles);
@@ -130,7 +133,7 @@ describe('preview persistence', () => {
   });
 
   it('switches loaded auto-layout files to preserve after preview edits', async () => {
-    const input = readFileSync(join(repoRoot, 'examples/valid/infra.yaml'), 'utf8');
+    const input = readFileSync(join(__dirname, '../fixtures/valid/infra.yaml'), 'utf8');
     const result = await deserializeWorkbenchState('infra.yaml', input);
 
     expect('state' in result).toBe(true);

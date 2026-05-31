@@ -6,6 +6,7 @@ import {
   createDefaultWorkbenchState,
   deleteSelected,
   reconnectConnectionEndpoint,
+  replaceNodeComponent,
   selectCanvasItem,
   setGroupSize,
   setNodeSize,
@@ -73,6 +74,44 @@ describe('preview drag canvas state', () => {
     expect(state.nodes[0]?.componentId).toBe('icon');
     expect(state.nodes[0]?.props.title).toBe('cloud');
     expect(state.nodes[0]?.props.iconName).toBe('material-symbols:cloud');
+  });
+
+  it('replaces an existing node with an icon while preserving compatible props and connections', () => {
+    const connected = addNodeToCanvas(
+      addNodeToCanvas(createDefaultWorkbenchState(), 'box', { x: 10, y: 20 }),
+      'document',
+      { x: 220, y: 20 },
+    );
+    const styled = updateNodeProps(
+      updateNodeProps(
+        setNodeSize(connected, 'node-1', { width: 180, height: 96 }),
+        'node-1',
+        'title',
+        'API Gateway',
+      ),
+      'node-1',
+      'backgroundColor',
+      '#ff0000',
+    );
+    const replaced = replaceNodeComponent(styled, 'node-1', 'icon', {
+      iconName: 'material-symbols:cloud',
+    });
+
+    expect(replaced.nodes).toHaveLength(2);
+    expect(replaced.connections).toHaveLength(1);
+    expect(replaced.connections[0]).toMatchObject({ fromNodeId: 'node-1', toNodeId: 'node-2' });
+    expect(replaced.nodes[0]).toMatchObject({
+      id: 'node-1',
+      componentId: 'icon',
+      position: { x: 10, y: 20 },
+      props: {
+        title: 'API Gateway',
+        iconName: 'material-symbols:cloud',
+        size: { width: 180, height: 96 },
+      },
+    });
+    expect(replaced.nodes[0]?.props.backgroundColor).toBe('transparent');
+    expect(replaced.selected).toEqual({ kind: 'node', id: 'node-1' });
   });
 
   it('uses the compact remapped website component size scale', () => {

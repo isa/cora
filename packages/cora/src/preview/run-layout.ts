@@ -8,7 +8,7 @@ import { deserializeWorkbenchState, serializeWorkbenchDocument } from './persist
 import { previewNodeSize } from './geometry.js';
 
 // 1. Initial run
-const content = readFileSync('examples/valid/database.yaml', 'utf-8');
+const content = readFileSync('tests/legacy/fixtures/valid/database.yaml', 'utf-8');
 const parsed = parse(content);
 const diagram = parsed.diagram;
 

@@ -1,0 +1,50 @@
+version: 1
+diagram:
+  kind: box-arrows
+  layout: auto
+  theme: folio-light
+  direction: LR
+  nodes:
+    - id: node-15
+      label: Box
+      component: box
+      position:
+        x: 24
+        y: 24
+      style:
+        title: Box
+        backgroundColor: "#ffffff"
+        borderColor: "#cbd5e1"
+        textColor: "#1e293b"
+    - id: node-17
+      label: Box
+      component: box
+      position:
+        x: 192
+        y: 24
+      style:
+        title: Box
+        backgroundColor: "#ffffff"
+        borderColor: "#cbd5e1"
+        textColor: "#1e293b"
+    - id: node-19
+      label: Box
+      component: box
+      position:
+        x: 360
+        y: 24
+      style:
+        title: Box
+        backgroundColor: "#ffffff"
+        borderColor: "#cbd5e1"
+        textColor: "#1e293b"
+  edges:
+    - from: node-15
+      to: node-17
+      startMarker: none
+      endMarker: arrow
+    - from: node-17
+      to: node-19
+      startMarker: none
+      endMarker: arrow
+  groups: []

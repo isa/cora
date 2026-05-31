@@ -27,6 +27,8 @@ import {
   normalizeDiagramThemeName,
   resolveThemeIdForAppearance,
 } from '../renderer/themes/registry.js';
+import { useWorkbenchHistory } from './useWorkbenchHistory.js';
+import { shouldHandleWorkbenchHistoryShortcut } from './workbenchHistory.js';
 import {
   buildSuggestedSaveName,
   grantWriteAccessAfterOpen,
@@ -42,12 +44,14 @@ import {
   serializeWorkbenchYaml,
 } from './persistence.js';
 import {
+  defaultWorkspaceDiagramPath,
   displayNameForWorkspaceDiagram,
   fetchPreviewServerConfig,
   fetchPreviewServerSource,
   fetchWorkspaceDiagrams,
   getPreviewWorkspace,
   saveYamlViaPreviewServer,
+  type PreviewServerConfig,
 } from './previewDevSave.js';
 
 const AUTOSAVE_DEBOUNCE_MS = 400;
@@ -84,7 +88,18 @@ export function shouldFocusSearchFromShortcut(event: Pick<KeyboardEvent, 'key' |
 }
 
 export function App() {
-  const [state, setState] = useState(createDefaultWorkbenchState);
+  const {
+    state,
+    stateRef,
+    setState,
+    replaceState,
+    beginHistoryGesture,
+    endHistoryGesture,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+  } = useWorkbenchHistory(createDefaultWorkbenchState);
   const [loadTrigger, setLoadTrigger] = useState<number | undefined>(undefined);
   const [isCatalogOpen, setIsCatalogOpen] = useState(true);
   const [isInspectorOpen, setIsInspectorOpen] = useState(true);
@@ -133,10 +148,10 @@ export function App() {
   const [workspaceDiagrams, setWorkspaceDiagrams] = useState<string[]>([]);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const stateRef = useRef(state);
   const sourceFileHandleRef = useRef<WritableFileHandle | null>(null);
   const usesPreviewServerSaveRef = useRef(Boolean(getPreviewWorkspace()));
   const activeWorkspaceDiagramPathRef = useRef<string | null>(null);
+  const previewServerConfigRef = useRef<PreviewServerConfig | null>(null);
   const lastSavedYamlRef = useRef<string | null>(null);
   const autosaveTimerRef = useRef<number | null>(null);
   const saveInFlightRef = useRef(false);
@@ -149,10 +164,20 @@ export function App() {
     return Boolean(stateRef.current.sourceName && sourceFileHandleRef.current);
   };
 
-  stateRef.current = state;
-
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      const historyAction = shouldHandleWorkbenchHistoryShortcut(event);
+      if (historyAction === 'undo') {
+        event.preventDefault();
+        undo();
+        return;
+      }
+      if (historyAction === 'redo') {
+        event.preventDefault();
+        redo();
+        return;
+      }
+
       if (event.key === 'Escape') {
         if (isWorkspacePickerOpen) {
           event.preventDefault();
@@ -183,7 +208,7 @@ export function App() {
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [componentSearch, state.selected, isWorkspacePickerOpen]);
+  }, [componentSearch, state.selected, isWorkspacePickerOpen, undo, redo]);
 
   useEffect(() => {
     if (!fileMessage) {
@@ -219,23 +244,26 @@ export function App() {
       activeWorkspaceDiagramPathRef.current = options.workspaceDiagramPath;
     }
     sourceFileHandleRef.current = options?.handle ?? null;
-    setState(loadedState);
+    replaceState(loadedState);
     setLoadTrigger((prev) => (prev ?? 0) + 1);
   };
 
   const persistYaml = async (
     yaml: string,
-    options?: { handle?: WritableFileHandle | null; savedName?: string },
+    options?: { handle?: WritableFileHandle | null; savedName?: string; diagramPath?: string },
   ): Promise<boolean> => {
     saveInFlightRef.current = true;
     setIsSaving(true);
     try {
       if (usesPreviewServerSaveRef.current) {
-        const diagramPath = activeWorkspaceDiagramPathRef.current;
+        let diagramPath = options?.diagramPath ?? activeWorkspaceDiagramPathRef.current;
         if (!diagramPath) {
-          return false;
+          const config = previewServerConfigRef.current;
+          const fileName = buildSuggestedSaveName(stateRef.current.sourceName);
+          diagramPath = defaultWorkspaceDiagramPath(config?.diagramsDir, fileName);
         }
         const saved = await saveYamlViaPreviewServer(diagramPath, yaml);
+        activeWorkspaceDiagramPathRef.current = saved.path;
         lastSavedYamlRef.current = yaml;
         const label = saved.path;
         if (label !== stateRef.current.sourceName) {
@@ -343,6 +371,9 @@ export function App() {
     void (async () => {
       try {
         const config = await fetchPreviewServerConfig();
+        if (config) {
+          previewServerConfigRef.current = config;
+        }
         if (!config?.openPath) {
           return;
         }
@@ -584,6 +615,12 @@ export function App() {
       <WorkbenchCanvas
         state={state}
         onStateChange={setState}
+        onHistoryGestureStart={beginHistoryGesture}
+        onHistoryGestureEnd={endHistoryGesture}
+        canUndo={canUndo}
+        canRedo={canRedo}
+        onUndo={undo}
+        onRedo={redo}
         onClear={() => setState((current) => clearCanvas(current))}
         onIconDrop={() => {
           setComponentSearch('');

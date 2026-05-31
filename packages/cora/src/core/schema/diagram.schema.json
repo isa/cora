@@ -84,7 +84,6 @@
       "properties": {
         "from": { "type": "string" },
         "to": { "type": "string" },
-        "label": { "type": "string" },
         "startMarker": {
           "type": "string",
           "enum": ["none", "arrow", "circle", "filledCircle", "diamond", "filledDiamond", "square", "filledSquare"]

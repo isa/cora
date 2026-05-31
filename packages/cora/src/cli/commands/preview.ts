@@ -8,7 +8,8 @@ import {
   startPreviewServer,
   type PreviewServer,
 } from '../../preview/server.js';
-import { resolveDiagramPathInWorkspace } from '../../preview/previewWorkspace.js';
+import { resolveDiagramPathInWorkspace, resolvePreviewWorkspace } from '../../preview/previewWorkspace.js';
+import { PREVIEW_DIAGRAMS_DIR } from '../../preview/previewDevSave.js';
 
 export interface RegisterPreviewCommandOptions {
   start?: typeof startPreviewServer;
@@ -42,6 +43,14 @@ async function waitForShutdown(server: PreviewServer): Promise<void> {
   });
 }
 
+function normalizeDiagramOpenPath(diagram: string, diagramsDir: string = PREVIEW_DIAGRAMS_DIR): string {
+  const normalized = diagram.split(/[/\\]/).join('/');
+  if (normalized.startsWith(`${diagramsDir}/`) || normalized === diagramsDir) {
+    return normalized;
+  }
+  return `${diagramsDir}/${normalized}`;
+}
+
 export function registerPreviewCommand(
   program: Command,
   deps: RegisterPreviewCommandOptions = {},
@@ -58,8 +67,7 @@ export function registerPreviewCommand(
     .option('--no-open', 'Do not open the preview in the default browser')
     .option(
       '--workspace <path>',
-      'Directory for diagram read/write, including subfolders (default: current directory)',
-      '.',
+      'Directory for diagram read/write (default: nearest ancestor containing examples/)',
     )
     .option(
       '--diagram <path>',
@@ -69,17 +77,19 @@ export function registerPreviewCommand(
       host: string;
       port: number;
       open: boolean;
-      workspace: string;
+      workspace?: string;
       diagram?: string;
     }) => {
-      const workspace = resolve(options.workspace);
+      const workspace = options.workspace
+        ? resolve(options.workspace)
+        : resolvePreviewWorkspace(process.cwd());
       if (!existsSync(workspace) || !statSync(workspace).isDirectory()) {
         throw new Error(`Preview workspace is not a directory: ${workspace}`);
       }
 
       let openPath: string | undefined;
       if (options.diagram) {
-        openPath = options.diagram.split(/[/\\]/).join('/');
+        openPath = normalizeDiagramOpenPath(options.diagram);
         resolveDiagramPathInWorkspace(workspace, openPath);
       }
 

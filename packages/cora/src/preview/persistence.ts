@@ -293,6 +293,23 @@ function pickConnectionId(edgeIndex: number): string {
   return `connection-${edgeIndex + 1}`;
 }
 
+/** The visible text of an edge-label node (`label`/`labelIcon`) attached to a connection. */
+export function edgeLabelTextForConnection(
+  nodes: CanvasNode[],
+  connectionId: string,
+): string | undefined {
+  const attached = nodes.find(
+    (node) =>
+      node.attachedConnectionId === connectionId &&
+      (node.componentId === 'label' || node.componentId === 'labelIcon'),
+  );
+  if (!attached) {
+    return undefined;
+  }
+  const text = String(attached.props.title ?? attached.props.text ?? '').trim();
+  return text || undefined;
+}
+
 export async function deserializeWorkbenchState(
   sourceName: string,
   content: string,
@@ -314,7 +331,6 @@ export async function deserializeWorkbenchState(
     id: pickConnectionId(index),
     fromNodeId: edge.from,
     toNodeId: edge.to,
-    label: edge.label,
     props: {
       lineStyle: 'solid' as const,
       strokeColor: theme.edge.stroke,
@@ -536,7 +552,6 @@ export function serializeWorkbenchDocument(state: WorkbenchState): DiagramFile {
       edges: state.connections.map((connection) => ({
         from: connection.fromNodeId,
         to: connection.toNodeId,
-        label: connection.label,
         startMarker: connection.props.startMarker,
         endMarker: connection.props.endMarker,
       })),
