@@ -10,16 +10,34 @@ import {
   APP_SIZE_PRESETS,
   API_SIZE_PRESETS,
   DATABASE_SIZE_PRESETS,
+  ANALYTICS_SIZE_PRESETS,
+  CONFIGURATION_SIZE_PRESETS,
+  DECISION_SIZE_PRESETS,
+  CLOUD_SIZE_PRESETS,
+  ARCHIVE_SIZE_PRESETS,
+  ARTIFICIAL_INTELLIGENCE_SIZE_PRESETS,
+  MULTIMEDIA_SIZE_PRESETS,
   DOCUMENT_SIZE_PRESETS,
   ICON_NODE_SIZE_PRESETS,
   LABEL_ICON_SIZE_PRESETS,
+  PEOPLE_SIZE_PRESETS,
+  PERSON_SIZE_PRESETS,
   WEBSITE_SIZE_PRESETS,
   resolveAppComponentSize,
   resolveApiComponentSize,
   resolveComponentSize,
   resolveDatabaseComponentSize,
+  resolveAnalyticsComponentSize,
+  resolveCloudComponentSize,
+  resolveConfigurationComponentSize,
+  resolveDecisionComponentSize,
+  resolveArtificialIntelligenceComponentSize,
+  resolveArchiveComponentSize,
+  resolveMultimediaComponentSize,
   resolveDocumentComponentSize,
   resolveLabelIconComponentSize,
+  resolvePeopleComponentSize,
+  resolvePersonComponentSize,
   resolveWebsiteComponentSize,
 } from '../renderer/components/styles.js';
 import {
@@ -37,6 +55,15 @@ const COMPONENT_MIN_SIZE = {
   app: APP_SIZE_PRESETS.lg,
   api: API_SIZE_PRESETS.lg,
   database: DATABASE_SIZE_PRESETS.lg,
+  decision: DECISION_SIZE_PRESETS.lg,
+  analytics: ANALYTICS_SIZE_PRESETS.lg,
+  person: PERSON_SIZE_PRESETS.lg,
+  people: PEOPLE_SIZE_PRESETS.lg,
+  configuration: CONFIGURATION_SIZE_PRESETS.lg,
+  cloud: CLOUD_SIZE_PRESETS.lg,
+  archive: ARCHIVE_SIZE_PRESETS.lg,
+  artificialIntelligence: ARTIFICIAL_INTELLIGENCE_SIZE_PRESETS.lg,
+  multimedia: MULTIMEDIA_SIZE_PRESETS.lg,
   document: DOCUMENT_SIZE_PRESETS.lg,
   icon: ICON_NODE_SIZE_PRESETS.lg,
   labelIcon: LABEL_ICON_SIZE_PRESETS.lg,
@@ -165,6 +192,24 @@ function resolveStyledNodeDimensions(node: DiagramNode): { width: number; height
       return resolveApiComponentSize(styleSize, API_SIZE_PRESETS.lg);
     case 'database':
       return resolveDatabaseComponentSize(styleSize, DATABASE_SIZE_PRESETS.lg);
+    case 'decision':
+      return resolveDecisionComponentSize(styleSize, DECISION_SIZE_PRESETS.lg);
+    case 'analytics':
+      return resolveAnalyticsComponentSize(styleSize, ANALYTICS_SIZE_PRESETS.lg);
+    case 'person':
+      return resolvePersonComponentSize(styleSize, PERSON_SIZE_PRESETS.lg);
+    case 'people':
+      return resolvePeopleComponentSize(styleSize, PEOPLE_SIZE_PRESETS.lg);
+    case 'configuration':
+      return resolveConfigurationComponentSize(styleSize, CONFIGURATION_SIZE_PRESETS.lg);
+    case 'cloud':
+      return resolveCloudComponentSize(styleSize, CLOUD_SIZE_PRESETS.lg);
+    case 'archive':
+      return resolveArchiveComponentSize(styleSize, ARCHIVE_SIZE_PRESETS.lg);
+    case 'artificialIntelligence':
+      return resolveArtificialIntelligenceComponentSize(styleSize, ARTIFICIAL_INTELLIGENCE_SIZE_PRESETS.lg);
+    case 'multimedia':
+      return resolveMultimediaComponentSize(styleSize, MULTIMEDIA_SIZE_PRESETS.lg);
     case 'document':
       return resolveDocumentComponentSize(styleSize, DOCUMENT_SIZE_PRESETS.lg);
     case 'labelIcon':
@@ -172,7 +217,7 @@ function resolveStyledNodeDimensions(node: DiagramNode): { width: number; height
     case 'website':
       return resolveWebsiteComponentSize(styleSize, WEBSITE_SIZE_PRESETS.lg);
     default:
-      return resolveComponentSize(styleSize, { width: 140, height: 56 });
+      return resolveComponentSize(styleSize, { width: 140, height: 45 });
   }
 }
 
@@ -207,7 +252,7 @@ export function measureNodes(nodes: DiagramNode[]): MeasuredNode[] {
       const isSmallGraph = nodes.length < 7;
       if (isSmallGraph && (component === 'box' || component === 'label')) {
         measuredWidth = Math.max(measuredWidth, 120);
-        measuredHeight = Math.max(measuredHeight, 56);
+        measuredHeight = Math.max(measuredHeight, 45);
       }
     }
 

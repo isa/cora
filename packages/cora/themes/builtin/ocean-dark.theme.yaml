@@ -1,0 +1,27 @@
+id: ocean-dark
+label: Ocean Depth
+appearance: dark
+
+typography:
+  fontFamily: Open Sans
+
+strokes:
+  node: 1
+  edge: 2
+  group: 1
+
+palette:
+  bg: "#082f49"
+  surface: "#0c4a6ecc"
+  text: "#e0f2fe"
+  muted: "#7dd3fc99"
+  window: "#64748b"
+  windowBar: "#475569"
+  windowAddress: "#334155"
+  cyan: "#22d3ee66"
+  green: "#2dd4bf55"
+  orange: "#fb923c55"
+  yellow: "#fde04755"
+  purple: "#818cf855"
+  pink: "#f472b655"
+  red: "#f8717155"

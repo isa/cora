@@ -48,7 +48,8 @@ export function Group({
     stringProp(groupStyle.fontFamily) ??
       stringProp(groupStyle.labelFontFamily) ??
       (typeof fontFamily === 'string' ? fontFamily : undefined) ??
-      (typeof labelFontFamily === 'string' ? labelFontFamily : undefined),
+      (typeof labelFontFamily === 'string' ? labelFontFamily : undefined) ??
+      theme.fontFamily,
   );
 
   return (
@@ -60,7 +61,7 @@ export function Group({
         height={group.height}
         fill={resolvedFill}
         stroke={style.stroke}
-        strokeWidth={style.strokeWidth ?? 1.5}
+        strokeWidth={style.strokeWidth ?? theme.strokes.group}
         strokeDasharray={style.strokeDasharray}
       />
       <text
@@ -68,7 +69,7 @@ export function Group({
         y={labelY}
         fontFamily={resolvedFontFamily}
         fontSize={resolvedLabelSize}
-        fontWeight={theme.nodeLabel.fontWeight}
+        fontWeight={theme.groupLabel.fontWeight}
         fill={resolvedLabelColor}
       >
         {escapeXml(group.label)}

@@ -1,88 +1,21 @@
 import type { ThemeTokens } from '../../layout-ir.js';
-import { LOOK } from './lookTokens.js';
 import {
-  NODE_TITLE_SIZE,
-  EDGE_LABEL_SIZE,
-} from './fontTokens.js';
+  DEFAULT_THEME_ID,
+  getDefaultThemeTokens,
+  resolveDiagramTheme,
+} from './registry.js';
 
-export const defaultTheme: ThemeTokens = {
-  background: LOOK.surface.diagram, // slate-50
-  shapes: {
-    box: {
-      fill: LOOK.surface.fill, // white
-      stroke: LOOK.border.default, // slate-300
-      strokeWidth: 1,
-    },
-    label: {
-      fill: 'none',
-      stroke: 'none',
-      labelFill: LOOK.text.standaloneLabel, // slate-800
-      strokeWidth: 0,
-    },
-    icon: {
-      fill: 'none',
-      stroke: 'none',
-      labelFill: LOOK.text.primary,
-      strokeWidth: 0,
-    },
-    labelIcon: {
-      fill: 'none',
-      stroke: 'none',
-      strokeWidth: 0,
-    },
-    website: {
-      fill: LOOK.components.website.fill,
-      stroke: LOOK.components.website.stroke,
-      strokeWidth: 1,
-    },
-    document: {
-      fill: LOOK.components.document.fill,
-      stroke: LOOK.components.document.stroke,
-      strokeWidth: 1,
-    },
-    api: {
-      fill: LOOK.components.api.fill,
-      stroke: LOOK.components.api.stroke,
-      strokeWidth: 1,
-    },
-    database: {
-      fill: LOOK.components.database.fill,
-      stroke: LOOK.components.database.stroke,
-      strokeWidth: 1,
-    },
-    app: {
-      fill: LOOK.components.app.fill,
-      stroke: LOOK.components.app.stroke,
-      strokeWidth: 1,
-    },
-    group: {
-      fill: 'none',
-      stroke: LOOK.group.stroke,
-      strokeWidth: LOOK.group.strokeWidth,
-      strokeDasharray: LOOK.group.strokeDasharray,
-    },
-  },
-  edge: {
-    stroke: LOOK.edge.stroke,
-    strokeWidth: LOOK.edge.width, // 2
-  },
-  nodeLabel: {
-    fontSize: NODE_TITLE_SIZE, // 12
-    fontWeight: 600,
-    fill: LOOK.text.primary,
-  },
-  edgeLabel: {
-    fontSize: EDGE_LABEL_SIZE, // 10
-    fontWeight: 400,
-    fill: LOOK.text.edgeLabel,
-  },
-  shadowOffset: { x: 0, y: 0 },
-  shadowBlur: 0,
-};
+/** Default built-in theme tokens (`folio-light`). */
+export function getDefaultTheme(): ThemeTokens {
+  return getDefaultThemeTokens();
+}
+
+export const defaultTheme: ThemeTokens = getDefaultTheme();
 
 export function resolveNodeStyle(
   component: string | undefined,
 ): ThemeTokens['shapes'][string] {
   const key = component ?? 'box';
-  return defaultTheme.shapes[key] ?? defaultTheme.shapes.box!;
+  return resolveDiagramTheme(DEFAULT_THEME_ID).shapes[key] ??
+    resolveDiagramTheme(DEFAULT_THEME_ID).shapes.box!;
 }

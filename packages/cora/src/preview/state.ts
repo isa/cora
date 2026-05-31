@@ -123,7 +123,7 @@ export function createDefaultWorkbenchState(pack = builtInPack): WorkbenchState 
     pack,
     diagramKind: 'box-arrows',
     diagramLayout: 'auto',
-    diagramTheme: 'light',
+    diagramTheme: 'folio-light',
     nodes: [],
     groups: [],
     connections: [],

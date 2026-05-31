@@ -70,6 +70,7 @@ export function toMonochrome(theme: ThemeTokens): ThemeTokens {
     edge: { ...theme.edge, stroke: BLACK },
     nodeLabel: { ...theme.nodeLabel, fill: BLACK },
     edgeLabel: { ...theme.edgeLabel, fill: BLACK },
+    groupLabel: { ...theme.groupLabel, fill: BLACK },
   };
 }
 

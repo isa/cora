@@ -3,6 +3,7 @@ import { LOOK } from '../../src/renderer/themes/lookTokens.js';
 import { TAILWIND } from '../../src/renderer/themes/tailwindPalette.js';
 import { catalogDefaultProps } from '../../src/renderer/themes/componentDefaults.js';
 import { defaultTheme } from '../../src/renderer/themes/default.js';
+import { resolveDiagramTheme } from '../../src/renderer/themes/registry.js';
 import type { DiagramComponent } from '../../layout-ir.js';
 
 describe('Design Tokens Contract', () => {
@@ -38,37 +39,42 @@ describe('Design Tokens Contract', () => {
     expect(label).not.toHaveProperty('shadow');
   });
 
-  it('uses neutral website defaults', () => {
+  it('uses neutral website catalog defaults and themed website shapes', () => {
     const website = catalogDefaultProps('website');
     expect(website.backgroundColor).toBe(TAILWIND.white);
-    expect(website.borderColor).toBe(TAILWIND.slate[700]);
-    expect(website.skeletonColor).toBe(TAILWIND.slate[200]);
-    expect(defaultTheme.shapes.website?.fill).toBe(TAILWIND.white);
-    expect(defaultTheme.shapes.website?.stroke).toBe(TAILWIND.slate[700]);
+    expect(website.borderColor).toBe('transparent');
+    expect(website.borderWidth).toBe(0);
+    expect(website.skeletonColor).toBe(TAILWIND.slate[400]);
+    const themed = resolveDiagramTheme('folio-light');
+    expect(themed.shapes.website?.fill).toMatch(/^#/);
+    expect(themed.shapes.website?.stroke).toBe('none');
+    expect(themed.shapes.website?.skeletonColor).toMatch(/^#/);
   });
 
-  it('uses neutral api defaults with a violet cube glyph', () => {
+  it('uses neutral api catalog defaults and themed api shapes', () => {
     const api = catalogDefaultProps('api');
-    expect(api.backgroundColor).toBe(TAILWIND.white);
-    expect(api.iconColor).toBe(TAILWIND.violet[500]);
+    expect(api.backgroundColor).toBe('transparent');
+    expect(api.iconColor).toBe(TAILWIND.amber[500]);
     expect(api).not.toHaveProperty('borderColor');
     expect(api).not.toHaveProperty('borderWidth');
     expect(api).not.toHaveProperty('borderStyle');
     expect(api).not.toHaveProperty('radius');
-    expect(defaultTheme.shapes.api?.fill).toBe(TAILWIND.white);
-    expect(defaultTheme.shapes.api?.stroke).toBe(TAILWIND.slate[700]);
+    const themed = resolveDiagramTheme('folio-light');
+    expect(themed.shapes.api?.fill).toBe('none');
+    expect(themed.shapes.api?.iconColor).toMatch(/^#/);
   });
 
-  it('uses neutral database defaults with a violet database glyph', () => {
+  it('uses neutral database catalog defaults and themed database shapes', () => {
     const database = catalogDefaultProps('database');
-    expect(database.backgroundColor).toBe(TAILWIND.white);
-    expect(database.iconColor).toBe(TAILWIND.violet[500]);
+    expect(database.backgroundColor).toBe('transparent');
+    expect(database.iconColor).toBe(TAILWIND.emerald[500]);
     expect(database).not.toHaveProperty('borderColor');
     expect(database).not.toHaveProperty('borderWidth');
     expect(database).not.toHaveProperty('borderStyle');
     expect(database).not.toHaveProperty('radius');
-    expect(defaultTheme.shapes.database?.fill).toBe(TAILWIND.white);
-    expect(defaultTheme.shapes.database?.stroke).toBe(TAILWIND.slate[700]);
+    const themed = resolveDiagramTheme('folio-light');
+    expect(themed.shapes.database?.fill).toBe('none');
+    expect(themed.shapes.database?.iconColor).toMatch(/^#/);
   });
 
   it('uses neutral labelIcon defaults', () => {
@@ -81,34 +87,26 @@ describe('Design Tokens Contract', () => {
   });
 
   it('verifies shadow defaults only exist for shadow-capable component kinds', () => {
-    const kinds: DiagramComponent[] = [
-      'box',
-      'website',
-      'document',
-      'api',
-      'database',
-      'app',
-    ];
-    for (const kind of kinds) {
-      const props = catalogDefaultProps(kind);
-      expect(props.backgroundColor).toBeDefined();
-      expect(props.shadow).toBe('none');
-    }
+    const props = catalogDefaultProps('box');
+    expect(props.backgroundColor).toBeDefined();
+    expect(props.shadow).toBe('none');
 
-    for (const kind of ['label', 'icon', 'labelIcon'] satisfies DiagramComponent[]) {
-      const props = catalogDefaultProps(kind);
-      expect(props.backgroundColor).toBeDefined();
-      expect(props).not.toHaveProperty('shadow');
-      expect(props).not.toHaveProperty('shadowColor');
+    for (const kind of ['label', 'icon', 'labelIcon', 'website', 'document', 'api', 'database', 'app'] satisfies DiagramComponent[]) {
+      const componentProps = catalogDefaultProps(kind);
+      expect(componentProps.backgroundColor).toBeDefined();
+      expect(componentProps).not.toHaveProperty('shadow');
+      expect(componentProps).not.toHaveProperty('shadowColor');
     }
   });
 
   it('verifies defaultTheme values', () => {
-    expect(defaultTheme.edge.strokeWidth).toBe(2);
+    expect(defaultTheme.edge.strokeWidth).toBe(1.5);
     expect(defaultTheme.shadowBlur).toBe(0);
     expect(defaultTheme.nodeLabel.fontSize).toBe(12);
     expect(defaultTheme.edgeLabel.fontSize).toBe(10);
-    expect(defaultTheme.background).toBe(TAILWIND.slate[50]);
+    expect(defaultTheme.fontFamily).toBe('Source Sans 3');
+    expect(defaultTheme.background).toMatch(/^#/);
+    expect(resolveDiagramTheme('folio-light').background).toBe(defaultTheme.background);
 
     for (const key of Object.keys(defaultTheme.shapes)) {
       const shape = defaultTheme.shapes[key]!;

@@ -12,7 +12,13 @@ import { applyNodeStyles, resolveTheme } from '../core/themeResolver.js';
 import { validateDocument } from '../core/validator.js';
 import { measureNodes } from '../core/measureText.js';
 import { defaultTheme } from '../renderer/themes/default.js';
+import {
+  isKnownDiagramTheme,
+  normalizeDiagramThemeName,
+  resolveDiagramTheme,
+} from '../renderer/themes/registry.js';
 import { builtInPack } from './pack/builtins.js';
+import { previewThemeDefaultsForComponent, previewThemeEdgeDefaults } from './themeDefaults.js';
 import { canvasNodeSize } from './geometry.js';
 import type { PreviewNodeProps } from './controls/defaults.js';
 import {
@@ -183,10 +189,6 @@ function previewGroupFromDiagramGroup(group: DiagramGroup, index: number): Canva
 async function layoutDiagramForPreview(
   diagram: Diagram,
 ) {
-  if ((diagram.layout ?? 'auto') === 'preserve' && diagram.nodes.every((node) => node.position)) {
-    return undefined;
-  }
-
   const { computeLayout } = await import('../core/layout.js');
   const { nodeStyles, theme } = resolveTheme(diagram, defaultTheme);
   const measuredNodes = applyNodeStyles(measureNodes(diagram.nodes), nodeStyles);
@@ -306,6 +308,7 @@ export async function deserializeWorkbenchState(
   }
 
   const document = parsed as DiagramFile;
+  const theme = resolveDiagramTheme(normalizeDiagramThemeName(document.diagram.theme));
   const layouted = await layoutDiagramForPreview(document.diagram);
   const connections = document.diagram.edges.map((edge, index) => ({
     id: pickConnectionId(index),
@@ -314,8 +317,8 @@ export async function deserializeWorkbenchState(
     label: edge.label,
     props: {
       lineStyle: 'solid' as const,
-      strokeColor: defaultTheme.edge.stroke,
-      strokeWidth: defaultTheme.edge.strokeWidth,
+      strokeColor: theme.edge.stroke,
+      strokeWidth: theme.edge.strokeWidth,
       arrowSize: 8,
       startMarker: edge.startMarker ?? 'none',
       endMarker: edge.endMarker ?? 'arrow',
@@ -374,7 +377,9 @@ export async function deserializeWorkbenchState(
       ...createDefaultWorkbenchState(),
       diagramKind: document.diagram.kind,
       diagramLayout: document.diagram.layout ?? 'auto',
-      diagramTheme: document.diagram.theme,
+      diagramTheme: isKnownDiagramTheme(document.diagram.theme)
+        ? normalizeDiagramThemeName(document.diagram.theme)
+        : 'folio-light',
       diagramDirection: document.diagram.direction,
       layoutSnapshot: layouted,
       sourceName,
@@ -387,11 +392,7 @@ export async function deserializeWorkbenchState(
 }
 
 function componentDefaultsFor(state: WorkbenchState, componentId: string): PreviewNodeProps {
-  return (
-    state.pack.components.find((component) => component.id === componentId)?.defaultProps ??
-    builtInPack.components.find((component) => component.id === componentId)?.defaultProps ??
-    builtInPack.components.find((component) => component.id === 'box')!.defaultProps
-  ) as PreviewNodeProps;
+  return previewThemeDefaultsForComponent(state, componentId);
 }
 
 function styleValueChanged(current: unknown, baseline: unknown): boolean {

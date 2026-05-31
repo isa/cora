@@ -16,7 +16,16 @@ export type DiagramComponent =
   | 'document'
   | 'api'
   | 'database'
-  | 'app';
+  | 'app'
+  | 'decision'
+  | 'analytics'
+  | 'person'
+  | 'people'
+  | 'configuration'
+  | 'cloud'
+  | 'archive'
+  | 'artificialIntelligence'
+  | 'multimedia';
 
 export type ErrorCode =
   | 'SCHEMA_VIOLATION'
@@ -24,7 +33,8 @@ export type ErrorCode =
   | 'UNKNOWN_SERVICE'
   | 'MISSING_EXTENSION'
   | 'PARSE_ERROR'
-  | 'LAYOUT_ERROR';
+  | 'LAYOUT_ERROR'
+  | 'UNKNOWN_THEME';
 
 export interface StructuredError {
   code: ErrorCode;

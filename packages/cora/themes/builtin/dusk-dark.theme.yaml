@@ -1,0 +1,27 @@
+id: dusk-dark
+label: Dusk Velvet
+appearance: dark
+
+typography:
+  fontFamily: Raleway
+
+strokes:
+  node: 1
+  edge: 2
+  group: 1
+
+palette:
+  bg: "#2e1065"
+  surface: "#4c1d95cc"
+  text: "#f3e8ff"
+  muted: "#c4b5fd99"
+  window: "#64748b"
+  windowBar: "#475569"
+  windowAddress: "#334155"
+  cyan: "#22d3ee55"
+  green: "#4ade8055"
+  orange: "#fb923c55"
+  yellow: "#fde04755"
+  purple: "#c084fc66"
+  pink: "#f472b666"
+  red: "#f8717155"

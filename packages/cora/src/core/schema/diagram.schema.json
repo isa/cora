@@ -36,7 +36,16 @@
             "document",
             "api",
             "database",
-            "app"
+            "app",
+            "decision",
+            "analytics",
+            "person",
+            "people",
+            "configuration",
+            "cloud",
+            "archive",
+            "artificialIntelligence",
+            "multimedia"
           ]
         },
         "position": {
@@ -136,7 +145,7 @@
         },
         "theme": {
           "type": "string",
-          "default": "default"
+          "default": "folio-light"
         },
         "layout": {
           "type": "string",

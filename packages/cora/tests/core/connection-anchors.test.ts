@@ -7,6 +7,14 @@ import {
   EDGE_LABEL_RUNWAY,
   updateLabeledEdgePlacements,
 } from '../../src/core/labeledEdgeExpansion.js';
+import {
+  API_CONNECTION_GAP,
+  DOCUMENT_CONNECTION_GAP,
+  PEOPLE_CONNECTION_GAP,
+  WEBSITE_CONNECTION_GAP,
+  connectionAnchorBox,
+  sidePoint,
+} from '../../src/core/connectionAnchors.js';
 import { measureNodes } from '../../src/core/measureText.js';
 import { edgeBridgeMap, edgeSegments } from '../../src/core/edgeGeometry.js';
 import {
@@ -621,6 +629,188 @@ describe('connection anchors', () => {
     }
   });
 
+  it('uses icon artwork centers for single decision side connections in rendered layouts', async () => {
+    const diagram: Diagram = {
+      kind: 'box-arrows',
+      layout: 'preserve',
+      nodes: [
+        { id: 'box', label: 'Box', position: { x: 80, y: 120 } },
+        { id: 'decision', label: 'Decision', component: 'decision', position: { x: 300, y: 100 } },
+      ],
+      edges: [
+        { from: 'box', to: 'decision' },
+      ],
+    };
+
+    const layout = await computeLayout({
+      diagram,
+      measuredNodes: measureNodes(diagram.nodes),
+      theme: defaultTheme,
+    });
+    const decision = layout.nodes.find((node) => node.id === 'decision')!;
+    const edge = layout.edges[0]!;
+    const target = edge.points.at(-1)!;
+
+    expect(target.x).toBe(decision.x + 20);
+    expect(target.y).toBe(decision.y + 39.5);
+  });
+
+  it('uses icon artwork centers for single analytics side connections in rendered layouts', async () => {
+    const diagram: Diagram = {
+      kind: 'box-arrows',
+      layout: 'preserve',
+      nodes: [
+        { id: 'box', label: 'Box', position: { x: 80, y: 120 } },
+        { id: 'analytics', label: 'Analytics', component: 'analytics', position: { x: 300, y: 100 } },
+      ],
+      edges: [
+        { from: 'box', to: 'analytics' },
+      ],
+    };
+
+    const layout = await computeLayout({
+      diagram,
+      measuredNodes: measureNodes(diagram.nodes),
+      theme: defaultTheme,
+    });
+    const analytics = layout.nodes.find((node) => node.id === 'analytics')!;
+    const edge = layout.edges[0]!;
+    const target = edge.points.at(-1)!;
+
+    expect(target.x).toBe(analytics.x + 20);
+    expect(target.y).toBe(analytics.y + 39.5);
+  });
+
+  it('uses icon artwork centers for single configuration side connections in rendered layouts', async () => {
+    const diagram: Diagram = {
+      kind: 'box-arrows',
+      layout: 'preserve',
+      nodes: [
+        { id: 'box', label: 'Box', position: { x: 80, y: 120 } },
+        { id: 'configuration', label: 'Config', component: 'configuration', position: { x: 300, y: 100 } },
+      ],
+      edges: [
+        { from: 'box', to: 'configuration' },
+      ],
+    };
+
+    const layout = await computeLayout({
+      diagram,
+      measuredNodes: measureNodes(diagram.nodes),
+      theme: defaultTheme,
+    });
+    const configuration = layout.nodes.find((node) => node.id === 'configuration')!;
+    const edge = layout.edges[0]!;
+    const target = edge.points.at(-1)!;
+
+    expect(target.x).toBe(configuration.x + 20);
+    expect(target.y).toBe(configuration.y + 39.5);
+  });
+
+  it('uses icon artwork centers for single cloud side connections in rendered layouts', async () => {
+    const diagram: Diagram = {
+      kind: 'box-arrows',
+      layout: 'preserve',
+      nodes: [
+        { id: 'box', label: 'Box', position: { x: 80, y: 120 } },
+        { id: 'cloud', label: 'Cloud', component: 'cloud', position: { x: 300, y: 100 } },
+      ],
+      edges: [
+        { from: 'box', to: 'cloud' },
+      ],
+    };
+
+    const layout = await computeLayout({
+      diagram,
+      measuredNodes: measureNodes(diagram.nodes),
+      theme: defaultTheme,
+    });
+    const cloud = layout.nodes.find((node) => node.id === 'cloud')!;
+    const edge = layout.edges[0]!;
+    const target = edge.points.at(-1)!;
+
+    expect(target.x).toBe(cloud.x + 20);
+    expect(target.y).toBe(cloud.y + 39.5);
+  });
+
+  it('uses icon artwork centers for single archive side connections in rendered layouts', async () => {
+    const diagram: Diagram = {
+      kind: 'box-arrows',
+      layout: 'preserve',
+      nodes: [
+        { id: 'box', label: 'Box', position: { x: 80, y: 120 } },
+        { id: 'archive', label: 'Archive', component: 'archive', position: { x: 300, y: 100 } },
+      ],
+      edges: [
+        { from: 'box', to: 'archive' },
+      ],
+    };
+
+    const layout = await computeLayout({
+      diagram,
+      measuredNodes: measureNodes(diagram.nodes),
+      theme: defaultTheme,
+    });
+    const archive = layout.nodes.find((node) => node.id === 'archive')!;
+    const edge = layout.edges[0]!;
+    const target = edge.points.at(-1)!;
+
+    expect(target.x).toBe(archive.x + 20);
+    expect(target.y).toBe(archive.y + 39.5);
+  });
+
+  it('uses icon artwork centers for single artificialIntelligence side connections in rendered layouts', async () => {
+    const diagram: Diagram = {
+      kind: 'box-arrows',
+      layout: 'preserve',
+      nodes: [
+        { id: 'box', label: 'Box', position: { x: 80, y: 120 } },
+        { id: 'ai', label: 'AI', component: 'artificialIntelligence', position: { x: 300, y: 100 } },
+      ],
+      edges: [
+        { from: 'box', to: 'ai' },
+      ],
+    };
+
+    const layout = await computeLayout({
+      diagram,
+      measuredNodes: measureNodes(diagram.nodes),
+      theme: defaultTheme,
+    });
+    const ai = layout.nodes.find((node) => node.id === 'ai')!;
+    const edge = layout.edges[0]!;
+    const target = edge.points.at(-1)!;
+
+    expect(target.x).toBe(ai.x + 20);
+    expect(target.y).toBe(ai.y + 39.5);
+  });
+
+  it('uses icon artwork centers for single multimedia side connections in rendered layouts', async () => {
+    const diagram: Diagram = {
+      kind: 'box-arrows',
+      layout: 'preserve',
+      nodes: [
+        { id: 'box', label: 'Box', position: { x: 80, y: 120 } },
+        { id: 'multimedia', label: 'Multi', component: 'multimedia', position: { x: 300, y: 100 } },
+      ],
+      edges: [
+        { from: 'box', to: 'multimedia' },
+      ],
+    };
+
+    const layout = await computeLayout({
+      diagram,
+      measuredNodes: measureNodes(diagram.nodes),
+      theme: defaultTheme,
+    });
+    const multimedia = layout.nodes.find((node) => node.id === 'multimedia')!;
+    const edge = layout.edges[0]!;
+    const target = edge.points.at(-1)!;
+
+    expect(target.x).toBe(multimedia.x + 20);
+    expect(target.y).toBe(multimedia.y + 39.5);
+  });
+
   it('uses icon artwork centers for single app side connections in rendered layouts', async () => {
     const diagram: Diagram = {
       kind: 'box-arrows',
@@ -644,7 +834,7 @@ describe('connection anchors', () => {
     const target = edge.points.at(-1)!;
 
     expect(target.x).toBe(app.x + 20);
-    expect(target.y).toBe(app.y + 36.5);
+    expect(target.y).toBe(app.y + 39.5);
   });
 
   it('distributes multiple rendered app side connections across the phone artwork', async () => {
@@ -671,8 +861,8 @@ describe('connection anchors', () => {
     const starts = layout.edges.map((edge) => edge.points[0]!);
 
     expect(starts.map((point) => point.x)).toEqual([app.x + 76, app.x + 76]);
-    expect(starts[0]!.y).toBeCloseTo(app.y + 27.166666666666664);
-    expect(starts[1]!.y).toBeCloseTo(app.y + 45.83333333333333);
+    expect(starts[0]!.y).toBeCloseTo(app.y + 26.38888888888889);
+    expect(starts[1]!.y).toBeCloseTo(app.y + 46.61111111111109);
     expect((starts[0]!.y + starts[1]!.y) / 2).toBeCloseTo(app.y + 36.5);
   });
 
@@ -701,6 +891,261 @@ describe('connection anchors', () => {
     // zigzag, but must remain centered on the app icon width.
     expect(Math.abs(start.x - (app.x + app.measuredWidth / 2))).toBeLessThanOrEqual(6);
     expect(start.y).toBe(app.y + app.measuredHeight);
+  });
+
+  it('gaps people top/left/right anchors outside the icon silhouette', async () => {
+    const diagram: Diagram = {
+      kind: 'box-arrows',
+      layout: 'preserve',
+      nodes: [
+        { id: 'box', label: 'Box', position: { x: 40, y: 100 } },
+        { id: 'people', label: 'People', component: 'people', position: { x: 240, y: 100 } },
+        { id: 'above', label: 'Above', position: { x: 240, y: 20 } },
+      ],
+      edges: [
+        { from: 'box', to: 'people' },
+        { from: 'above', to: 'people' },
+      ],
+    };
+
+    const layout = await computeLayout({
+      diagram,
+      measuredNodes: measureNodes(diagram.nodes),
+      theme: defaultTheme,
+    });
+    const people = layout.nodes.find((node) => node.id === 'people')!;
+    const fromLeft = layout.edges.find((edge) => edge.from === 'box')!.points.at(-1)!;
+    const fromAbove = layout.edges.find((edge) => edge.from === 'above')!.points.at(-1)!;
+    const expectedLeft = sidePoint(
+      connectionAnchorBox(
+        {
+          id: people.id,
+          x: people.x,
+          y: people.y,
+          width: people.measuredWidth,
+          height: people.measuredHeight,
+          component: 'people',
+          text: 'People',
+        },
+        'left',
+      ),
+      'left',
+    ).x;
+    const expectedTop = sidePoint(
+      connectionAnchorBox(
+        {
+          id: people.id,
+          x: people.x,
+          y: people.y,
+          width: people.measuredWidth,
+          height: people.measuredHeight,
+          component: 'people',
+          text: 'People',
+        },
+        'top',
+      ),
+      'top',
+    ).y;
+
+    expect(fromLeft.x).toBeCloseTo(expectedLeft, 0);
+    expect(fromAbove.y).toBeCloseTo(expectedTop, 0);
+  });
+
+  it('keeps people top/bottom anchors on the full artwork height', () => {
+    const node = {
+      id: 'people',
+      x: 100,
+      y: 100,
+      width: 96,
+      height: 96,
+      component: 'people' as const,
+      text: 'People',
+    };
+    const top = sidePoint(connectionAnchorBox(node, 'top'), 'top');
+    const left = sidePoint(connectionAnchorBox(node, 'left'), 'left');
+    const artSize = 56;
+    const scale = artSize / 24;
+    const fullArtLeft = node.x + (node.width - artSize) / 2;
+    const gap = PEOPLE_CONNECTION_GAP * scale;
+
+    expect(left.x).toBe(fullArtLeft - gap);
+    expect(top.x).toBe(node.x + node.width / 2);
+    expect(top.y).toBe(108.5 - gap);
+  });
+
+  it('centers database top connections on the icon when the source is slightly misaligned', async () => {
+    const diagram: Diagram = {
+      kind: 'box-arrows',
+      layout: 'preserve',
+      nodes: [
+        { id: 'source', label: 'Source', position: { x: 192, y: 80 } },
+        {
+          id: 'database',
+          label: 'Database',
+          component: 'database',
+          position: { x: 200, y: 200 },
+        },
+      ],
+      edges: [{ from: 'source', to: 'database' }],
+    };
+
+    const layout = await computeLayout({
+      diagram,
+      measuredNodes: measureNodes(diagram.nodes),
+      theme: defaultTheme,
+    });
+    const database = layout.nodes.find((node) => node.id === 'database')!;
+    const target = layout.edges[0]!.points.at(-1)!;
+    const expectedTop = sidePoint(
+      connectionAnchorBox(
+        {
+          id: database.id,
+          x: database.x,
+          y: database.y,
+          width: database.measuredWidth,
+          height: database.measuredHeight,
+          component: 'database',
+          text: database.label,
+        },
+        'top',
+      ),
+      'top',
+    );
+
+    expect(target.x).toBe(expectedTop.x);
+    expect(target.y).toBe(expectedTop.y);
+  });
+
+  it('gaps api left/right and top anchors outside the cube silhouette', async () => {
+    const diagram: Diagram = {
+      kind: 'box-arrows',
+      layout: 'preserve',
+      nodes: [
+        { id: 'left', label: 'Left', position: { x: 40, y: 100 } },
+        { id: 'api', label: 'API', component: 'api', position: { x: 240, y: 100 } },
+        { id: 'above', label: 'Above', position: { x: 240, y: 20 } },
+      ],
+      edges: [
+        { from: 'left', to: 'api' },
+        { from: 'above', to: 'api' },
+      ],
+    };
+
+    const layout = await computeLayout({
+      diagram,
+      measuredNodes: measureNodes(diagram.nodes),
+      theme: defaultTheme,
+    });
+    const api = layout.nodes.find((node) => node.id === 'api')!;
+    const fromLeft = layout.edges.find((edge) => edge.from === 'left')!.points.at(-1)!;
+    const fromAbove = layout.edges.find((edge) => edge.from === 'above')!.points.at(-1)!;
+    const expectedLeft = sidePoint(
+      connectionAnchorBox(
+        {
+          id: api.id,
+          x: api.x,
+          y: api.y,
+          width: api.measuredWidth,
+          height: api.measuredHeight,
+          component: 'api',
+          text: 'API',
+        },
+        'left',
+      ),
+      'left',
+    ).x;
+    const expectedTop = sidePoint(
+      connectionAnchorBox(
+        {
+          id: api.id,
+          x: api.x,
+          y: api.y,
+          width: api.measuredWidth,
+          height: api.measuredHeight,
+          component: 'api',
+          text: 'API',
+        },
+        'top',
+      ),
+      'top',
+    ).y;
+
+    expect(fromLeft.x).toBeCloseTo(expectedLeft, 0);
+    expect(fromAbove.y).toBeCloseTo(expectedTop, 0);
+  });
+
+  it('keeps api bottom anchors on the full node height below the label', () => {
+    const node = {
+      id: 'api',
+      x: 100,
+      y: 100,
+      width: 96,
+      height: 96,
+      component: 'api' as const,
+      text: 'API',
+    };
+    const top = sidePoint(connectionAnchorBox(node, 'top'), 'top');
+    const left = sidePoint(connectionAnchorBox(node, 'left'), 'left');
+    const bottom = sidePoint(connectionAnchorBox(node, 'bottom'), 'bottom');
+    const artSize = 56;
+    const scale = artSize / 256;
+    const fullArtLeft = node.x + (node.width - artSize) / 2;
+    const gap = API_CONNECTION_GAP * scale;
+    const cubeLeft = fullArtLeft + 40 * scale;
+
+    expect(left.x).toBeLessThan(cubeLeft);
+    expect(left.x).toBe(cubeLeft - gap);
+    expect(top.y).toBeLessThan(119);
+    expect(bottom.y).toBe(node.y + node.height);
+  });
+
+  it('gaps document top anchors above the icon artwork', () => {
+    const node = {
+      id: 'doc',
+      x: 100,
+      y: 100,
+      width: 72,
+      height: 96,
+      component: 'document' as const,
+      text: 'Proposal',
+    };
+    const anchorBox = connectionAnchorBox(node, 'top');
+    const top = sidePoint(anchorBox, 'top');
+    const bottom = sidePoint(connectionAnchorBox(node, 'bottom'), 'bottom');
+    const scale = (56 / 24);
+    const gap = DOCUMENT_CONNECTION_GAP * scale;
+
+    expect(gap).toBeGreaterThan(6);
+    expect(top.y).toBe(anchorBox.y);
+    expect(bottom.y).toBe(node.y + node.height);
+  });
+
+  it('gaps website top/left/right anchors outside the browser window', () => {
+    const node = {
+      id: 'site',
+      x: 100,
+      y: 100,
+      width: 108,
+      height: 120,
+      component: 'website' as const,
+      text: 'Website',
+    };
+    const leftBox = connectionAnchorBox(node, 'left');
+    const topBox = connectionAnchorBox(node, 'top');
+    const left = sidePoint(leftBox, 'left');
+    const top = sidePoint(topBox, 'top');
+    const right = sidePoint(leftBox, 'right');
+    const bottom = sidePoint(connectionAnchorBox(node, 'bottom'), 'bottom');
+    const scale = leftBox.width / (600 + WEBSITE_CONNECTION_GAP * 2);
+    const gap = WEBSITE_CONNECTION_GAP * scale;
+    const windowX = leftBox.x + gap;
+    const windowY = topBox.y + gap;
+
+    expect(gap).toBeGreaterThan(6);
+    expect(left.x).toBeCloseTo(windowX - gap, 5);
+    expect(top.y).toBeCloseTo(windowY - gap, 5);
+    expect(right.x).toBeCloseTo(windowX + 600 * scale + gap, 5);
+    expect(bottom.y).toBe(node.y + node.height);
   });
 
   it('recomputes group bounds after labeled edges expand the layout', async () => {

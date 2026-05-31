@@ -1,5 +1,12 @@
 import type { Diagram, DiagramFile, StructuredError } from './types.js';
 import {
+  DEFAULT_THEME_ID,
+  findDiagramTheme,
+  listInstalledThemeIds,
+  normalizeDiagramThemeName,
+  resolveThemeNameInput,
+} from '../renderer/themes/registry.js';
+import {
   DEFAULT_ICON_PREFIX,
   hasIconReference,
   iconPrefixForProvider,
@@ -14,6 +21,7 @@ export const ERROR_CODES = {
   UNKNOWN_SERVICE: 'UNKNOWN_SERVICE',
   MISSING_EXTENSION: 'MISSING_EXTENSION',
   PARSE_ERROR: 'PARSE_ERROR',
+  UNKNOWN_THEME: 'UNKNOWN_THEME',
 } as const;
 
 const DEFAULT_PROVIDER = 'default';
@@ -54,6 +62,23 @@ function isDiagramFile(document: unknown): document is DiagramFile {
 export function runSemanticValidation(diagram: Diagram): StructuredError[] {
   const errors: StructuredError[] = [];
   const nodeIds = new Set(diagram.nodes.map((node) => node.id));
+
+  if (diagram.theme) {
+    const normalized = normalizeDiagramThemeName(diagram.theme);
+    const resolvedId = resolveThemeNameInput(normalized) ?? normalized;
+    if (!findDiagramTheme(resolvedId)) {
+      const suggestion =
+        diagram.theme.includes('/')
+          ? `Install the extension theme pack or pick one of: ${listInstalledThemeIds().join(', ')}`
+          : `Use one of: ${listInstalledThemeIds().join(', ')} (default: ${DEFAULT_THEME_ID})`;
+      errors.push({
+        code: 'UNKNOWN_THEME',
+        path: '/diagram/theme',
+        message: `Unknown theme: ${diagram.theme}`,
+        suggestion,
+      });
+    }
+  }
 
   diagram.edges.forEach((edge, index) => {
     if (!nodeIds.has(edge.from)) {

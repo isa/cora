@@ -1,0 +1,27 @@
+id: folio-dark
+label: Folio Night
+appearance: dark
+
+typography:
+  fontFamily: Source Sans 3
+
+strokes:
+  node: 1
+  edge: 1.5
+  group: 1
+
+palette:
+  bg: "#0f172a"
+  surface: "#1e293bcc"
+  text: "#f1f5f9"
+  muted: "#94a3b899"
+  window: "#64748b"
+  windowBar: "#475569"
+  windowAddress: "#334155"
+  cyan: "#38bdf866"
+  green: "#4ade8055"
+  orange: "#fb923c55"
+  yellow: "#facc1555"
+  purple: "#c084fc55"
+  pink: "#f472b655"
+  red: "#f8717155"

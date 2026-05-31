@@ -6,11 +6,18 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 
 import {
+  AnalyticsNode,
   ApiNode,
+  ArchiveNode,
+  ArtificialIntelligenceNode,
+  MultimediaNode,
+  CloudNode,
   borderDasharray,
   AppNode,
   BoxNode,
+  ConfigurationNode,
   DatabaseNode,
+  DecisionNode,
   DocumentNode,
   IconNode,
   Group,
@@ -19,6 +26,8 @@ import {
   Line,
   LineMarkerDefs,
   linePathData,
+  PeopleNode,
+  PersonNode,
   APP_SIZE_PRESETS,
   DOCUMENT_SIZE_PRESETS,
   ICON_NODE_SIZE_PRESETS,
@@ -58,8 +67,8 @@ describe('renderer component primitives', () => {
   it('resolves size presets and explicit dimensions', () => {
     const fallback = { width: 10, height: 20 };
 
-    expect(resolveComponentSize('sm', fallback)).toEqual({ width: 104, height: 44 });
-    expect(resolveComponentSize('xxl', fallback)).toEqual({ width: 296, height: 132 });
+    expect(resolveComponentSize('sm', fallback)).toEqual({ width: 104, height: 35 });
+    expect(resolveComponentSize('xxl', fallback)).toEqual({ width: 296, height: 106 });
     expect(resolveComponentSize({ width: 123, height: 45 }, fallback)).toEqual({
       width: 123,
       height: 45,
@@ -127,6 +136,9 @@ describe('renderer component primitives', () => {
       'AppNode.tsx',
       'ApiNode.tsx',
       'DatabaseNode.tsx',
+      'DecisionNode.tsx',
+      'AnalyticsNode.tsx',
+      'ConfigurationNode.tsx',
     ];
 
     for (const file of iconLikeFiles) {
@@ -308,12 +320,13 @@ describe('renderer catalog nodes', () => {
     expect(markup).not.toContain('Hidden');
   });
 
-  it('renders LabelIconNode status type with a filled badge background', () => {
+  it('renders LabelIconNode status type without a filled badge background', () => {
     const markup = renderToStaticMarkup(
       <LabelIconNode icon={TestIcon} iconType="ok" backgroundColor="#ffffff" />,
     );
 
-    expect(markup).toContain('fill="#ffffff"');
+    expect(markup).not.toContain('fill="#ffffff"');
+    expect(markup).toContain('<circle');
   });
 
   it('renders catalog title and subtitle with independent font sizes', () => {
@@ -353,7 +366,7 @@ describe('renderer catalog nodes', () => {
     expect(radialMarkup).toContain('data-shadow="radial"');
   });
 
-  it('renders icon shadows through the catalog shadow helper', () => {
+  it('does not render shadows for icon nodes', () => {
     const castMarkup = renderToStaticMarkup(
       <IconNode icon={TestIcon} title="Icon" shadow="cast" iconColor="#8b5cf6" />,
     );
@@ -361,10 +374,8 @@ describe('renderer catalog nodes', () => {
       <IconNode icon={TestIcon} title="Icon" shadow="radial" iconColor="#8b5cf6" />,
     );
 
-    expect(castMarkup).toContain('data-shadow="cast"');
-    expect(castMarkup).toContain('opacity="0.28"');
-    expect(castMarkup).toContain('fill="#7a7a7a"');
-    expect(radialMarkup).toContain('data-shadow="radial"');
+    expect(castMarkup).not.toContain('data-shadow=');
+    expect(radialMarkup).not.toContain('data-shadow=');
   });
 
   it('does not render shadows for label or label-icon nodes', () => {
@@ -448,6 +459,7 @@ describe('renderer catalog nodes', () => {
     );
 
     expect(markup).toContain('M128 129.09V232');
+    expect(markup).toContain('M223.68 66.15 135.68 18');
     expect(markup).toContain('opacity="0.2"');
     expect(markup).toContain('color="#7c3aed"');
     expect(markup).toContain('API');
@@ -477,7 +489,7 @@ describe('renderer catalog nodes', () => {
       />,
     );
 
-    expect(markup).toContain('color="#8b5cf6"');
+    expect(markup).toContain(`color="${defaultTheme.shapes.api?.iconColor}"`);
   });
 
   it('renders DatabaseNode from the Lets Icons database duotone paths', () => {
@@ -493,6 +505,346 @@ describe('renderer catalog nodes', () => {
     expect(markup).toContain('stroke-width="1.2"');
     expect(markup).toContain('color="#7c3aed"');
     expect(markup).toContain('Database');
+  });
+
+  it('renders DecisionNode from the Raphael fork-alt path', () => {
+    const markup = renderToStaticMarkup(
+      <DecisionNode
+        iconColor="#7c3aed"
+        text="Approved?"
+      />,
+    );
+
+    expect(markup).toContain('m21.786 12.873l7.556-4.36l-7.556-4.363v2.7');
+    expect(markup).toContain('color="#7c3aed"');
+    expect(markup).toContain('Approved?');
+  });
+
+  it('renders AnalyticsNode from the Solar chart-bold-duotone paths', () => {
+    const markup = renderToStaticMarkup(
+      <AnalyticsNode
+        iconColor="#7c3aed"
+        text="Analytics"
+      />,
+    );
+
+    expect(markup).toContain('M14 20.5V4.25c0-.728');
+    expect(markup).toContain('opacity="0.7"');
+    expect(markup).toContain('opacity="0.5"');
+    expect(markup).toContain('color="#7c3aed"');
+    expect(markup).toContain('Analytics');
+  });
+
+  it('renders ConfigurationNode from the MingCute settings-6-line path', () => {
+    const markup = renderToStaticMarkup(
+      <ConfigurationNode
+        iconColor="#475569"
+        text="Configuration"
+      />,
+    );
+
+    expect(markup).toContain('M16 15c1.306 0 2.418.835 2.83 2H20');
+    expect(markup).toContain('color="#475569"');
+    expect(markup).toContain('Configuration');
+  });
+
+  it('renders CloudNode from the Material Symbols cloud path', () => {
+    const markup = renderToStaticMarkup(
+      <CloudNode
+        iconColor="#0ea5e9"
+        text="Cloud"
+      />,
+    );
+
+    expect(markup).toContain('M6.5 20q-2.275 0-3.887-1.575');
+    expect(markup).toContain('color="#0ea5e9"');
+    expect(markup).toContain('Cloud');
+  });
+
+  it('renders ArchiveNode from the Boxicons Solid bxs:box path', () => {
+    const markup = renderToStaticMarkup(
+      <ArchiveNode
+        iconColor="#d97706"
+        text="Archive"
+      />,
+    );
+
+    expect(markup).toContain('M2 3h20v4H2zm17 5H3v11');
+    expect(markup).toContain('color="#d97706"');
+    expect(markup).toContain('Archive');
+  });
+
+  it('renders ArtificialIntelligenceNode from the Hugeicons artificial-intelligence-04 paths', () => {
+    const markup = renderToStaticMarkup(
+      <ArtificialIntelligenceNode
+        iconColor="#7c3aed"
+        text="Artificial Intelligence"
+      />,
+    );
+
+    expect(markup).toContain('M4 12c0-3.771 0-5.657 1.172-6.828');
+    expect(markup).toContain('m7.5 15l1.842-5.526');
+    expect(markup).toContain('stroke="currentColor"');
+    expect(markup).toContain('color="#7c3aed"');
+    expect(markup).toContain('Artificial Intelligence');
+  });
+
+  it('renders MultimediaNode from the MDI multimedia path', () => {
+    const markup = renderToStaticMarkup(
+      <MultimediaNode
+        iconColor="#f43f5e"
+        text="Multimedia"
+      />,
+    );
+
+    expect(markup).toContain('M9 13V5c0-1.1.9-2 2-2h9');
+    expect(markup).toContain('color="#f43f5e"');
+    expect(markup).toContain('Multimedia');
+  });
+
+  it('renders configuration diagram nodes with the catalog icon color', () => {
+    const markup = renderToStaticMarkup(
+      <Diagram
+        diagram={{
+          kind: 'box-arrows',
+          nodes: [
+            {
+              id: 'configuration',
+              label: 'Configuration',
+              component: 'configuration',
+              measuredWidth: 160,
+              measuredHeight: 128,
+              x: 0,
+              y: 0,
+            },
+          ],
+          edges: [],
+          width: 160,
+          height: 128,
+          theme: defaultTheme,
+        }}
+      />,
+    );
+
+    expect(markup).toContain(`color="${defaultTheme.shapes.configuration?.iconColor}"`);
+  });
+
+  it('renders cloud diagram nodes with the catalog icon color', () => {
+    const markup = renderToStaticMarkup(
+      <Diagram
+        diagram={{
+          kind: 'box-arrows',
+          nodes: [
+            {
+              id: 'cloud',
+              label: 'Cloud',
+              component: 'cloud',
+              measuredWidth: 160,
+              measuredHeight: 128,
+              x: 0,
+              y: 0,
+            },
+          ],
+          edges: [],
+          width: 200,
+          height: 200,
+          theme: defaultTheme,
+        }}
+      />,
+    );
+
+    expect(markup).toContain(`color="${defaultTheme.shapes.cloud?.iconColor}"`);
+  });
+
+  it('renders archive diagram nodes with the catalog icon color', () => {
+    const markup = renderToStaticMarkup(
+      <Diagram
+        diagram={{
+          kind: 'box-arrows',
+          nodes: [
+            {
+              id: 'archive',
+              label: 'Archive',
+              component: 'archive',
+              measuredWidth: 160,
+              measuredHeight: 128,
+              x: 0,
+              y: 0,
+            },
+          ],
+          edges: [],
+          width: 200,
+          height: 200,
+          theme: defaultTheme,
+        }}
+      />,
+    );
+
+    expect(markup).toContain(`color="${defaultTheme.shapes.archive?.iconColor}"`);
+  });
+
+  it('renders artificialIntelligence diagram nodes with the catalog icon color', () => {
+    const markup = renderToStaticMarkup(
+      <Diagram
+        diagram={{
+          kind: 'box-arrows',
+          nodes: [
+            {
+              id: 'ai',
+              label: 'AI',
+              component: 'artificialIntelligence',
+              measuredWidth: 160,
+              measuredHeight: 128,
+              x: 0,
+              y: 0,
+            },
+          ],
+          edges: [],
+          width: 200,
+          height: 200,
+          theme: defaultTheme,
+        }}
+      />,
+    );
+
+    expect(markup).toContain(`color="${defaultTheme.shapes.artificialIntelligence?.iconColor}"`);
+  });
+
+  it('renders multimedia diagram nodes with the catalog icon color', () => {
+    const markup = renderToStaticMarkup(
+      <Diagram
+        diagram={{
+          kind: 'box-arrows',
+          nodes: [
+            {
+              id: 'multimedia',
+              label: 'Multimedia',
+              component: 'multimedia',
+              measuredWidth: 160,
+              measuredHeight: 128,
+              x: 0,
+              y: 0,
+            },
+          ],
+          edges: [],
+          width: 200,
+          height: 200,
+          theme: defaultTheme,
+        }}
+      />,
+    );
+
+    expect(markup).toContain(`color="${defaultTheme.shapes.multimedia?.iconColor}"`);
+  });
+
+  it('renders PersonNode from the gridicons:user path', () => {
+    const markup = renderToStaticMarkup(
+      <PersonNode
+        iconColor="#0ea5e9"
+        text="Person"
+      />,
+    );
+
+    expect(markup).toContain('M12 4a4 4 0 1 1 0 8a4 4 0 0 1 0-8');
+    expect(markup).toContain('color="#0ea5e9"');
+    expect(markup).toContain('Person');
+  });
+
+  it('renders PeopleNode from the gridicons:multiple-users path', () => {
+    const markup = renderToStaticMarkup(
+      <PeopleNode
+        iconColor="#7c3aed"
+        text="People"
+      />,
+    );
+
+    expect(markup).toContain('M24 14.6c0 .6-1.2 1-2.6 1.2');
+    expect(markup).toContain('6 3.5z');
+    expect(markup).toContain('color="#7c3aed"');
+    expect(markup).toContain('People');
+  });
+
+  it('renders person and people diagram nodes with the catalog icon color', () => {
+    for (const [component, label] of [['person', 'Person'], ['people', 'People']] as const) {
+      const markup = renderToStaticMarkup(
+        <Diagram
+          diagram={{
+            kind: 'box-arrows',
+            nodes: [
+              {
+                id: component,
+                label,
+                component,
+                measuredWidth: 160,
+                measuredHeight: 128,
+                x: 0,
+                y: 0,
+              },
+            ],
+            edges: [],
+            width: 160,
+            height: 128,
+            theme: defaultTheme,
+          }}
+        />,
+      );
+
+      expect(markup).toContain(`color="${defaultTheme.shapes[component]?.iconColor}"`);
+    }
+  });
+
+  it('renders analytics diagram nodes with the catalog icon color', () => {
+    const markup = renderToStaticMarkup(
+      <Diagram
+        diagram={{
+          kind: 'box-arrows',
+          nodes: [
+            {
+              id: 'analytics',
+              label: 'Analytics',
+              component: 'analytics',
+              measuredWidth: 160,
+              measuredHeight: 128,
+              x: 0,
+              y: 0,
+            },
+          ],
+          edges: [],
+          width: 160,
+          height: 128,
+          theme: defaultTheme,
+        }}
+      />,
+    );
+
+    expect(markup).toContain(`color="${defaultTheme.shapes.analytics?.iconColor}"`);
+  });
+
+  it('renders decision diagram nodes with the catalog icon color', () => {
+    const markup = renderToStaticMarkup(
+      <Diagram
+        diagram={{
+          kind: 'flowchart',
+          nodes: [
+            {
+              id: 'check',
+              label: 'Approved?',
+              component: 'decision',
+              measuredWidth: 160,
+              measuredHeight: 128,
+              x: 0,
+              y: 0,
+            },
+          ],
+          edges: [],
+          width: 160,
+          height: 128,
+          theme: defaultTheme,
+        }}
+      />,
+    );
+
+    expect(markup).toContain(`color="${defaultTheme.shapes.decision?.iconColor}"`);
   });
 
   it('renders database diagram nodes with the catalog icon color', () => {
@@ -519,19 +871,24 @@ describe('renderer catalog nodes', () => {
       />,
     );
 
-    expect(markup).toContain('color="#8b5cf6"');
-  });
-
-  it('renders product node shadows with the shared cast footprint', () => {
+    expect(markup).toContain(`color="${defaultTheme.shapes.database?.iconColor}"`);
     const documentMarkup = renderToStaticMarkup(<DocumentNode shadow="cast" />);
     const apiMarkup = renderToStaticMarkup(<ApiNode shadow="cast" />);
     const databaseMarkup = renderToStaticMarkup(<DatabaseNode shadow="cast" />);
+    const decisionMarkup = renderToStaticMarkup(<DecisionNode shadow="cast" />);
+    const analyticsMarkup = renderToStaticMarkup(<AnalyticsNode shadow="cast" />);
+    const configurationMarkup = renderToStaticMarkup(<ConfigurationNode shadow="cast" />);
+    const cloudMarkup = renderToStaticMarkup(<CloudNode shadow="cast" />);
+    const archiveMarkup = renderToStaticMarkup(<ArchiveNode shadow="cast" />);
+    const artificialIntelligenceMarkup = renderToStaticMarkup(<ArtificialIntelligenceNode shadow="cast" />);
+    const multimediaMarkup = renderToStaticMarkup(<MultimediaNode shadow="cast" />);
+    const personMarkup = renderToStaticMarkup(<PersonNode shadow="cast" />);
+    const peopleMarkup = renderToStaticMarkup(<PeopleNode shadow="cast" />);
     const appMarkup = renderToStaticMarkup(<AppNode shadow="cast" />);
     const websiteMarkup = renderToStaticMarkup(<WebsiteNode shadow="cast" />);
 
-    for (const markup of [documentMarkup, apiMarkup, databaseMarkup, appMarkup, websiteMarkup]) {
-      expect(markup).toContain('data-shadow="cast"');
-      expect(markup).toContain('opacity="0.28"');
+    for (const markup of [documentMarkup, apiMarkup, databaseMarkup, decisionMarkup, analyticsMarkup, configurationMarkup, cloudMarkup, archiveMarkup, artificialIntelligenceMarkup, multimediaMarkup, personMarkup, peopleMarkup, appMarkup, websiteMarkup]) {
+      expect(markup).not.toContain('data-shadow=');
     }
   });
 
@@ -549,7 +906,7 @@ describe('renderer catalog nodes', () => {
 
     expect(markup).toContain('fill="#ffffff"');
     expect(markup).toContain('fill="#cbd5e1"');
-    expect(markup).toContain('fill="#e2e8f0"');
+    expect(markup).toContain('fill="#94a3b8"');
     expect(markup).toContain('fill="#ff5f57"');
     expect(markup).toContain('fill="#febc2e"');
     expect(markup).toContain('fill="#28c840"');
@@ -558,7 +915,13 @@ describe('renderer catalog nodes', () => {
 
   it('renders colorful traffic lights on dark website chrome', () => {
     const markup = renderToStaticMarkup(
-      <WebsiteNode backgroundColor="#27272a" borderColor="#52525b" skeletonColor="#52525b" />,
+      <WebsiteNode
+        backgroundColor="#27272a"
+        skeletonColor="#52525b"
+        windowColor="#71717a"
+        windowBarColor="#52525b"
+        windowAddressBarColor="#3f3f46"
+      />,
     );
 
     expect(markup).toContain('fill="#ff5f57"');

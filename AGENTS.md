@@ -45,6 +45,7 @@ After `bun link` in `packages/cora`, you can use `cora` directly.
 |------|---------|
 | Validate for an agent loop | `cora validate diagram.yaml --format json` |
 | Generate a docs/review artifact | `cora render diagram.yaml -o diagram.svg` |
+| Override the diagram palette | `cora render diagram.yaml -o diagram.svg --theme ocean-dark` |
 | Generate a raster artifact | `cora render diagram.yaml -o diagram.png` |
 | Generate a shareable PDF without browser setup | `cora render diagram.yaml -o diagram.pdf` |
 | Generate a fixed-page PDF | `cora render diagram.yaml -o diagram.pdf --page=a4` |
@@ -138,6 +139,7 @@ Suggested repair priority:
 | `MISSING_EXTENSION` | Node references an icon provider/set that is not installed |
 | `PARSE_ERROR` | YAML/JSON syntax error |
 | `LAYOUT_ERROR` | Layout mode failed (e.g. `layout: preserve` without positions) |
+| `UNKNOWN_THEME` | `diagram.theme` or `--theme` names a theme that is not installed |
 | `CHROMIUM_NOT_INSTALLED` | `--quality=high` requested but Chromium not installed and no install consent given |
 | `CHROMIUM_INSTALL_FAILED` | Chromium install for `--quality=high` failed after consent |
 | `HIGH_QUALITY_RENDER_FAILED` | Playwright high-quality PDF rendering failed |
@@ -385,17 +387,31 @@ component APIs behind `renderer/components/index.ts`; do not re-export them from
 
 ### Default Look
 
-Cora defines a canonical locked default visual language for all built-in components to ensure a professional appearance when styling properties are omitted in YAML:
+Cora ships **10 built-in color themes** (5 personalities × light/dark). The default is `folio-light` (`Folio Mist`). Aliases: `default` and `light` → `folio-light`; `dark` → `folio-dark`.
 
-- **Palette**: A Tailwind-based neutral base using the `slate` scale for borders, default text, labels, edges, groups, and layout backgrounds, without dynamic runtime Tailwind dependencies. Icon terminals use a violet accent by default. Document and website components default to white surfaces with slate strokes; app components default to a white surface with a black device outline.
-- **Omission Defaults**: Box-like nodes default to white fills, a subtle `slate-300` 1px solid border, medium `8px` corner radius, and flat presentation (no default shadow filter). Edges default to 2px solid `slate-700` lines. Groups render as 1px dashed `slate-400` boundaries with no default fill. Label and icon nodes are transparent by default.
-- **Typography**: Uses Noto Sans with the following hierarchy:
-  - Node titles: 12px SemiBold
-  - Node subtitles: 10px Regular
-  - Standalone labels: 11px SemiBold `slate-800`
-  - Edge labels: 10px Regular `slate-600`
-- **Single Source of Truth**: Handled centrally via `catalogDefaultProps()` in `packages/cora/src/renderer/themes/componentDefaults.ts`, shared exactly between both the pure SVG renderer and the development preview controls.
-- **When to Override**: Default look coordinates can be overridden directly using custom style/layout properties inside the diagram YAML document. Custom extension themes are deferred to Phase 5.
+Set an optional palette in YAML:
+
+```yaml
+diagram:
+  theme: ocean-dark
+```
+
+Or override at render time: `cora render diagram.yaml -o out.svg --theme folio-mist` (slugified labels resolve to ids).
+
+Themes assign **component-slot fills** (box, database, api, …) from a shared contract plus palette refs. Per-node overrides remain sparse via `nodes[].style` / `groups[].style` (`fill`/`backgroundColor`, `stroke`/`borderColor`). Edge colors are theme-level in v1.
+
+Built-in ids: `folio-light`, `folio-dark`, `ocean-light`, `ocean-dark`, `ember-light`, `ember-dark`, `sage-light`, `sage-dark`, `dusk-light`, `dusk-dark`. Extension themes use pack-prefixed ids such as `brand-kit/corporate-light`.
+
+Unknown themes fail validation/render with `UNKNOWN_THEME` (preview falls back to `folio-light`).
+
+Typography, stroke widths, and fonts come from the active theme (`folio-light` uses Source Sans 3). Hierarchy:
+
+- Node titles: 12px SemiBold
+- Node subtitles: 10px Regular
+- Standalone labels: 11px SemiBold
+- Edge labels: 10px Regular
+
+`catalogDefaultProps()` in `packages/cora/src/renderer/themes/componentDefaults.ts` still defines structural defaults (radius, sizes, shadows) shared with the preview workbench.
 
 ## Examples
 

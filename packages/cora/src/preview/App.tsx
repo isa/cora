@@ -22,8 +22,10 @@ import {
   updateNodesProps,
 } from './state.js';
 import {
-  listDiagramThemes,
+  getThemeFamily,
+  listThemeFamilies,
   normalizeDiagramThemeName,
+  resolveThemeIdForAppearance,
 } from '../renderer/themes/registry.js';
 import {
   buildSuggestedSaveName,
@@ -99,7 +101,8 @@ export function App() {
     return 'light';
   });
 
-  const diagramThemes = listDiagramThemes();
+  const themeFamilies = listThemeFamilies();
+  const activeThemeFamily = getThemeFamily(normalizeDiagramThemeName(state.diagramTheme));
 
   useEffect(() => {
     if (typeof localStorage !== 'undefined') {
@@ -112,6 +115,16 @@ export function App() {
         document.body.classList.remove('dark');
       }
     }
+  }, [uiTheme]);
+
+  useEffect(() => {
+    setState((current) => {
+      const nextTheme = resolveThemeIdForAppearance(current.diagramTheme, uiTheme);
+      if (nextTheme === normalizeDiagramThemeName(current.diagramTheme)) {
+        return current;
+      }
+      return { ...current, diagramTheme: nextTheme };
+    });
   }, [uiTheme]);
 
   const [fileMessage, setFileMessage] = useState<string>('');
@@ -516,14 +529,18 @@ export function App() {
             palette
           </span>
           <Select
-            value={normalizeDiagramThemeName(state.diagramTheme)}
-            onChange={(event) =>
-              setState((current) => ({ ...current, diagramTheme: event.currentTarget.value }))
-            }
+            value={activeThemeFamily}
+            onChange={(event) => {
+              const family = event.currentTarget.value;
+              setState((current) => ({
+                ...current,
+                diagramTheme: resolveThemeIdForAppearance(`${family}-light`, uiTheme),
+              }));
+            }}
             aria-label="Diagram theme"
           >
-            {diagramThemes.map((theme) => (
-              <option key={theme.id} value={theme.id}>
+            {themeFamilies.map((theme) => (
+              <option key={theme.family} value={theme.family}>
                 {theme.label}
               </option>
             ))}

@@ -2,7 +2,6 @@ import type { BoxStyleProps } from '../types.js';
 import { resolveCatalogTextLayout } from '../../../core/catalogTextLayout.js';
 import { resolveWebsiteComponentSize, WEBSITE_SIZE_PRESETS, PRODUCT_FRAME_INSET } from '../styles.js';
 import {
-  CatalogShadow,
   CatalogText,
   resolvedCatalogFrame,
 } from './shared.js';
@@ -11,77 +10,21 @@ export interface WebsiteNodeProps extends BoxStyleProps {
   x?: number;
   y?: number;
   skeletonColor?: string;
+  windowColor?: string;
+  windowBarColor?: string;
+  windowAddressBarColor?: string;
 }
 
 function scaled(value: number, scale: number, offset: number) {
   return offset + value * scale;
 }
 
-function hexRgb(color: string): [number, number, number] | undefined {
-  const match = /^#?([0-9a-f]{6})$/i.exec(color.trim());
-  if (!match) return undefined;
-  const hex = match[1]!;
-  return [0, 2, 4].map((index) => parseInt(hex.slice(index, index + 2), 16)) as [
-    number,
-    number,
-    number,
-  ];
-}
-
-function luminance(color: string): number | undefined {
-  const rgb = hexRgb(color);
-  if (!rgb) return undefined;
-
-  const [r, g, b] = rgb.map((channel) => {
-    const value = channel / 255;
-    return value <= 0.03928
-      ? value / 12.92
-      : ((value + 0.055) / 1.055) ** 2.4;
-  });
-
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-}
-
-function contrastRatio(colorA: string, colorB: string): number {
-  const a = luminance(colorA);
-  const b = luminance(colorB);
-  if (a === undefined || b === undefined) return 0;
-  const lighter = Math.max(a, b);
-  const darker = Math.min(a, b);
-  return (lighter + 0.05) / (darker + 0.05);
-}
-
-function skeletonColorForFill(fill: string) {
-  return contrastRatio(fill, '#1c1d1a') >= contrastRatio(fill, '#ffffff')
-    ? '#1c1d1a'
-    : '#ffffff';
-}
-
-function resolveSkeletonColor(fill: string, requested?: string) {
-  if (requested) {
-    return { color: requested, auto: false };
-  }
-
-  return { color: skeletonColorForFill(fill), auto: true };
-}
-
-function isLightPage(pageFill: string) {
-  const lum = luminance(pageFill);
-  return lum === undefined || lum >= 0.45;
-}
-
 const BROWSER_TRAFFIC_LIGHTS = ['#ff5f57', '#febc2e', '#28c840'] as const;
 
-const LIGHT_BROWSER_CHROME = {
+const DEFAULT_WINDOW_CHROME = {
   frame: '#cbd5e1',
   bar: '#e8eaed',
   addressBar: '#ffffff',
-};
-
-const DARK_BROWSER_CHROME = {
-  frame: '#71717a',
-  bar: '#52525b',
-  addressBar: '#3f3f46',
 };
 
 function roundedRectPath(x: number, y: number, width: number, height: number, radius: number) {
@@ -131,7 +74,8 @@ export function WebsiteNode(props: WebsiteNodeProps) {
   const frame = resolvedCatalogFrame({
     fallbackSize,
     backgroundColor: '#ffffff',
-    borderColor: '#334155',
+    borderStyle: 'none',
+    borderWidth: 0,
     subtitleColor: '#b5b5b5',
     ...props,
     size: resolveWebsiteComponentSize(props.size, fallbackSize),
@@ -162,13 +106,12 @@ export function WebsiteNode(props: WebsiteNodeProps) {
   const textY = sy(710) + labelGap;
   const remainingTextHeight = Math.max(textHeight, frame.y + frame.height - textY - bottomPadding);
   const pageFill = frame.backgroundColor;
-  const lightPage = isLightPage(pageFill);
-  const chrome = lightPage ? LIGHT_BROWSER_CHROME : DARK_BROWSER_CHROME;
-  const trafficLightFills = BROWSER_TRAFFIC_LIGHTS;
-  const skeleton = resolveSkeletonColor(
-    pageFill,
-    props.skeletonColor ?? '#e2e8f0',
-  );
+  const chrome = {
+    frame: props.windowColor ?? DEFAULT_WINDOW_CHROME.frame,
+    bar: props.windowBarColor ?? DEFAULT_WINDOW_CHROME.bar,
+    addressBar: props.windowAddressBarColor ?? DEFAULT_WINDOW_CHROME.addressBar,
+  };
+  const skeletonColor = props.skeletonColor ?? '#94a3b8';
   const windowX = sx(100);
   const windowY = sy(150);
   const windowWidth = sx(700) - windowX;
@@ -187,16 +130,6 @@ export function WebsiteNode(props: WebsiteNodeProps) {
 
   return (
     <g>
-      <CatalogShadow
-        x={windowX}
-        y={windowY}
-        width={windowWidth}
-        height={windowHeight}
-        radius={windowRadius}
-        fill={pageFill}
-        shadow={frame.shadow}
-        shadowColor={frame.shadowColor}
-      />
       <path d={outerPath} fill={chrome.frame} />
       <path d={innerPath} fill={pageFill} />
       <path d={chromePath} fill={chrome.bar} />
@@ -206,7 +139,7 @@ export function WebsiteNode(props: WebsiteNodeProps) {
           cx={sx(cx)}
           cy={sy(190)}
           r={14 * scale}
-          fill={trafficLightFills[index]}
+          fill={BROWSER_TRAFFIC_LIGHTS[index]}
         />
       ))}
       <rect
@@ -217,7 +150,7 @@ export function WebsiteNode(props: WebsiteNodeProps) {
         rx={10 * scale}
         fill={chrome.addressBar}
       />
-      <g fill={skeleton.color} opacity={skeleton.auto ? 0.52 : undefined}>
+      <g fill={skeletonColor} opacity={0.72}>
         <rect x={sx(140)} y={sy(275)} width={150 * scale} height={30 * scale} />
         <rect x={sx(550)} y={sy(275)} width={110 * scale} height={30 * scale} />
         <rect x={sx(140)} y={sy(331)} width={350 * scale} height={13 * scale} />

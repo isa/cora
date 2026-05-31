@@ -54,8 +54,9 @@ describe('preview visual contract', () => {
   it('renders separate diagram theme and preview UI theme controls', () => {
     const markup = renderToStaticMarkup(<App />);
     expect(markup).toContain('aria-label="Diagram theme"');
-    expect(markup).toContain('>Light</option>');
-    expect(markup).toContain('>Dark</option>');
+    expect(markup).toContain('>Folio Mist</option>');
+    expect(markup).not.toContain('>Folio Night</option>');
+    expect(markup).toContain('>Ocean Spray</option>');
     expect(markup).toContain('aria-label="Light preview UI"');
     expect(markup).toContain('aria-label="Dark preview UI"');
   });

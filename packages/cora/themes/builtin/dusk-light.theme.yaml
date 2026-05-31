@@ -1,0 +1,27 @@
+id: dusk-light
+label: Dusk Lilac
+appearance: light
+
+typography:
+  fontFamily: Raleway
+
+strokes:
+  node: 1
+  edge: 2
+  group: 1
+
+palette:
+  bg: "#faf5ff"
+  surface: "#ffffffcc"
+  text: "#3b0764"
+  muted: "#7e22ce99"
+  window: "#cbd5e1"
+  windowBar: "#e8eaed"
+  windowAddress: "#ffffff"
+  cyan: "#06b6d455"
+  green: "#22c55e55"
+  orange: "#f9731655"
+  yellow: "#eab30855"
+  purple: "#9333ea66"
+  pink: "#db277766"
+  red: "#ef444455"

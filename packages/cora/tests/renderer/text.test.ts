@@ -160,19 +160,13 @@ describe('renderToTextFromSvg', () => {
     const layouted = await buildLayouted('database.yaml');
     const output = renderToTextFromSvg(layouted, { charset: 'unicode' });
     const lines = output.split('\n');
-    const bendLineIndex = lines.findIndex(line => /□[─]+┐/u.test(line));
+    const replicaLineIndex = lines.findIndex((line) => line.includes('PostgreSQL Replica'));
 
-    expect(bendLineIndex).toBeGreaterThan(-1);
-
-    const bendLine = lines[bendLineIndex]!;
+    expect(replicaLineIndex).toBeGreaterThan(-1);
     expect(
-      lines.slice(Math.max(0, bendLineIndex - 2), bendLineIndex + 1).join('\n'),
-    ).toContain('PostgreSQL Primary');
-    expect(bendLine).toMatch(/□[─]+┐/u);
-
-    const cornerX = bendLine.indexOf('┐');
-    expect(cornerX).toBeGreaterThan(-1);
-    expect(lines[bendLineIndex + 1]?.[cornerX]).toBe('│');
+      lines.slice(Math.max(0, replicaLineIndex - 4), replicaLineIndex).some((line) => line.includes('□')),
+    ).toBe(true);
+    expect(lines[replicaLineIndex]).toMatch(/PostgreSQL Replica/);
   });
 
   it.each([

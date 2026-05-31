@@ -8,7 +8,7 @@ import { baselineYForVisualCenter } from '../../../core/measureText.js';
 import { LOOK } from '../../themes/lookTokens.js';
 import { NODE_TITLE_SIZE, NODE_SUBTITLE_SIZE } from '../../themes/fontTokens.js';
 import type { ResolvedStyle, ThemeTokens } from '../../../layout-ir.js';
-import { escapeXml, FONT_FAMILY } from '../../utils.js';
+import { escapeXml } from '../../utils.js';
 import { resolveSvgFontFamily } from '../../themes/diagramFonts.js';
 import type { SvgIconComponent } from '../icons.js';
 import { borderDasharray, isNoBorder, resolveComponentSize } from '../styles.js';
@@ -30,7 +30,7 @@ export function NodeLabel({ node, theme }: NodeComponentProps) {
   const fontFamily =
     typeof node.style?.fontFamily === 'string'
       ? resolveSvgFontFamily(node.style.fontFamily)
-      : FONT_FAMILY;
+      : resolveSvgFontFamily(theme.fontFamily);
 
   return (
     <text
@@ -81,7 +81,7 @@ export interface CatalogIconSlotProps {
   title?: string;
 }
 
-export const DEFAULT_CATALOG_SIZE: ComponentDimensions = { width: 128, height: 56 };
+export const DEFAULT_CATALOG_SIZE: ComponentDimensions = { width: 128, height: 45 };
 
 export function resolvedCatalogFrame(props: CatalogNodeFrameProps) {
   const size = resolveComponentSize(props.size, props.fallbackSize ?? DEFAULT_CATALOG_SIZE);

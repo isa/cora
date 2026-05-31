@@ -32,7 +32,8 @@
   ],
   "scripts": {
     "generate:icon-index": "node scripts/generate-icon-index.mjs",
-    "build": "node scripts/sync-diagram-fonts.mjs && tsdown && vite build src/preview --base ./ --outDir ../../preview-dist --emptyOutDir && mkdir -p dist/renderer/assets && cp -r src/renderer/assets/fonts dist/renderer/assets/",
+    "compile:themes": "bun scripts/compile-builtin-themes.mjs",
+    "build": "node scripts/sync-diagram-fonts.mjs && bun scripts/compile-builtin-themes.mjs && tsdown && vite build src/preview --base ./ --outDir ../../preview-dist --emptyOutDir && mkdir -p dist/renderer/assets && cp -r src/renderer/assets/fonts dist/renderer/assets/ && cp -r themes dist/themes",
     "cora": "node dist/cli.js",
     "dev": "tsdown --watch",
     "prepack": "cp ../../SKILL.md SKILL.md",

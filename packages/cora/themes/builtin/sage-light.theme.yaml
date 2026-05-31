@@ -1,0 +1,27 @@
+id: sage-light
+label: Sage Garden
+appearance: light
+
+typography:
+  fontFamily: Lato
+
+strokes:
+  node: 1
+  edge: 1.75
+  group: 1
+
+palette:
+  bg: "#f7fee7"
+  surface: "#ffffffcc"
+  text: "#14532d"
+  muted: "#4d7c0f99"
+  window: "#cbd5e1"
+  windowBar: "#e8eaed"
+  windowAddress: "#ffffff"
+  cyan: "#0891b255"
+  green: "#16a34a66"
+  orange: "#d9770655"
+  yellow: "#ca8a0455"
+  purple: "#7c3aed55"
+  pink: "#db277755"
+  red: "#dc262655"

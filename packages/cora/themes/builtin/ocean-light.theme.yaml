@@ -1,0 +1,27 @@
+id: ocean-light
+label: Ocean Spray
+appearance: light
+
+typography:
+  fontFamily: Open Sans
+
+strokes:
+  node: 1
+  edge: 2
+  group: 1
+
+palette:
+  bg: "#f0f9ff"
+  surface: "#ffffffcc"
+  text: "#0c4a6e"
+  muted: "#0369a199"
+  window: "#cbd5e1"
+  windowBar: "#e8eaed"
+  windowAddress: "#ffffff"
+  cyan: "#0284c766"
+  green: "#14b8a655"
+  orange: "#f59e0b55"
+  yellow: "#eab30855"
+  purple: "#6366f155"
+  pink: "#ec489955"
+  red: "#ef444455"

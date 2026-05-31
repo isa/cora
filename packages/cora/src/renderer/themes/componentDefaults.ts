@@ -68,52 +68,159 @@ export function catalogDefaultProps(component: DiagramComponent): Record<string,
 
     case 'website':
       return {
-        ...common,
+        ...commonWithoutShadow,
         backgroundColor: LOOK.components.website.fill,
-        borderColor: LOOK.components.website.stroke,
+        borderStyle: 'none' as const,
+        borderColor: 'transparent',
+        borderWidth: 0,
         skeletonColor: LOOK.components.website.skeleton,
+        windowColor: LOOK.components.website.window,
+        windowBarColor: LOOK.components.website.windowBar,
+        windowAddressBarColor: LOOK.components.website.windowAddress,
         size: 'lg' as const,
       };
 
     case 'app':
       return {
-        ...common,
-        backgroundColor: LOOK.components.app.fill,
-        borderColor: LOOK.components.app.stroke,
+        ...commonWithoutShadow,
+        backgroundColor: 'transparent',
+        borderStyle: 'none' as const,
+        borderColor: 'transparent',
+        borderWidth: 0,
+        iconColor: LOOK.components.app.iconColor,
         size: 'lg' as const,
       };
 
     case 'document':
       return {
-        ...common,
-        backgroundColor: LOOK.components.document.fill,
-        borderColor: LOOK.components.document.stroke,
-        iconColor: LOOK.components.document.stroke,
+        ...commonWithoutShadow,
+        backgroundColor: 'transparent',
+        borderStyle: 'none' as const,
+        borderColor: 'transparent',
+        borderWidth: 0,
+        iconColor: LOOK.components.document.iconColor,
         size: 'lg' as const,
       };
 
     case 'api':
       return {
-        backgroundColor: LOOK.components.api.fill,
+        backgroundColor: 'transparent',
         textColor: LOOK.text.primary,
         subtitleColor: LOOK.text.muted,
         titleFontSize: NODE_TITLE_SIZE,
         subtitleFontSize: NODE_SUBTITLE_SIZE,
-        shadow: 'none' as const,
         size: 'lg' as const,
         iconColor: LOOK.components.api.iconColor,
       };
 
     case 'database':
       return {
-        backgroundColor: LOOK.components.database.fill,
+        backgroundColor: 'transparent',
         textColor: LOOK.text.primary,
         subtitleColor: LOOK.text.muted,
         titleFontSize: NODE_TITLE_SIZE,
         subtitleFontSize: NODE_SUBTITLE_SIZE,
-        shadow: 'none' as const,
         size: 'lg' as const,
         iconColor: LOOK.components.database.iconColor,
+      };
+
+    case 'decision':
+      return {
+        backgroundColor: 'transparent',
+        textColor: LOOK.text.primary,
+        subtitleColor: LOOK.text.muted,
+        titleFontSize: NODE_TITLE_SIZE,
+        subtitleFontSize: NODE_SUBTITLE_SIZE,
+        size: 'lg' as const,
+        iconColor: LOOK.components.decision.iconColor,
+      };
+
+    case 'analytics':
+      return {
+        backgroundColor: 'transparent',
+        textColor: LOOK.text.primary,
+        subtitleColor: LOOK.text.muted,
+        titleFontSize: NODE_TITLE_SIZE,
+        subtitleFontSize: NODE_SUBTITLE_SIZE,
+        size: 'lg' as const,
+        iconColor: LOOK.components.analytics.iconColor,
+      };
+
+    case 'person':
+      return {
+        backgroundColor: 'transparent',
+        textColor: LOOK.text.primary,
+        subtitleColor: LOOK.text.muted,
+        titleFontSize: NODE_TITLE_SIZE,
+        subtitleFontSize: NODE_SUBTITLE_SIZE,
+        size: 'lg' as const,
+        iconColor: LOOK.components.person.iconColor,
+      };
+
+    case 'people':
+      return {
+        backgroundColor: 'transparent',
+        textColor: LOOK.text.primary,
+        subtitleColor: LOOK.text.muted,
+        titleFontSize: NODE_TITLE_SIZE,
+        subtitleFontSize: NODE_SUBTITLE_SIZE,
+        size: 'lg' as const,
+        iconColor: LOOK.components.people.iconColor,
+      };
+
+    case 'configuration':
+      return {
+        backgroundColor: 'transparent',
+        textColor: LOOK.text.primary,
+        subtitleColor: LOOK.text.muted,
+        titleFontSize: NODE_TITLE_SIZE,
+        subtitleFontSize: NODE_SUBTITLE_SIZE,
+        size: 'lg' as const,
+        iconColor: LOOK.components.configuration.iconColor,
+      };
+
+    case 'cloud':
+      return {
+        backgroundColor: 'transparent',
+        textColor: LOOK.text.primary,
+        subtitleColor: LOOK.text.muted,
+        titleFontSize: NODE_TITLE_SIZE,
+        subtitleFontSize: NODE_SUBTITLE_SIZE,
+        size: 'lg' as const,
+        iconColor: LOOK.components.cloud.iconColor,
+      };
+
+    case 'archive':
+      return {
+        backgroundColor: 'transparent',
+        textColor: LOOK.text.primary,
+        subtitleColor: LOOK.text.muted,
+        titleFontSize: NODE_TITLE_SIZE,
+        subtitleFontSize: NODE_SUBTITLE_SIZE,
+        size: 'lg' as const,
+        iconColor: LOOK.components.archive.iconColor,
+      };
+
+    case 'artificialIntelligence':
+      return {
+        backgroundColor: 'transparent',
+        textColor: LOOK.text.primary,
+        subtitleColor: LOOK.text.muted,
+        titleFontSize: NODE_TITLE_SIZE,
+        subtitleFontSize: NODE_SUBTITLE_SIZE,
+        size: 'lg' as const,
+        iconColor: LOOK.components.artificialIntelligence.iconColor,
+      };
+
+    case 'multimedia':
+      return {
+        backgroundColor: 'transparent',
+        textColor: LOOK.text.primary,
+        subtitleColor: LOOK.text.muted,
+        titleFontSize: NODE_TITLE_SIZE,
+        subtitleFontSize: NODE_SUBTITLE_SIZE,
+        size: 'lg' as const,
+        iconColor: LOOK.components.multimedia.iconColor,
       };
 
     default:

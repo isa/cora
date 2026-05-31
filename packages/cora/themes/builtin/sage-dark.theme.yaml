@@ -1,0 +1,27 @@
+id: sage-dark
+label: Sage Forest
+appearance: dark
+
+typography:
+  fontFamily: Lato
+
+strokes:
+  node: 1
+  edge: 1.75
+  group: 1
+
+palette:
+  bg: "#14532d"
+  surface: "#166534cc"
+  text: "#ecfccb"
+  muted: "#bef26499"
+  window: "#64748b"
+  windowBar: "#475569"
+  windowAddress: "#334155"
+  cyan: "#22d3ee55"
+  green: "#4ade8066"
+  orange: "#fb923c55"
+  yellow: "#facc1555"
+  purple: "#a78bfa55"
+  pink: "#f472b655"
+  red: "#f8717155"

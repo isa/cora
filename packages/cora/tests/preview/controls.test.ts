@@ -98,7 +98,6 @@ describe('preview controls', () => {
       'subtitleFontSize',
       'titleBold',
       'subtitleBold',
-      'backgroundColor',
     ]);
     // Icon labels expose text size and a bold toggle.
     expect(labelIconNodeControls.some((control) => control.key === 'titleFontSize')).toBe(true);
@@ -110,8 +109,8 @@ describe('preview controls', () => {
     expect(documentNodeControls.map((control) => control.key)).not.toContain('borderStyle');
     expect(documentNodeControls.map((control) => control.key)).not.toContain('borderColor');
     expect(documentNodeControls.map((control) => control.key)).not.toContain('borderWidth');
-    expect(documentNodeControls.map((control) => control.key)).toContain('shadow');
-    expect(documentNodeControls.map((control) => control.key)).toContain('shadowColor');
+    expect(documentNodeControls.map((control) => control.key)).not.toContain('shadow');
+    expect(documentNodeControls.map((control) => control.key)).not.toContain('shadowColor');
     expect(documentNodeControls.map((control) => control.key)).toContain('iconColor');
   });
 

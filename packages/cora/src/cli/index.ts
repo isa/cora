@@ -7,6 +7,16 @@ import { Command } from 'commander';
 import { registerRenderCommand } from './commands/render.js';
 import { registerSchemaCommand } from './commands/schema.js';
 import { registerValidateCommand } from './commands/validate.js';
+import { hydrateThemeRegistryFromDisk } from '../renderer/themes/loadThemesFromDisk.js';
+
+try {
+  hydrateThemeRegistryFromDisk();
+} catch (error) {
+  console.warn(
+    error instanceof Error ? error.message : String(error),
+    '(using bundled theme catalog)',
+  );
+}
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const packageJson = JSON.parse(

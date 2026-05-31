@@ -1,0 +1,148 @@
+typography:
+  fontFamily: Poppins
+  nodeLabel:
+    size: 12
+    weight: 600
+    fill: text
+  edgeLabel:
+    size: 10
+    weight: 400
+    fill: muted
+  groupLabel:
+    size: 12
+    weight: 600
+    fill: text
+
+strokes:
+  node: 1
+  edge: 2
+  group: 1
+
+canvas:
+  background: bg
+
+components:
+  box:
+    fill: cyan
+    stroke: cyan
+    labelFill: text
+    strokeWidth: node
+  label:
+    fill: none
+    stroke: none
+    labelFill: text
+    strokeWidth: 0
+  icon:
+    fill: none
+    stroke: none
+    iconColor: purple
+    labelFill: text
+    strokeWidth: 0
+  labelIcon:
+    fill: none
+    stroke: none
+    iconColor: purple
+    labelFill: text
+    strokeWidth: 0
+  website:
+    fill: surface
+    stroke: none
+    windowColor: window
+    windowBarColor: windowBar
+    windowAddressBarColor: windowAddress
+    skeletonColor: muted
+    labelFill: text
+    strokeWidth: 0
+  document:
+    fill: none
+    stroke: none
+    iconColor: yellow
+    labelFill: text
+    strokeWidth: 0
+  api:
+    fill: none
+    stroke: none
+    iconColor: orange
+    labelFill: text
+    strokeWidth: 0
+  database:
+    fill: none
+    stroke: none
+    iconColor: green
+    labelFill: text
+    strokeWidth: 0
+  decision:
+    fill: none
+    stroke: none
+    iconColor: cyan
+    labelFill: text
+    strokeWidth: 0
+  analytics:
+    fill: none
+    stroke: none
+    iconColor: purple
+    labelFill: text
+    strokeWidth: 0
+  person:
+    fill: none
+    stroke: none
+    iconColor: cyan
+    labelFill: text
+    strokeWidth: 0
+  people:
+    fill: none
+    stroke: none
+    iconColor: purple
+    labelFill: text
+    strokeWidth: 0
+  configuration:
+    fill: none
+    stroke: none
+    iconColor: muted
+    labelFill: text
+    strokeWidth: 0
+  cloud:
+    fill: none
+    stroke: none
+    iconColor: cyan
+    labelFill: text
+    strokeWidth: 0
+  archive:
+    fill: none
+    stroke: none
+    iconColor: yellow
+    labelFill: text
+    strokeWidth: 0
+  artificialIntelligence:
+    fill: none
+    stroke: none
+    iconColor: purple
+    labelFill: text
+    strokeWidth: 0
+  multimedia:
+    fill: none
+    stroke: none
+    iconColor: pink
+    labelFill: text
+    strokeWidth: 0
+  app:
+    fill: none
+    stroke: none
+    iconColor: pink
+    labelFill: text
+    strokeWidth: 0
+  group:
+    fill: none
+    stroke: muted
+    strokeDasharray: "4 4"
+    strokeWidth: group
+
+edge:
+  stroke: muted
+  width: edge
+
+group:
+  fill: none
+  stroke: muted
+  strokeDasharray: "4 4"
+  strokeWidth: group

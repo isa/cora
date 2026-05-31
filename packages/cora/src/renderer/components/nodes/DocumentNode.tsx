@@ -1,11 +1,12 @@
 import type { DocumentNodeProps as BaseDocumentNodeProps } from '../types.js';
 import { resolveCatalogTextLayout } from '../../../core/catalogTextLayout.js';
 import { DOCUMENT_SIZE_PRESETS, ICON_NODE_ART_SIZE, resolveDocumentComponentSize } from '../styles.js';
-import { CatalogShadow, CatalogText, resolvedCatalogFrame } from './shared.js';
+import { CatalogText, resolvedCatalogFrame } from './shared.js';
 
 export interface DocumentNodeProps extends BaseDocumentNodeProps {
   x?: number;
   y?: number;
+  iconColor?: string;
 }
 
 const ARTBOARD = 24;
@@ -49,21 +50,10 @@ export function DocumentNode(props: DocumentNodeProps) {
   const offsetY = frame.y + topPadding + (frame.height - scaledArtHeight - textHeight - labelGap - topPadding - bottomPadding) / 2;
 
   const textY = offsetY + scaledArtHeight + labelGap;
-  const iconColor = props.iconColor ?? frame.borderColor ?? '#334155';
-  const shadowFill = frame.backgroundColor === 'transparent' ? '#ffffff' : frame.backgroundColor;
+  const iconColor = props.iconColor ?? '#eab308';
 
   return (
     <g>
-      <CatalogShadow
-        x={offsetX + 2 * scale}
-        y={offsetY + 2 * scale}
-        width={20 * scale}
-        height={20 * scale}
-        radius={4 * scale}
-        fill={shadowFill}
-        shadow={frame.shadow}
-        shadowColor={frame.shadowColor}
-      />
       <g
         transform={`translate(${offsetX}, ${offsetY}) scale(${scale})`}
         color={iconColor}

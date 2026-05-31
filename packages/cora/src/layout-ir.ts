@@ -14,7 +14,16 @@ export type DiagramComponent =
   | 'document'
   | 'api'
   | 'database'
-  | 'app';
+  | 'app'
+  | 'decision'
+  | 'analytics'
+  | 'person'
+  | 'people'
+  | 'configuration'
+  | 'cloud'
+  | 'archive'
+  | 'artificialIntelligence'
+  | 'multimedia';
 
 export type EdgeMarker =
   | 'none'
@@ -33,18 +42,33 @@ export interface ThemeShapeStyle {
   labelFill?: string;
   strokeWidth?: number;
   strokeDasharray?: string;
+  iconColor?: string;
+  skeletonColor?: string;
+  windowColor?: string;
+  windowBarColor?: string;
+  windowAddressBarColor?: string;
+}
+
+export interface ThemeLabelStyle {
+  fontSize: number;
+  fontWeight: number;
+  fill: string;
+  fontFamily: string;
 }
 
 export interface ThemeTokens {
   background: string;
+  fontFamily: string;
+  strokes: {
+    node: number;
+    edge: number;
+    group: number;
+  };
   shapes: Record<string, ThemeShapeStyle>;
   edge: { stroke: string; strokeWidth: number };
-  nodeLabel: { fontSize: number; fontWeight: number; fill: string };
-  edgeLabel: {
-    fontSize: number;
-    fontWeight: number;
-    fill: string;
-  };
+  nodeLabel: ThemeLabelStyle;
+  edgeLabel: ThemeLabelStyle;
+  groupLabel: ThemeLabelStyle;
   shadowOffset: { x: number; y: number };
   shadowBlur: number;
 }

@@ -4,12 +4,30 @@ import {
   resolveAppComponentSize,
   resolveApiComponentSize,
   resolveDatabaseComponentSize,
+  resolveAnalyticsComponentSize,
+  resolveConfigurationComponentSize,
+  resolveDecisionComponentSize,
   resolveDocumentComponentSize,
   resolveLabelIconComponentSize,
+  resolveCloudComponentSize,
+  resolveArchiveComponentSize,
+  resolveArtificialIntelligenceComponentSize,
+  resolveMultimediaComponentSize,
+  resolvePeopleComponentSize,
+  resolvePersonComponentSize,
   APP_SIZE_PRESETS,
   API_SIZE_PRESETS,
   DATABASE_SIZE_PRESETS,
+  ANALYTICS_SIZE_PRESETS,
+  CONFIGURATION_SIZE_PRESETS,
+  DECISION_SIZE_PRESETS,
+  CLOUD_SIZE_PRESETS,
+  ARCHIVE_SIZE_PRESETS,
+  ARTIFICIAL_INTELLIGENCE_SIZE_PRESETS,
+  MULTIMEDIA_SIZE_PRESETS,
   DOCUMENT_SIZE_PRESETS,
+  PEOPLE_SIZE_PRESETS,
+  PERSON_SIZE_PRESETS,
   WEBSITE_SIZE_PRESETS,
   LABEL_ICON_SIZE_PRESETS,
   ICON_NODE_ART_SIZE,
@@ -19,6 +37,10 @@ import {
 } from '../renderer/components/styles.js';
 import { resolveCatalogTextLayout } from '../core/catalogTextLayout.js';
 import {
+  API_CONNECTION_GAP,
+  DOCUMENT_CONNECTION_GAP,
+  PEOPLE_CONNECTION_GAP,
+  WEBSITE_CONNECTION_GAP,
   chooseConnectionSides,
   connectionAnchorBox,
   sidePoint,
@@ -92,7 +114,28 @@ function previewBaseSize(node: CanvasNode): { width: number; height: number } {
       ? resolveApiComponentSize(node.props.size, API_SIZE_PRESETS.lg)
       : node.componentId === 'database'
         ? resolveDatabaseComponentSize(node.props.size, DATABASE_SIZE_PRESETS.lg)
-        : node.componentId === 'document'
+        : node.componentId === 'decision'
+          ? resolveDecisionComponentSize(node.props.size, DECISION_SIZE_PRESETS.lg)
+          : node.componentId === 'analytics'
+            ? resolveAnalyticsComponentSize(node.props.size, ANALYTICS_SIZE_PRESETS.lg)
+            : node.componentId === 'person'
+              ? resolvePersonComponentSize(node.props.size, PERSON_SIZE_PRESETS.lg)
+              : node.componentId === 'people'
+                ? resolvePeopleComponentSize(node.props.size, PEOPLE_SIZE_PRESETS.lg)
+                : node.componentId === 'configuration'
+                  ? resolveConfigurationComponentSize(node.props.size, CONFIGURATION_SIZE_PRESETS.lg)
+                  : node.componentId === 'cloud'
+                    ? resolveCloudComponentSize(node.props.size, CLOUD_SIZE_PRESETS.lg)
+                    : node.componentId === 'archive'
+                      ? resolveArchiveComponentSize(node.props.size, ARCHIVE_SIZE_PRESETS.lg)
+                      : node.componentId === 'artificialIntelligence'
+                        ? resolveArtificialIntelligenceComponentSize(
+                            node.props.size,
+                            ARTIFICIAL_INTELLIGENCE_SIZE_PRESETS.lg,
+                          )
+                        : node.componentId === 'multimedia'
+                          ? resolveMultimediaComponentSize(node.props.size, MULTIMEDIA_SIZE_PRESETS.lg)
+                          : node.componentId === 'document'
           ? resolveDocumentComponentSize(node.props.size, DOCUMENT_SIZE_PRESETS.lg)
           : node.componentId === 'website'
             ? resolveWebsiteComponentSize(node.props.size, WEBSITE_SIZE_PRESETS.lg)
@@ -100,7 +143,7 @@ function previewBaseSize(node: CanvasNode): { width: number; height: number } {
               ? resolveLabelIconComponentSize(node.props.size, LABEL_ICON_SIZE_PRESETS.lg)
                 : node.componentId === 'icon'
                   ? resolveAppComponentSize(node.props.size, APP_SIZE_PRESETS.lg)
-                : resolveComponentSize(node.props.size, { width: 120, height: 56 });
+                : resolveComponentSize(node.props.size, { width: 120, height: 45 });
 }
 
 export function previewNodeSize(node: CanvasNode): { width: number; height: number } {
@@ -157,7 +200,7 @@ export function previewNodeSize(node: CanvasNode): { width: number; height: numb
     };
   }
 
-  if (node.componentId === 'app' || node.componentId === 'database') {
+  if (node.componentId === 'app' || node.componentId === 'database' || node.componentId === 'decision' || node.componentId === 'analytics' || node.componentId === 'person' || node.componentId === 'people' || node.componentId === 'configuration' || node.componentId === 'cloud' || node.componentId === 'archive' || node.componentId === 'artificialIntelligence' || node.componentId === 'multimedia') {
     const ratio = iconNodeScale(base);
     const artSize = ICON_NODE_ART_SIZE * ratio;
     const textHeight = hasText
@@ -353,6 +396,137 @@ function iconLikeArtCenter(
   return { x: offsetX + artSize / 2, y: offsetY + artSize / 2 };
 }
 
+function stackedIconVisualBox(box: PreviewBox, node: CanvasNode): PreviewBox {
+  const ratio = iconNodeScale(box);
+  const artSize = ICON_NODE_ART_SIZE * ratio;
+  const center = iconLikeArtCenter(box, node);
+  const artY = center.y - artSize / 2;
+  const bottomEdge = box.y + box.height;
+
+  return {
+    id: box.id,
+    x: center.x - artSize / 2,
+    y: artY,
+    width: artSize,
+    height: bottomEdge - artY,
+  };
+}
+
+function websiteIconVisualBox(box: PreviewBox, node: CanvasNode): PreviewBox {
+  const hasLabel = nodeHasLabelText(node);
+  const titleFontSize = node.props.titleFontSize ?? 12;
+  const subtitleFontSize = node.props.subtitleFontSize ?? Math.max(8, titleFontSize - 2);
+  const textHeight = hasLabel
+    ? wrappedTextHeight(node, box.width, titleFontSize, subtitleFontSize)
+    : 0;
+  const labelGap = hasLabel ? 8 : 0;
+  const topPadding = hasLabel ? 6 : 0;
+  const bottomPadding = hasLabel ? 6 : 0;
+  const artHeight = Math.max(24, box.height - textHeight - labelGap - topPadding - bottomPadding);
+  const scale = Math.min(box.width / 624, artHeight / 584);
+  const artWidth = 624 * scale;
+  const scaledArtHeight = 584 * scale;
+  const offsetX = box.x + (box.width - artWidth) / 2;
+  const offsetY = box.y + topPadding + (artHeight - scaledArtHeight) / 2;
+  const gap = WEBSITE_CONNECTION_GAP * scale;
+  const windowX = offsetX + 12 * scale;
+  const windowY = offsetY + 12 * scale;
+  const bottomEdge = box.y + box.height;
+
+  return {
+    id: box.id,
+    x: windowX - gap,
+    y: windowY - gap,
+    width: 600 * scale + gap * 2,
+    height: bottomEdge - (windowY - gap),
+  };
+}
+
+function documentIconVisualBox(box: PreviewBox, node: CanvasNode): PreviewBox {
+  const ratio = Math.min(
+    box.width / DOCUMENT_SIZE_PRESETS.lg.width,
+    box.height / DOCUMENT_SIZE_PRESETS.lg.height,
+  );
+  const hasText = nodeHasLabelText(node);
+  const titleFontSize = (node.props.titleFontSize ?? 12) * ratio;
+  const subtitleFontSize = (node.props.subtitleFontSize ?? Math.max(8, (node.props.titleFontSize ?? 12) - 2)) * ratio;
+  const textHeight = hasText
+    ? wrappedTextHeight(node, box.width, titleFontSize, subtitleFontSize)
+    : 0;
+  const labelGap = (hasText ? 8 : 0) * ratio;
+  const topPadding = 12 * ratio;
+  const bottomPadding = (hasText ? 8 : 12) * ratio;
+  const scale = (ICON_NODE_ART_SIZE / 24) * ratio;
+  const artWidth = 24 * scale;
+  const artHeight = 24 * scale;
+  const artY = box.y + topPadding + (box.height - artHeight - textHeight - labelGap - topPadding - bottomPadding) / 2;
+  const offsetX = box.x + (box.width - artWidth) / 2;
+  const gap = DOCUMENT_CONNECTION_GAP * scale;
+  const bottomEdge = box.y + box.height;
+
+  return {
+    id: box.id,
+    x: offsetX,
+    y: artY - gap,
+    width: artWidth,
+    height: bottomEdge - (artY - gap),
+  };
+}
+
+function apiIconVisualBox(box: PreviewBox, node: CanvasNode): PreviewBox {
+  const ratio = iconNodeScale(box);
+  const artSize = ICON_NODE_ART_SIZE * ratio;
+  const scale = artSize / 256;
+  const hasText = nodeHasLabelText(node);
+  const titleFontSize = (node.props.titleFontSize ?? 12) * ratio;
+  const subtitleFontSize = (node.props.subtitleFontSize ?? Math.max(8, (node.props.titleFontSize ?? 12) - 2)) * ratio;
+  const textHeight = hasText
+    ? wrappedTextHeight(node, box.width, titleFontSize, subtitleFontSize)
+    : 0;
+  const labelGap = (hasText ? 8 : 0) * ratio;
+  const topPadding = (hasText ? 6 : 0) * ratio;
+  const bottomPadding = (hasText ? 6 : 0) * ratio;
+  const artY = box.y + topPadding + (box.height - artSize - textHeight - labelGap - topPadding - bottomPadding) / 2;
+  const offsetX = box.x + (box.width - artSize) / 2;
+  const gap = API_CONNECTION_GAP * scale;
+  const bottomEdge = box.y + box.height;
+
+  return {
+    id: box.id,
+    x: offsetX + 40 * scale - gap,
+    y: artY + 32 * scale - gap,
+    width: 176 * scale + gap * 2,
+    height: bottomEdge - (artY + 32 * scale - gap),
+  };
+}
+
+function peopleIconVisualBox(box: PreviewBox, node: CanvasNode): PreviewBox {
+  const ratio = iconNodeScale(box);
+  const artSize = ICON_NODE_ART_SIZE * ratio;
+  const scale = artSize / 24;
+  const hasText = nodeHasLabelText(node);
+  const titleFontSize = (node.props.titleFontSize ?? 12) * ratio;
+  const subtitleFontSize = (node.props.subtitleFontSize ?? Math.max(8, (node.props.titleFontSize ?? 12) - 2)) * ratio;
+  const textHeight = hasText
+    ? wrappedTextHeight(node, box.width, titleFontSize, subtitleFontSize)
+    : 0;
+  const labelGap = (hasText ? 8 : 0) * ratio;
+  const topPadding = (hasText ? 6 : 0) * ratio;
+  const bottomPadding = (hasText ? 6 : 0) * ratio;
+  const artY = box.y + topPadding + (box.height - artSize - textHeight - labelGap - topPadding - bottomPadding) / 2;
+  const offsetX = box.x + (box.width - artSize) / 2;
+  const gap = PEOPLE_CONNECTION_GAP * scale;
+  const bottomEdge = box.y + box.height;
+
+  return {
+    id: box.id,
+    x: offsetX - gap,
+    y: artY - gap,
+    width: artSize + gap * 2,
+    height: bottomEdge - (artY - gap),
+  };
+}
+
 /** Resize anchor for center-anchored scaling (icon/device centre, excluding label text). */
 export function nodeResizeCenter(state: WorkbenchState, nodeId: string): PreviewPoint | undefined {
   const node = state.nodes.find((item) => item.id === nodeId);
@@ -442,6 +616,15 @@ export function nodeResizeCenter(state: WorkbenchState, nodeId: string): Preview
   if (
     node.componentId === 'api' ||
     node.componentId === 'database' ||
+    node.componentId === 'decision' ||
+    node.componentId === 'analytics' ||
+    node.componentId === 'person' ||
+    node.componentId === 'people' ||
+    node.componentId === 'configuration' ||
+    node.componentId === 'cloud' ||
+    node.componentId === 'archive' ||
+    node.componentId === 'artificialIntelligence' ||
+    node.componentId === 'multimedia' ||
     node.componentId === 'labelIcon'
   ) {
     return iconLikeArtCenter(box, node);
@@ -533,6 +716,36 @@ function iconVisualBox(state: WorkbenchState, nodeId: string): PreviewBox | unde
       width: artWidth,
       height: bottomEdge - offsetY,
     };
+  }
+
+  if (node.componentId === 'api') {
+    return apiIconVisualBox(box, node);
+  }
+
+  if (node.componentId === 'document') {
+    return documentIconVisualBox(box, node);
+  }
+
+  if (node.componentId === 'website') {
+    return websiteIconVisualBox(box, node);
+  }
+
+  if (node.componentId === 'people') {
+    return peopleIconVisualBox(box, node);
+  }
+
+  if (
+    node.componentId === 'database' ||
+    node.componentId === 'decision' ||
+    node.componentId === 'analytics' ||
+    node.componentId === 'person' ||
+    node.componentId === 'configuration' ||
+    node.componentId === 'cloud' ||
+    node.componentId === 'archive' ||
+    node.componentId === 'artificialIntelligence' ||
+    node.componentId === 'multimedia'
+  ) {
+    return stackedIconVisualBox(box, node);
   }
 
   return box;

@@ -2,7 +2,6 @@ import type { BoxStyleProps } from '../types.js';
 import { resolveCatalogTextLayout } from '../../../core/catalogTextLayout.js';
 import { DATABASE_SIZE_PRESETS, ICON_NODE_ART_SIZE, iconNodeScale, resolveDatabaseComponentSize } from '../styles.js';
 import {
-  CatalogShadow,
   CatalogText,
   resolvedCatalogFrame,
 } from './shared.js';
@@ -47,26 +46,10 @@ export function DatabaseNode(props: DatabaseNodeProps) {
   const offsetX = frame.x + (frame.width - artSize) / 2;
   const offsetY = frame.y + topPadding + (frame.height - artSize - textHeight - labelGap - topPadding - bottomPadding) / 2;
   const textY = offsetY + artSize + labelGap;
-  const iconColor = props.iconColor ?? frame.borderColor ?? '#334155';
-  const shadowFill = frame.backgroundColor === 'transparent' ? '#ffffff' : frame.backgroundColor;
-  const shadowX = offsetX + 5 * scale;
-  const shadowY = offsetY + 4 * scale;
-  const shadowWidth = 14 * scale;
-  const shadowHeight = 16 * scale;
-  const shadowRadius = 2 * scale;
+  const iconColor = props.iconColor ?? '#22c55e';
 
   return (
     <g>
-      <CatalogShadow
-        x={shadowX}
-        y={shadowY}
-        width={shadowWidth}
-        height={shadowHeight}
-        radius={shadowRadius}
-        fill={shadowFill}
-        shadow={frame.shadow}
-        shadowColor={frame.shadowColor}
-      />
       <g
         transform={`translate(${offsetX}, ${offsetY}) scale(${scale})`}
         color={iconColor}

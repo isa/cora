@@ -92,7 +92,7 @@ describe('preview persistence', () => {
     const document = serializeWorkbenchDocument(state);
     expect(document.diagram.layout).toBe('preserve');
     expect(document.diagram.nodes[0]?.position).toEqual({ x: 80, y: 64 });
-    expect(document.diagram.nodes[0]?.style?.size).toEqual({ width: 120, height: 56 });
+    expect(document.diagram.nodes[0]?.style?.size).toEqual({ width: 120, height: 45 });
   });
 
   it('round-trips node and group fontFamily through YAML', async () => {

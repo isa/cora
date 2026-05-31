@@ -144,8 +144,8 @@ describe('preview geometry', () => {
     );
     const node = withLabelIcon.nodes.at(-1)!;
     const box = computeNodeBox(withLabelIcon, node.id)!;
-    // Centred on the connection line between the two (now 37px-tall) boxes.
-    expect(box.y).toBe(70.5);
+    // Centred on the connection line between the two compact boxes.
+    expect(box.y).toBe(74.5);
   });
 
   it('centers attached labels on their connection path', () => {
@@ -265,6 +265,84 @@ describe('preview geometry', () => {
     expect(threeStarts[2]!.y).toBeLessThan(threeStarts[1]!.y);
   });
 
+  it('centers analytics side anchors on the chart artwork instead of artwork plus text', () => {
+    const withAnalytics = addNodeToCanvas(createDefaultWorkbenchState(), 'analytics', { x: 100, y: 100 });
+    const state = addNodeToCanvas(
+      selectCanvasItem(withAnalytics, { kind: 'node', id: withAnalytics.nodes[0]!.id }),
+      'box',
+      { x: 360, y: 100 },
+    );
+    const start = computeConnectionPoints(state, state.connections[0]!)[0]!;
+
+    expect(start.x).toBe(176);
+    expect(start.y).toBe(136.5);
+  });
+
+  it('centers configuration side anchors on the settings artwork instead of artwork plus text', () => {
+    const withConfiguration = addNodeToCanvas(createDefaultWorkbenchState(), 'configuration', { x: 100, y: 100 });
+    const state = addNodeToCanvas(
+      selectCanvasItem(withConfiguration, { kind: 'node', id: withConfiguration.nodes[0]!.id }),
+      'box',
+      { x: 360, y: 100 },
+    );
+    const start = computeConnectionPoints(state, state.connections[0]!)[0]!;
+
+    expect(start.x).toBe(176);
+    expect(start.y).toBe(136.5);
+  });
+
+  it('centers cloud side anchors on the cloud artwork instead of artwork plus text', () => {
+    const withCloud = addNodeToCanvas(createDefaultWorkbenchState(), 'cloud', { x: 100, y: 100 });
+    const state = addNodeToCanvas(
+      selectCanvasItem(withCloud, { kind: 'node', id: withCloud.nodes[0]!.id }),
+      'box',
+      { x: 360, y: 100 },
+    );
+    const start = computeConnectionPoints(state, state.connections[0]!)[0]!;
+
+    expect(start.x).toBe(176);
+    expect(start.y).toBe(136.5);
+  });
+
+  it('centers archive side anchors on the box artwork instead of artwork plus text', () => {
+    const withArchive = addNodeToCanvas(createDefaultWorkbenchState(), 'archive', { x: 100, y: 100 });
+    const state = addNodeToCanvas(
+      selectCanvasItem(withArchive, { kind: 'node', id: withArchive.nodes[0]!.id }),
+      'box',
+      { x: 360, y: 100 },
+    );
+    const start = computeConnectionPoints(state, state.connections[0]!)[0]!;
+
+    expect(start.x).toBe(176);
+    expect(start.y).toBe(136.5);
+  });
+
+  it('centers artificialIntelligence side anchors on the AI artwork instead of artwork plus text', () => {
+    const withAi = addNodeToCanvas(createDefaultWorkbenchState(), 'artificialIntelligence', { x: 100, y: 100 });
+    const state = addNodeToCanvas(
+      selectCanvasItem(withAi, { kind: 'node', id: withAi.nodes[0]!.id }),
+      'box',
+      { x: 360, y: 100 },
+    );
+    const start = computeConnectionPoints(state, state.connections[0]!)[0]!;
+
+    expect(start.x).toBe(176);
+    expect(start.y).toBe(136.5);
+  });
+
+  it('centers multimedia side anchors on the multimedia artwork instead of artwork plus text', () => {
+    const withMultimedia = addNodeToCanvas(createDefaultWorkbenchState(), 'multimedia', { x: 100, y: 100 });
+    const state = addNodeToCanvas(
+      selectCanvasItem(withMultimedia, { kind: 'node', id: withMultimedia.nodes[0]!.id }),
+      'box',
+      { x: 360, y: 100 },
+    );
+    const start = computeConnectionPoints(state, state.connections[0]!)[0]!;
+
+    expect(start.x).toBe(176);
+    expect(start.y).toBe(136.5);
+  });
+
   it('centers app side anchors on the phone artwork instead of artwork plus text', () => {
     const withApp = addNodeToCanvas(createDefaultWorkbenchState(), 'app', { x: 100, y: 100 });
     const state = addNodeToCanvas(
@@ -297,7 +375,7 @@ describe('preview geometry', () => {
     );
 
     expect(starts.map((point) => point.x)).toEqual([176, 176]);
-    expect(starts.map((point) => point.y)).toEqual([127.16666666666666, 145.83333333333331]);
+    expect(starts.map((point) => point.y)).toEqual([126.38888888888889, 146.6111111111111]);
     expect((starts[0]!.y + starts[1]!.y) / 2).toBe(136.5);
   });
 

@@ -1,0 +1,27 @@
+id: ember-dark
+label: Ember Coal
+appearance: dark
+
+typography:
+  fontFamily: Montserrat
+
+strokes:
+  node: 1.25
+  edge: 2.5
+  group: 1
+
+palette:
+  bg: "#1c1917"
+  surface: "#292524cc"
+  text: "#fafaf9"
+  muted: "#a8a29e99"
+  window: "#64748b"
+  windowBar: "#475569"
+  windowAddress: "#334155"
+  cyan: "#06b6d466"
+  green: "#84cc1655"
+  orange: "#f9731666"
+  yellow: "#eab30855"
+  purple: "#a855f755"
+  pink: "#ec489955"
+  red: "#ef444466"

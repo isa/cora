@@ -1,0 +1,27 @@
+id: ember-light
+label: Ember Glow
+appearance: light
+
+typography:
+  fontFamily: Montserrat
+
+strokes:
+  node: 1.25
+  edge: 2
+  group: 1
+
+palette:
+  bg: "#fff7ed"
+  surface: "#ffffffcc"
+  text: "#431407"
+  muted: "#9a341299"
+  window: "#cbd5e1"
+  windowBar: "#e8eaed"
+  windowAddress: "#ffffff"
+  cyan: "#0891b266"
+  green: "#65a30d55"
+  orange: "#ea580c66"
+  yellow: "#ca8a0455"
+  purple: "#9333ea55"
+  pink: "#db277755"
+  red: "#dc262655"

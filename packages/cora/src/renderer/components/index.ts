@@ -23,13 +23,31 @@ export {
   APP_SIZE_PRESETS,
   API_SIZE_PRESETS,
   DATABASE_SIZE_PRESETS,
+  ANALYTICS_SIZE_PRESETS,
+  CONFIGURATION_SIZE_PRESETS,
+  DECISION_SIZE_PRESETS,
+  CLOUD_SIZE_PRESETS,
+  ARCHIVE_SIZE_PRESETS,
+  ARTIFICIAL_INTELLIGENCE_SIZE_PRESETS,
+  MULTIMEDIA_SIZE_PRESETS,
   DOCUMENT_SIZE_PRESETS,
   LABEL_ICON_SIZE_PRESETS,
+  PEOPLE_SIZE_PRESETS,
+  PERSON_SIZE_PRESETS,
   resolveAppComponentSize,
   resolveApiComponentSize,
   resolveDatabaseComponentSize,
+  resolveAnalyticsComponentSize,
+  resolveConfigurationComponentSize,
+  resolveDecisionComponentSize,
   resolveDocumentComponentSize,
   resolveLabelIconComponentSize,
+  resolvePeopleComponentSize,
+  resolveArtificialIntelligenceComponentSize,
+  resolveCloudComponentSize,
+  resolveArchiveComponentSize,
+  resolveMultimediaComponentSize,
+  resolvePersonComponentSize,
 } from './styles.js';
 export { Line, linePathData } from './lines/Line.js';
 export type { LineProps } from './lines/Line.js';
@@ -76,3 +94,12 @@ export { DocumentNode } from './nodes/DocumentNode.js';
 export { ApiNode } from './nodes/ApiNode.js';
 export { DatabaseNode } from './nodes/DatabaseNode.js';
 export { AppNode } from './nodes/AppNode.js';
+export { AnalyticsNode } from './nodes/AnalyticsNode.js';
+export { ConfigurationNode } from './nodes/ConfigurationNode.js';
+export { DecisionNode } from './nodes/DecisionNode.js';
+export { ArtificialIntelligenceNode } from './nodes/ArtificialIntelligenceNode.js';
+export { ArchiveNode } from './nodes/ArchiveNode.js';
+export { CloudNode } from './nodes/CloudNode.js';
+export { MultimediaNode } from './nodes/MultimediaNode.js';
+export { PersonNode } from './nodes/PersonNode.js';
+export { PeopleNode } from './nodes/PeopleNode.js';

@@ -1,0 +1,27 @@
+id: folio-light
+label: Folio Mist
+appearance: light
+
+typography:
+  fontFamily: Source Sans 3
+
+strokes:
+  node: 1
+  edge: 1.5
+  group: 1
+
+palette:
+  bg: "#f8fafc"
+  surface: "#ffffffcc"
+  text: "#0f172a"
+  muted: "#64748b99"
+  window: "#cbd5e1"
+  windowBar: "#e8eaed"
+  windowAddress: "#ffffff"
+  cyan: "#0ea5e966"
+  green: "#22c55e55"
+  orange: "#f9731655"
+  yellow: "#eab30855"
+  purple: "#a855f755"
+  pink: "#ec489955"
+  red: "#ef444455"

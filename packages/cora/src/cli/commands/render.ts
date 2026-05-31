@@ -12,6 +12,8 @@ import {
   measureNodes,
   parseFile,
   resolveTheme,
+  resolveThemeNameInput,
+  listInstalledThemeIds,
   terminateElkWorker,
   validateDocument,
 } from '../../core/index.js';
@@ -103,6 +105,10 @@ export function registerRenderCommand(program: Command): void {
       'ASCII/Text rendering engine: layout or svg',
       'svg',
     )
+    .option(
+      '--theme <id>',
+      'Diagram theme id or label slug (overrides diagram.theme in the file)',
+    )
     .action(
       async (
         file: string | undefined,
@@ -116,6 +122,7 @@ export function registerRenderCommand(program: Command): void {
           page?: string;
           quality?: string;
           asciiEngine?: string;
+          theme?: string;
         },
       ) => {
         if (!file) {
@@ -168,6 +175,15 @@ export function registerRenderCommand(program: Command): void {
           }
 
           const doc = parsed.document as { version: 1; diagram: import('../../core/types.js').Diagram };
+          if (options.theme) {
+            const resolvedTheme = resolveThemeNameInput(options.theme);
+            if (!resolvedTheme) {
+              program.error(
+                `Unknown theme "${options.theme}". Use one of: ${listInstalledThemeIds().join(', ')}`,
+              );
+            }
+            doc.diagram = { ...doc.diagram, theme: resolvedTheme };
+          }
           let baseTheme = defaultTheme;
           if (options.monochrome) baseTheme = toMonochrome(baseTheme);
           if (options.withoutShadow) baseTheme = withoutShadow(baseTheme);

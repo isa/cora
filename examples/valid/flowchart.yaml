@@ -2,7 +2,7 @@ version: 1
 diagram:
   kind: flowchart
   layout: preserve
-  theme: dark
+  theme: folio-dark
   direction: TB
   nodes:
     - id: start
@@ -33,8 +33,8 @@ diagram:
       label: Valid?
       component: box
       position:
-        x: 250.47105883856227
-        y: 151.93467904946218
+        x: 200
+        y: 128
       style:
         title: Valid?
         text: Valid?

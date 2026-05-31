@@ -161,8 +161,9 @@ describe('preview workbench', () => {
     expect(markup).toContain('Components');
     expect(markup).toContain('Search components and icons...');
     expect(markup).toContain('aria-label="Diagram theme"');
-    expect(markup).toContain('>Light</option>');
-    expect(markup).toContain('>Dark</option>');
+    expect(markup).toContain('>Folio Mist</option>');
+    expect(markup).not.toContain('>Folio Night</option>');
+    expect(markup).toContain('>Ocean Spray</option>');
     expect(markup).toContain('aria-label="Light preview UI"');
     expect(markup).toContain('aria-label="Dark preview UI"');
     expect(markup).toContain('draggable="true"');

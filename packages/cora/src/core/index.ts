@@ -32,7 +32,15 @@ export {
   runElkLayout,
   terminateElkWorker,
 } from './layoutWorker.js';
-export { applyNodeStyles, resolveTheme } from './themeResolver.js';
+export {
+  applyNodeStyles,
+  resolveTheme,
+  DEFAULT_THEME_ID,
+  findDiagramTheme,
+  listInstalledThemeIds,
+  normalizeDiagramThemeName,
+  resolveThemeNameInput,
+} from './themeResolver.js';
 export { renderDiagram } from './renderPipeline.js';
 export type {
   Diagram,

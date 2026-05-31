@@ -9,7 +9,6 @@ import {
   resolveAppComponentSize,
 } from '../styles.js';
 import {
-  CatalogShadow,
   CatalogText,
   resolvedCatalogFrame,
 } from './shared.js';
@@ -17,6 +16,7 @@ import {
 export interface AppNodeProps extends BoxStyleProps {
   x?: number;
   y?: number;
+  iconColor?: string;
 }
 
 // majesticons:iphone-old-apps (MIT), adapted — taller frame, home button pinned to bottom.
@@ -95,21 +95,10 @@ export function AppNode(props: AppNodeProps) {
   const iconX = frame.x + (frame.width - iconWidth) / 2;
   const iconY = frame.y + topPadding + (frame.height - iconHeight - textHeight - labelGap - topPadding - bottomPadding) / 2;
   const textY = iconY + iconHeight + labelGap;
-  const iconColor = frame.borderColor ?? '#000000';
-  const shadowFill = frame.backgroundColor === 'transparent' ? '#ffffff' : frame.backgroundColor;
+  const iconColor = props.iconColor ?? '#ec4899';
 
   return (
     <g>
-      <CatalogShadow
-        x={iconX}
-        y={iconY}
-        width={iconWidth}
-        height={iconHeight}
-        radius={10 * ratio}
-        fill={shadowFill}
-        shadow={frame.shadow}
-        shadowColor={frame.shadowColor}
-      />
       <IphoneOldAppsIcon
         x={iconX}
         y={iconY}

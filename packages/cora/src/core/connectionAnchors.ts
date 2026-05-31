@@ -1,6 +1,9 @@
 import type { DiagramComponent, LayoutedEdge, LayoutedNode } from '../layout-ir.js';
 import { resolveCatalogTextLayout } from './catalogTextLayout.js';
 import {
+  APP_ICON_VIEW_HEIGHT,
+  APP_ICON_VIEW_WIDTH,
+  DOCUMENT_SIZE_PRESETS,
   ICON_NODE_ART_SIZE,
   iconNodeScale,
 } from '../renderer/components/styles.js';
@@ -58,12 +61,21 @@ function textHeightForNode(node: AnchorNode, ratio: number, defaultTitleSize = D
 }
 
 function centeredArtworkBox(node: AnchorNode, artSize: number, artY: number): AnchorBox {
+  return rectArtworkBox(node, artSize, artSize, artY);
+}
+
+function rectArtworkBox(
+  node: AnchorNode,
+  artWidth: number,
+  artHeight: number,
+  artY: number,
+): AnchorBox {
   return {
     id: node.id,
-    x: node.x + (node.width - artSize) / 2,
+    x: node.x + (node.width - artWidth) / 2,
     y: artY,
-    width: artSize,
-    height: artSize,
+    width: artWidth,
+    height: artHeight,
   };
 }
 
@@ -71,6 +83,49 @@ function artworkAndBottomTextBox(node: AnchorNode, artwork: AnchorBox): AnchorBo
   return {
     ...artwork,
     height: node.y + node.height - artwork.y,
+  };
+}
+
+const PEOPLE_ARTBOARD = 24;
+// ~7px clearance at default lg icon scale, matching document connector spacing.
+export const PEOPLE_CONNECTION_GAP = 3;
+
+// Phosphor cube-duotone silhouette on the 256×256 artboard.
+const API_ARTBOARD = 256;
+const API_CUBE_X = 40;
+const API_CUBE_Y = 32;
+const API_CUBE_WIDTH = 176;
+const API_CUBE_HEIGHT = 200;
+// Outward padding so connectors clear the cube faces like other icon nodes.
+export const API_CONNECTION_GAP = 32;
+
+const DOCUMENT_ARTBOARD = 24;
+// ~7px clearance at default lg icon scale, matching API connector spacing.
+export const DOCUMENT_CONNECTION_GAP = 3;
+
+const WEBSITE_ART_WIDTH = 624;
+const WEBSITE_ART_HEIGHT = 584;
+const WEBSITE_WINDOW_X = 100;
+const WEBSITE_WINDOW_Y = 150;
+const WEBSITE_WINDOW_WIDTH = 600;
+const WEBSITE_WINDOW_HEIGHT = 560;
+// ~7px clearance at default lg website scale.
+export const WEBSITE_CONNECTION_GAP = 48;
+
+function verticalTopAnchorInset(
+  artwork: AnchorBox,
+  insetArtboardUnits: number,
+  artboardSize: number,
+): AnchorBox {
+  const inset = artwork.height * (insetArtboardUnits / artboardSize);
+  if (inset <= 0 || artwork.height <= inset) {
+    return artwork;
+  }
+
+  return {
+    ...artwork,
+    y: artwork.y + inset,
+    height: artwork.height - inset,
   };
 }
 
@@ -90,6 +145,21 @@ function labelIconArtworkBox(node: AnchorNode): AnchorBox {
   return centeredArtworkBox(node, iconSize, iconY);
 }
 
+function appArtworkBox(node: AnchorNode): AnchorBox {
+  const ratio = iconNodeScale(node);
+  const scale = (ICON_NODE_ART_SIZE / APP_ICON_VIEW_WIDTH) * ratio;
+  const artWidth = APP_ICON_VIEW_WIDTH * scale;
+  const artHeight = APP_ICON_VIEW_HEIGHT * scale;
+  const textHeight = textHeightForNode(node, ratio);
+  const labelGap = (hasNodeText(node) ? 8 : 0) * ratio;
+  const topPadding = (hasNodeText(node) ? 6 : 0) * ratio;
+  const bottomPadding = (hasNodeText(node) ? 6 : 0) * ratio;
+  const artY = node.y + topPadding +
+    (node.height - artHeight - textHeight - labelGap - topPadding - bottomPadding) / 2;
+
+  return rectArtworkBox(node, artWidth, artHeight, artY);
+}
+
 function stackedArtworkBox(node: AnchorNode, artSize: number, ratio: number): AnchorBox {
   const textHeight = textHeightForNode(node, ratio);
   const labelGap = (hasNodeText(node) ? 8 : 0) * ratio;
@@ -101,21 +171,77 @@ function stackedArtworkBox(node: AnchorNode, artSize: number, ratio: number): An
   return centeredArtworkBox(node, artSize, artY);
 }
 
+function peopleArtworkBox(node: AnchorNode): AnchorBox {
+  const ratio = iconNodeScale(node);
+  const artSize = ICON_NODE_ART_SIZE * ratio;
+  const scale = artSize / PEOPLE_ARTBOARD;
+  const textHeight = textHeightForNode(node, ratio);
+  const labelGap = (hasNodeText(node) ? 8 : 0) * ratio;
+  const topPadding = (hasNodeText(node) ? 6 : 0) * ratio;
+  const bottomPadding = (hasNodeText(node) ? 6 : 0) * ratio;
+  const artY = node.y + topPadding +
+    (node.height - artSize - textHeight - labelGap - topPadding - bottomPadding) / 2;
+  const offsetX = node.x + (node.width - artSize) / 2;
+  const gap = PEOPLE_CONNECTION_GAP * scale;
+
+  return {
+    id: node.id,
+    x: offsetX - gap,
+    y: artY - gap,
+    width: artSize + gap * 2,
+    height: artSize + gap,
+  };
+}
+
+function apiArtworkBox(node: AnchorNode): AnchorBox {
+  const ratio = iconNodeScale(node);
+  const artSize = ICON_NODE_ART_SIZE * ratio;
+  const scale = artSize / API_ARTBOARD;
+  const textHeight = textHeightForNode(node, ratio);
+  const labelGap = (hasNodeText(node) ? 8 : 0) * ratio;
+  const topPadding = (hasNodeText(node) ? 6 : 0) * ratio;
+  const bottomPadding = (hasNodeText(node) ? 6 : 0) * ratio;
+  const artY = node.y + topPadding +
+    (node.height - artSize - textHeight - labelGap - topPadding - bottomPadding) / 2;
+  const offsetX = node.x + (node.width - artSize) / 2;
+  const gap = API_CONNECTION_GAP * scale;
+
+  return {
+    id: node.id,
+    x: offsetX + API_CUBE_X * scale - gap,
+    y: artY + API_CUBE_Y * scale - gap,
+    width: API_CUBE_WIDTH * scale + gap * 2,
+    height: API_CUBE_HEIGHT * scale + gap,
+  };
+}
+
 function documentArtworkBox(node: AnchorNode): AnchorBox {
-  const ratio = node.width / 192;
-  const artSize = 24 * 6 * ratio;
+  const ratio = Math.min(
+    node.width / DOCUMENT_SIZE_PRESETS.lg.width,
+    node.height / DOCUMENT_SIZE_PRESETS.lg.height,
+  );
   const textHeight = textHeightForNode(node, ratio);
   const labelGap = (hasNodeText(node) ? 8 : 0) * ratio;
   const topPadding = 12 * ratio;
   const bottomPadding = (hasNodeText(node) ? 8 : 12) * ratio;
+  const scale = (ICON_NODE_ART_SIZE / DOCUMENT_ARTBOARD) * ratio;
+  const artWidth = DOCUMENT_ARTBOARD * scale;
+  const artHeight = DOCUMENT_ARTBOARD * scale;
   const artY = node.y + topPadding +
-    (node.height - artSize - textHeight - labelGap - topPadding - bottomPadding) / 2;
+    (node.height - artHeight - textHeight - labelGap - topPadding - bottomPadding) / 2;
+  const offsetX = node.x + (node.width - artWidth) / 2;
+  const gap = DOCUMENT_CONNECTION_GAP * scale;
 
-  return centeredArtworkBox(node, artSize, artY);
+  return {
+    id: node.id,
+    x: offsetX,
+    y: artY - gap,
+    width: artWidth,
+    height: artHeight + gap,
+  };
 }
 
-// Mirrors WebsiteNode's art layout: the browser-window rectangle, excluding the
-// label rendered below it, so side anchors centre on the artwork not the text.
+// Mirrors WebsiteNode's browser window rectangle, excluding the label below it.
 function websiteArtworkBox(node: AnchorNode): AnchorBox {
   const hasLabel = hasNodeText(node);
   const textHeight = textHeightForNode(node, 1);
@@ -123,17 +249,21 @@ function websiteArtworkBox(node: AnchorNode): AnchorBox {
   const topPadding = hasLabel ? 6 : 0;
   const bottomPadding = hasLabel ? 6 : 0;
   const artHeight = Math.max(24, node.height - textHeight - labelGap - topPadding - bottomPadding);
-  const scale = Math.min(node.width / 624, artHeight / 584);
-  const artWidth = 624 * scale;
-  const scaledArtHeight = 584 * scale;
+  const scale = Math.min(node.width / WEBSITE_ART_WIDTH, artHeight / WEBSITE_ART_HEIGHT);
+  const artWidth = WEBSITE_ART_WIDTH * scale;
+  const scaledArtHeight = WEBSITE_ART_HEIGHT * scale;
   const offsetX = node.x + (node.width - artWidth) / 2;
   const offsetY = node.y + topPadding + (artHeight - scaledArtHeight) / 2;
+  const gap = WEBSITE_CONNECTION_GAP * scale;
+  const windowX = offsetX + (WEBSITE_WINDOW_X - 88) * scale;
+  const windowY = offsetY + (WEBSITE_WINDOW_Y - 138) * scale;
+
   return {
     id: node.id,
-    x: offsetX + (100 - 88) * scale,
-    y: offsetY + (150 - 138) * scale,
-    width: (700 - 100) * scale,
-    height: (710 - 150) * scale,
+    x: windowX - gap,
+    y: windowY - gap,
+    width: WEBSITE_WINDOW_WIDTH * scale + gap * 2,
+    height: WEBSITE_WINDOW_HEIGHT * scale + gap,
   };
 }
 
@@ -145,15 +275,45 @@ function artworkBox(node: AnchorNode): AnchorBox | undefined {
       return websiteArtworkBox(node);
     case 'labelIcon':
       return labelIconArtworkBox(node);
-    case 'app': {
+    case 'app':
+      return appArtworkBox(node);
+    case 'api':
+      return apiArtworkBox(node);
+    case 'database': {
       const ratio = iconNodeScale(node);
       return stackedArtworkBox(node, ICON_NODE_ART_SIZE * ratio, ratio);
     }
-    case 'api': {
-      const ratio = node.width / 160;
-      return stackedArtworkBox(node, 84 * ratio, ratio);
+    case 'decision': {
+      const ratio = iconNodeScale(node);
+      return stackedArtworkBox(node, ICON_NODE_ART_SIZE * ratio, ratio);
     }
-    case 'database': {
+    case 'analytics': {
+      const ratio = iconNodeScale(node);
+      return stackedArtworkBox(node, ICON_NODE_ART_SIZE * ratio, ratio);
+    }
+    case 'person': {
+      const ratio = iconNodeScale(node);
+      return stackedArtworkBox(node, ICON_NODE_ART_SIZE * ratio, ratio);
+    }
+    case 'people':
+      return peopleArtworkBox(node);
+    case 'configuration': {
+      const ratio = iconNodeScale(node);
+      return stackedArtworkBox(node, ICON_NODE_ART_SIZE * ratio, ratio);
+    }
+    case 'cloud': {
+      const ratio = iconNodeScale(node);
+      return stackedArtworkBox(node, ICON_NODE_ART_SIZE * ratio, ratio);
+    }
+    case 'archive': {
+      const ratio = iconNodeScale(node);
+      return stackedArtworkBox(node, ICON_NODE_ART_SIZE * ratio, ratio);
+    }
+    case 'artificialIntelligence': {
+      const ratio = iconNodeScale(node);
+      return stackedArtworkBox(node, ICON_NODE_ART_SIZE * ratio, ratio);
+    }
+    case 'multimedia': {
       const ratio = iconNodeScale(node);
       return stackedArtworkBox(node, ICON_NODE_ART_SIZE * ratio, ratio);
     }
@@ -170,9 +330,11 @@ export function connectionAnchorBox(node: AnchorNode, side: Side): AnchorBox {
     return node;
   }
 
-  return side === 'bottom'
+  const box = side === 'bottom'
     ? artworkAndBottomTextBox(node, artwork)
     : artwork;
+
+  return box;
 }
 
 export function connectionObstacleBox(node: LayoutedNode): AnchorBox {
@@ -555,10 +717,12 @@ export function applyBalancedConnectionAnchors(
     const targetPoint = sidePoint(targetBox, sides.targetSide, ratios.get(`${edgeIndex}:target`) ?? 0.5);
 
     // Tiny-zigzag elimination: when source and target sit on opposite parallel
-    // sides and the perpendicular delta is small, snap both endpoints to a
-    // shared column/row so the path collapses to one straight segment. Only
-    // applied when this edge is alone on each side (otherwise the snap would
-    // disturb the balanced fan-out ratios above).
+    // sides and the perpendicular delta is small, collapse to one straight
+    // segment by aligning the source onto the target anchor column/row. The
+    // target stays put so icon/database artwork centers are not pulled off
+    // center when the source node is only slightly misaligned. Only applied
+    // when this edge is alone on each side (otherwise the snap would disturb
+    // the balanced fan-out ratios above).
     const sourceGroupSize =
       endpointGroups.get(`${edge.from}:${sides.sourceSide}`)?.length ?? 0;
     const targetGroupSize =
@@ -570,19 +734,7 @@ export function applyBalancedConnectionAnchors(
       if (orientationForSide(sides.sourceSide) === 'vertical') {
         const dx = targetPoint.x - sourcePoint.x;
         if (Math.abs(dx) > EPSILON && Math.abs(dx) <= STRAIGHT_SNAP_THRESHOLD) {
-          const overlapMin = Math.max(sourceBox.x, targetBox.x);
-          const overlapMax = Math.min(
-            sourceBox.x + sourceBox.width,
-            targetBox.x + targetBox.width,
-          );
-          if (overlapMax - overlapMin > EPSILON) {
-            const sharedX = Math.min(
-              Math.max((sourcePoint.x + targetPoint.x) / 2, overlapMin),
-              overlapMax,
-            );
-            sourcePoint.x = sharedX;
-            targetPoint.x = sharedX;
-          }
+          sourcePoint.x = targetPoint.x;
         }
       } else {
         const dy = targetPoint.y - sourcePoint.y;

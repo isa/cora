@@ -314,10 +314,19 @@ export function CatalogSidebar({
 
 function componentIcon(id: string): ReactNode {
   const icons: Record<string, string> = {
+    analytics: 'monitoring',
+    configuration: 'settings',
+    cloud: 'cloud',
+    archive: 'inventory_2',
+    artificialIntelligence: 'psychology',
+    multimedia: 'video_library',
+    person: 'person',
+    people: 'groups',
     api: 'deployed_code',
     app: 'apps',
     box: 'check_box_outline_blank',
     database: 'database',
+    decision: 'call_split',
     document: 'description',
     group: 'workspaces',
     icon: 'category',

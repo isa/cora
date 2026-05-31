@@ -29,35 +29,56 @@ export const LOOK = {
   },
   components: {
     document: {
-      fill: TAILWIND.white,
-      stroke: TAILWIND.slate[700],
+      iconColor: TAILWIND.yellow[500],
     },
     app: {
-      fill: TAILWIND.white,
-      stroke: '#000000',
+      iconColor: TAILWIND.rose[500],
     },
     api: {
-      fill: TAILWIND.white,
-      stroke: TAILWIND.slate[700],
-      iconColor: TAILWIND.violet[500],
+      iconColor: TAILWIND.amber[500],
     },
     database: {
-      fill: TAILWIND.white,
-      stroke: TAILWIND.slate[700],
+      iconColor: TAILWIND.emerald[500],
+    },
+    decision: {
+      iconColor: TAILWIND.sky[500],
+    },
+    analytics: {
       iconColor: TAILWIND.violet[500],
+    },
+    person: {
+      iconColor: TAILWIND.sky[500],
+    },
+    people: {
+      iconColor: TAILWIND.violet[600],
+    },
+    configuration: {
+      iconColor: TAILWIND.slate[600],
+    },
+    cloud: {
+      iconColor: TAILWIND.sky[500],
+    },
+    archive: {
+      iconColor: TAILWIND.amber[600],
+    },
+    artificialIntelligence: {
+      iconColor: TAILWIND.violet[600],
+    },
+    multimedia: {
+      iconColor: TAILWIND.rose[500],
     },
     website: {
       fill: TAILWIND.white,
-      stroke: TAILWIND.slate[700],
-      skeleton: TAILWIND.slate[200],
+      skeleton: TAILWIND.slate[400],
+      window: TAILWIND.slate[300],
+      windowBar: '#e8eaed',
+      windowAddress: TAILWIND.white,
     },
     icon: {
       iconColor: TAILWIND.violet[500],
     },
     labelIcon: {
-      fill: TAILWIND.violet[200],
-      stroke: TAILWIND.violet[500],
-      iconColor: TAILWIND.violet[600],
+      iconColor: TAILWIND.violet[500],
     },
   },
 } as const;

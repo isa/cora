@@ -1,188 +1,154 @@
 version: 1
-
 diagram:
   kind: microservice
   layout: auto
+  theme: folio-dark
   direction: TB
   nodes:
-    # Customer experience domain
-    - id: gateway
-      label: API Gateway
+    - id: node-33
+      label: Box
       component: box
-    - id: web-bff
-      label: Web BFF
+      position:
+        x: 76
+        y: 24
+      style:
+        title: Box
+        backgroundColor: "#ffffff"
+        borderColor: "#cbd5e1"
+        textColor: "#1e293b"
+    - id: node-34
+      label: Box
       component: box
-    - id: mobile-bff
-      label: Mobile BFF
-      component: box
-    - id: auth
-      label: Auth Service
-      component: box
-    - id: users
-      label: Users Service
-      component: box
-    - id: catalog
-      label: Catalog Service
-      component: box
-    - id: search
-      label: Search Service
-      component: box
-    - id: cart
-      label: Cart Service
-      component: box
-    - id: checkout
-      label: Checkout Service
-      component: box
-    - id: notifications
-      label: Notification Service
-      component: box
-
-    # Commerce platform domain
-    - id: orders
-      label: Orders Service
-      component: box
-    - id: payments
-      label: Payments Service
-      component: box
-    - id: inventory
-      label: Inventory Service
-      component: box
-    - id: pricing
-      label: Pricing Service
-      component: box
-    - id: fulfillment
-      label: Fulfillment Service
-      component: box
-    - id: analytics
-      label: Analytics Service
-      component: box
-    - id: recommendations
-      label: Recommendations Service
-      component: box
-    - id: event-bus
-      label: Event Bus
-      component: box
-    - id: config
-      label: Config Service
-      component: box
-    - id: audit
-      label: Audit Service
-      component: box
-
+      position:
+        x: 56
+        y: 151
+      style:
+        title: Box
+        backgroundColor: "#ffffff"
+        borderColor: "#cbd5e1"
+        textColor: "#1e293b"
+    - id: node-36
+      label: Website
+      component: website
+      position:
+        x: 184
+        y: 255
+      style:
+        title: Website
+        backgroundColor: "#ffffff"
+        borderColor: "#f59e0b"
+        textColor: "#ec4899"
+        subtitleColor: "#db2777"
+        skeletonColor: "#be185d"
+        shadowColor: "#16a34a"
+        size:
+          width: 222
+          height: 246
+    - id: node-38
+      label: Database
+      component: database
+      position:
+        x: 247
+        y: 549
+      style:
+        title: Database
+        backgroundColor: "#ffffff"
+        textColor: "#1e293b"
+        iconColor: "#8b5cf6"
+    - id: node-41
+      label: App
+      component: app
+      position:
+        x: 458
+        y: 139
+      style:
+        title: App
+        backgroundColor: "#ffffff"
+        borderColor: "#000000"
+        textColor: "#1e293b"
+    - id: node-43
+      label: API
+      component: api
+      position:
+        x: 48
+        y: 255
+      style:
+        title: API
+        backgroundColor: "#ffffff"
+        textColor: "#1e293b"
+        iconColor: "#8b5cf6"
+    - id: node-45
+      label: ""
+      component: labelIcon
+      position:
+        x: 162.4494900595817
+        y: 281.15050881233657
+      icon: material-symbols:cancel
+      style:
+        title: ""
+        subtitle: ""
+        backgroundColor: none
+        borderColor: transparent
+        textColor: "#1e293b"
+        titleFontSize: 28
+        size:
+          width: 38.400000000000006
+          height: 38.400000000000006
+        iconColor: "#ffffff"
+        iconName: material-symbols:cancel
+        attachedEdgeIndex: 0
+        attachedEnd: source
+    - id: node-46
+      label: Document
+      component: document
+      position:
+        x: 259
+        y: 693
+      style:
+        title: Document
+        backgroundColor: "#ffffff"
+        borderColor: "#334155"
+        textColor: "#1e293b"
+        iconColor: "#334155"
   edges:
-    # Customer domain — ingress and internal flows
-    - from: gateway
-      to: web-bff
-    - from: gateway
-      to: mobile-bff
-    - from: web-bff
-      to: auth
-    - from: mobile-bff
-      to: auth
-    - from: web-bff
-      to: catalog
-    - from: mobile-bff
-      to: catalog
-    - from: auth
-      to: users
-    - from: catalog
-      to: search
-    - from: web-bff
-      to: cart
-    - from: cart
-      to: checkout
-
-    # Platform domain — internal orchestration
-    - from: orders
-      to: payments
-    - from: orders
-      to: inventory
-    - from: orders
-      to: fulfillment
-    - from: inventory
-      to: pricing
-    - from: fulfillment
-      to: analytics
-    - from: recommendations
-      to: analytics
-    - from: event-bus
-      to: analytics
-    - from: config
-      to: orders
-    - from: config
-      to: payments
-
-    # Cross-domain — customer half talks to platform half
-    - from: checkout
-      to: orders
-      label: place order
-      endMarker: filledCircle
-    - from: checkout
-      to: payments
-      label: authorize
-      endMarker: diamond
-    - from: cart
-      to: inventory
-      label: reserve stock
-      endMarker: square
-    - from: catalog
-      to: pricing
-      label: live prices
-    - from: search
-      to: recommendations
-      label: personalize
-    - from: auth
-      to: audit
-      label: login events
-    - from: users
-      to: recommendations
-      label: preferences
-
-    # Cross-domain — platform half talks back to customer half
-    - from: orders
-      to: notifications
-      label: order updates
-    - from: payments
-      to: notifications
-      label: receipts
-    - from: inventory
-      to: cart
-      label: stock sync
-    - from: recommendations
-      to: catalog
-      label: featured items
-    - from: event-bus
-      to: notifications
-      label: async alerts
-      startMarker: filledCircle
-    - from: fulfillment
-      to: notifications
-      label: shipping updates
-
+    - from: node-33
+      to: node-34
+      startMarker: none
+      endMarker: arrow
+    - from: node-34
+      to: node-36
+      startMarker: none
+      endMarker: arrow
+    - from: node-36
+      to: node-38
+      startMarker: none
+      endMarker: arrow
+    - from: node-33
+      to: node-41
+      startMarker: none
+      endMarker: arrow
+    - from: node-34
+      to: node-43
+      startMarker: none
+      endMarker: arrow
+    - from: node-38
+      to: node-46
+      startMarker: none
+      endMarker: arrow
   groups:
-    - id: customer-experience
-      label: Customer Experience
+    - id: group-40
+      label: Group
       contains:
-        - gateway
-        - web-bff
-        - mobile-bff
-        - auth
-        - users
-        - catalog
-        - search
-        - cart
-        - checkout
-        - notifications
-    - id: commerce-platform
-      label: Commerce Platform
-      contains:
-        - orders
-        - payments
-        - inventory
-        - pricing
-        - fulfillment
-        - analytics
-        - recommendations
-        - event-bus
-        - config
-        - audit
+        - node-34
+        - node-36
+        - node-38
+        - node-43
+        - node-45
+        - node-46
+      style:
+        position:
+          x: 24
+          y: 127
+        size:
+          width: 406
+          height: 689

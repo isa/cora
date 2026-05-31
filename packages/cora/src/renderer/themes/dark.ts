@@ -1,5 +1,4 @@
-import type { ThemeTokens } from '../../layout-ir.js';
-import { defaultTheme } from './default.js';
-import { toDarkTheme } from './transforms.js';
+import { resolveDiagramTheme } from './registry.js';
 
-export const darkTheme: ThemeTokens = toDarkTheme(defaultTheme);
+/** @deprecated Use `resolveDiagramTheme('folio-dark')` or theme YAML files. */
+export const darkTheme = resolveDiagramTheme('folio-dark');

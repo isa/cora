@@ -1,5 +1,6 @@
 import { baselineYForVisualCenter, measureLabel } from '../../../core/measureText.js';
-import { escapeXml, FONT_FAMILY } from '../../utils.js';
+import { escapeXml } from '../../utils.js';
+import { resolveSvgFontFamily } from '../../themes/diagramFonts.js';
 import type { EdgeComponentProps } from '../types.js';
 import { EDGE_LABEL_PADDING, edgeLabelRenderPosition } from './decorations.js';
 
@@ -46,7 +47,7 @@ export function EdgeLabel({ edge, theme }: EdgeComponentProps) {
           'edge',
         )}
         textAnchor={renderPosition.textAnchor}
-        fontFamily={FONT_FAMILY}
+        fontFamily={resolveSvgFontFamily(theme.fontFamily)}
         fontSize={theme.edgeLabel.fontSize}
         fontWeight={theme.edgeLabel.fontWeight}
         fill={theme.edgeLabel.fill}

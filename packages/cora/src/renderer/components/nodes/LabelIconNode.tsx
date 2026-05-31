@@ -1,7 +1,7 @@
 import type { SvgIconComponent } from '../icons.js';
 import { resolveCatalogTextLayout } from '../../../core/catalogTextLayout.js';
 import type { BoxStyleProps } from '../types.js';
-import { CatalogFrame, CatalogIconSlot, CatalogText, resolvedCatalogFrame } from './shared.js';
+import { CatalogIconSlot, CatalogText, resolvedCatalogFrame } from './shared.js';
 import { ICON_NODE_ART_SIZE, LABEL_ICON_SIZE_PRESETS, iconNodeScale, resolveLabelIconComponentSize } from '../styles.js';
 
 export interface LabelIconNodeProps extends BoxStyleProps {
@@ -61,24 +61,13 @@ export function LabelIconNode(props: LabelIconNodeProps) {
   });
   const ratio = iconNodeScale(frame);
   const iconSize = props.iconType ? Math.min(frame.width, frame.height) * 0.62 : ICON_NODE_ART_SIZE * ratio;
-  const iconColor = props.iconColor ?? frame.textColor;
-  const filledBackground = props.backgroundColor && props.backgroundColor !== 'transparent'
-    ? props.backgroundColor
-    : undefined;
+  const iconColor = props.iconColor ?? '#a855f7';
   const titleFontSize = (frame.titleFontSize ?? 11) * ratio;
   const subtitleFontSize = (frame.subtitleFontSize ?? Math.max(8, (frame.titleFontSize ?? 11) - 2)) * ratio;
 
   if (props.iconType) {
     return (
       <g>
-        {filledBackground ? (
-          <circle
-            cx={frame.x + frame.width / 2}
-            cy={frame.y + frame.height / 2}
-            r={Math.min(frame.width, frame.height) / 2}
-            fill={filledBackground}
-          />
-        ) : null}
         <StatusIcon
           type={props.iconType}
           x={frame.x + (frame.width - iconSize) / 2}
@@ -107,15 +96,7 @@ export function LabelIconNode(props: LabelIconNodeProps) {
   const textX = frame.x + frame.width / 2 - textWidth / 2;
 
   return (
-    <CatalogFrame {...props} shadow={undefined}>
-      {filledBackground ? (
-        <circle
-          cx={frame.x + frame.width / 2}
-          cy={iconY + iconSize / 2}
-          r={iconSize / 2}
-          fill={filledBackground}
-        />
-      ) : null}
+    <g>
       <CatalogIconSlot
         icon={props.icon}
         x={frame.x + (frame.width - iconSize) / 2}
@@ -140,6 +121,6 @@ export function LabelIconNode(props: LabelIconNodeProps) {
           subtitleFontWeight={frame.subtitleBold ? 700 : 400}
         />
       ) : null}
-    </CatalogFrame>
+    </g>
   );
 }

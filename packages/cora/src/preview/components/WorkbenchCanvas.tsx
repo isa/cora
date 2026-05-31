@@ -20,7 +20,9 @@ import { previewIcon } from '../pack/builtins.js';
 import { BUILTIN_ICON_REGISTRY } from '../../renderer/components/index.js';
 
 import { API_SIZE_PRESETS, APP_SIZE_PRESETS, DATABASE_SIZE_PRESETS, DOCUMENT_SIZE_PRESETS, WEBSITE_SIZE_PRESETS, LABEL_ICON_SIZE_PRESETS } from '../../renderer/components/styles.js';
+import { isThemeOwnedBorderStyle, isThemeOwnedBorderWidth, isThemeOwnedConnectionStroke, isThemeOwnedFontFamily, isThemeOwnedNodeColor, isThemeOwnedShadow } from '../themeDefaults.js';
 import { catalogDefaultProps } from '../../renderer/themes/componentDefaults.js';
+import type { DiagramComponent } from '../../layout-ir.js';
 import { resolveSvgFontFamily } from '../../renderer/themes/diagramFonts.js';
 import { defaultTheme } from '../../renderer/themes/default.js';
 import {
@@ -28,7 +30,6 @@ import {
   normalizeDiagramThemeName,
   resolveDiagramTheme,
 } from '../../renderer/themes/registry.js';
-import { connectionDefaults } from '../controls/defaults.js';
 import {
   applyConnectionMarkerInsets,
   connectionCenter,
@@ -292,16 +293,6 @@ function resolvePreviewTheme(state: WorkbenchState): ThemeTokens {
   return resolveDiagramTheme(state.diagramTheme);
 }
 
-function samePreviewColor(a: string | undefined, b: string | undefined): boolean {
-  if (a === b) {
-    return true;
-  }
-  if (!a || !b) {
-    return false;
-  }
-  return a.toLowerCase() === b.toLowerCase();
-}
-
 function previewLayoutNodes(state: WorkbenchState): LayoutedNode[] {
   return state.nodes
     .filter((node) => !node.attachedConnectionId)
@@ -400,7 +391,7 @@ function connectionStrokeColorFor(
   state: WorkbenchState,
   themeTokens: ThemeTokens,
 ): string {
-  return isDarkDiagramTheme(state.diagramTheme) && samePreviewColor(connection.props.strokeColor, connectionDefaults.strokeColor)
+  return isThemeOwnedConnectionStroke(connection.props.strokeColor)
     ? themeTokens.edge.stroke
     : connection.props.strokeColor;
 }
@@ -568,33 +559,24 @@ function getEffectiveNodeProps(
   node: CanvasNode,
   state: WorkbenchState,
 ) {
-  const defaultProps = catalogDefaultProps(node.componentId as any) || {};
   const themeTokens = resolvePreviewTheme(state);
-  const darkDiagram = isDarkDiagramTheme(state.diagramTheme);
-
   const shapeStyle = themeTokens.shapes[node.componentId] ?? themeTokens.shapes.box!;
+  const catalog = catalogDefaultProps(node.componentId as DiagramComponent);
   const effective = { ...node.props };
 
-  const isSameColor = (c1: string, c2: string) => {
-    if (c1 === c2) return true;
-    if (!c1 || !c2) return false;
-    return c1.toLowerCase() === c2.toLowerCase();
-  };
-
-  // Override colors and styles if they match the default lookup
-  if (isSameColor(effective.backgroundColor || '', defaultProps.backgroundColor || '')) {
+  if (isThemeOwnedNodeColor(effective.backgroundColor, node.componentId, 'backgroundColor')) {
     effective.backgroundColor = shapeStyle.fill;
   }
 
-  if (isSameColor(effective.borderColor || '', defaultProps.borderColor || '')) {
+  if (isThemeOwnedNodeColor(effective.borderColor, node.componentId, 'borderColor')) {
     effective.borderColor = shapeStyle.stroke;
   }
 
-  if (effective.borderWidth === defaultProps.borderWidth) {
-    effective.borderWidth = shapeStyle.strokeWidth;
+  if (isThemeOwnedBorderWidth(effective.borderWidth, node.componentId)) {
+    effective.borderWidth = shapeStyle.strokeWidth ?? themeTokens.strokes.node;
   }
 
-  if (effective.borderStyle === defaultProps.borderStyle) {
+  if (isThemeOwnedBorderStyle(effective.borderStyle, node.componentId)) {
     if (shapeStyle.strokeDasharray) {
       effective.borderStyle = 'dashed';
     } else if (shapeStyle.stroke === 'none') {
@@ -604,26 +586,42 @@ function getEffectiveNodeProps(
     }
   }
 
-  if (isSameColor(effective.textColor || '', defaultProps.textColor || '')) {
+  if (isThemeOwnedNodeColor(effective.textColor, node.componentId, 'textColor')) {
     effective.textColor = shapeStyle.labelFill ?? themeTokens.nodeLabel.fill;
   }
 
-  if (isSameColor(effective.subtitleColor || '', defaultProps.subtitleColor || '')) {
-    effective.subtitleColor = darkDiagram ? '#cbd5e1' : defaultProps.subtitleColor;
+  if (isThemeOwnedNodeColor(effective.subtitleColor, node.componentId, 'subtitleColor')) {
+    effective.subtitleColor = themeTokens.edgeLabel.fill;
   }
 
-  if (isSameColor(effective.iconColor || '', defaultProps.iconColor || '')) {
-    effective.iconColor = darkDiagram ? '#a78bfa' : defaultProps.iconColor;
+  if (isThemeOwnedNodeColor(effective.iconColor, node.componentId, 'iconColor')) {
+    effective.iconColor = shapeStyle.iconColor ?? catalog.iconColor;
   }
 
   if (
     node.componentId === 'website' &&
-    isSameColor(effective.skeletonColor || '', defaultProps.skeletonColor || '')
+    isThemeOwnedNodeColor(effective.skeletonColor, node.componentId, 'skeletonColor')
   ) {
-    effective.skeletonColor = darkDiagram ? '#52525b' : defaultProps.skeletonColor;
+    effective.skeletonColor = shapeStyle.skeletonColor ?? themeTokens.edgeLabel.fill;
   }
 
-  if (effective.shadow === defaultProps.shadow) {
+  if (node.componentId === 'website') {
+    if (isThemeOwnedNodeColor(effective.windowColor, node.componentId, 'windowColor')) {
+      effective.windowColor = shapeStyle.windowColor ?? catalog.windowColor;
+    }
+    if (isThemeOwnedNodeColor(effective.windowBarColor, node.componentId, 'windowBarColor')) {
+      effective.windowBarColor = shapeStyle.windowBarColor ?? catalog.windowBarColor;
+    }
+    if (isThemeOwnedNodeColor(effective.windowAddressBarColor, node.componentId, 'windowAddressBarColor')) {
+      effective.windowAddressBarColor = shapeStyle.windowAddressBarColor ?? catalog.windowAddressBarColor;
+    }
+  }
+
+  if (isThemeOwnedFontFamily(effective.fontFamily)) {
+    effective.fontFamily = themeTokens.fontFamily;
+  }
+
+  if (isThemeOwnedShadow(effective.shadow, node.componentId)) {
     effective.shadow = shapeStyle.shadow ? 'cast' : 'none';
   }
 
@@ -1757,15 +1755,7 @@ export function WorkbenchCanvas({ state, onStateChange, onClear, onIconDrop, loa
             </pattern>
           ) : null}
           {state.connections.map((connection) => {
-            const isSameColor = (c1: string, c2: string) => {
-              if (c1 === c2) return true;
-              if (!c1 || !c2) return false;
-              return c1.toLowerCase() === c2.toLowerCase();
-            };
-            const connectionStrokeColor =
-              isDarkDiagramTheme(state.diagramTheme) && isSameColor(connection.props.strokeColor, connectionDefaults.strokeColor)
-                ? themeTokens.edge.stroke
-                : connection.props.strokeColor;
+            const connectionStrokeColor = connectionStrokeColorFor(connection, state, themeTokens);
             return (
               <LineMarkerDefs
                 key={connection.id}

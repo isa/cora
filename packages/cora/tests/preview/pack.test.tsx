@@ -43,13 +43,14 @@ describe('built-in preview pack', () => {
     expect(websiteNode?.controls.map((control) => control.key)).toContain('skeletonColor');
     expect(websiteNode?.defaultProps).toMatchObject({
       backgroundColor: TAILWIND.white,
-      borderColor: TAILWIND.slate[700],
-      skeletonColor: TAILWIND.slate[200],
+      borderColor: 'transparent',
+      borderWidth: 0,
+      skeletonColor: TAILWIND.slate[400],
       size: 'lg',
     });
     expect(apiNode?.defaultProps).toMatchObject({
-      backgroundColor: TAILWIND.white,
-      iconColor: TAILWIND.violet[500],
+      backgroundColor: 'transparent',
+      iconColor: TAILWIND.amber[500],
       title: 'API',
       size: 'lg',
     });
@@ -60,8 +61,8 @@ describe('built-in preview pack', () => {
     expect(apiNode?.controls.map((control) => control.key)).not.toContain('borderColor');
     expect(apiNode?.controls.map((control) => control.key)).not.toContain('radius');
     expect(databaseNode?.defaultProps).toMatchObject({
-      backgroundColor: TAILWIND.white,
-      iconColor: TAILWIND.violet[500],
+      backgroundColor: 'transparent',
+      iconColor: TAILWIND.emerald[500],
       title: 'Database',
       size: 'lg',
     });

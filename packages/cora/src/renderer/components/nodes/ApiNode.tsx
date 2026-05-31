@@ -2,7 +2,6 @@ import type { BoxStyleProps } from '../types.js';
 import { resolveCatalogTextLayout } from '../../../core/catalogTextLayout.js';
 import { API_SIZE_PRESETS, ICON_NODE_ART_SIZE, iconNodeScale, resolveApiComponentSize } from '../styles.js';
 import {
-  CatalogShadow,
   CatalogText,
   resolvedCatalogFrame,
 } from './shared.js';
@@ -14,8 +13,11 @@ export interface ApiNodeProps extends BoxStyleProps {
 }
 
 const ARTBOARD = 256;
+// Phosphor cube-duotone (MIT) — outer shell must close back to its start or fill
+// leaves rectangular tabs on the top/left/right edges.
 const CUBE_SHADE_PATH = 'M128 129.09V232a8 8 0 0 1-3.84-1l-88-48.16a8 8 0 0 1-4.16-7V80.2a8 8 0 0 1 .7-3.27Z';
-const CUBE_PATH = 'm223.68 66.15l-88-48.15a15.88 15.88 0 0 0-15.36 0l-88 48.17a16 16 0 0 0-8.32 14v95.64a16 16 0 0 0 8.32 14l88 48.17a15.88 15.88 0 0 0 15.36 0l88-48.17a16 16 0 0 0 8.32-14V80.18a16 16 0 0 0-8.32-14.03M128 32l80.34 44L128 120L47.66 76ZM40 90l80 43.78v85.79l-80-43.75Zm96 129.57v-85.75L216 90v85.78Z';
+const CUBE_PATH =
+  'M223.68 66.15 135.68 18a15.88 15.88 0 0 0-15.36 0l-88 48.17a16 16 0 0 0-8.32 14v95.64a16 16 0 0 0 8.32 14l88 48.17a15.88 15.88 0 0 0 15.36 0l88-48.17a16 16 0 0 0 8.32-14V80.18A16 16 0 0 0 223.68 66.15ZM128 32l80.34 44L128 120 47.66 76ZM40 90l80 43.78v85.79L40 175.82Zm96 129.57V133.82L216 90v85.78Z';
 
 export function ApiNode(props: ApiNodeProps) {
   const resolvedSize = resolveApiComponentSize(props.size, API_SIZE_PRESETS.lg);
@@ -46,26 +48,10 @@ export function ApiNode(props: ApiNodeProps) {
   const offsetX = frame.x + (frame.width - artSize) / 2;
   const offsetY = frame.y + topPadding + (frame.height - artSize - textHeight - labelGap - topPadding - bottomPadding) / 2;
   const textY = offsetY + artSize + labelGap;
-  const iconColor = props.iconColor ?? frame.borderColor ?? '#334155';
-  const shadowFill = frame.backgroundColor === 'transparent' ? '#ffffff' : frame.backgroundColor;
-  const shadowX = offsetX + 24 * scale;
-  const shadowY = offsetY + 18 * scale;
-  const shadowWidth = 208 * scale;
-  const shadowHeight = 220 * scale;
-  const shadowRadius = 14 * scale;
+  const iconColor = props.iconColor ?? '#f97316';
 
   return (
     <g>
-      <CatalogShadow
-        x={shadowX}
-        y={shadowY}
-        width={shadowWidth}
-        height={shadowHeight}
-        radius={shadowRadius}
-        fill={shadowFill}
-        shadow={frame.shadow}
-        shadowColor={frame.shadowColor}
-      />
       <g
         transform={`translate(${offsetX}, ${offsetY}) scale(${scale})`}
         color={iconColor}

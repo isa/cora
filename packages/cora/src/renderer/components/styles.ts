@@ -18,11 +18,11 @@ export function productFrameInsetPx(componentWidth: number): number {
 }
 
 export const SIZE_PRESETS: Record<SizePreset, ComponentDimensions> = {
-  sm: { width: 104, height: 44 },
-  md: { width: 136, height: 60 },
-  lg: { width: 184, height: 76 },
-  xl: { width: 232, height: 100 },
-  xxl: { width: 296, height: 132 },
+  sm: { width: 104, height: 35 },
+  md: { width: 136, height: 48 },
+  lg: { width: 184, height: 61 },
+  xl: { width: 232, height: 80 },
+  xxl: { width: 296, height: 106 },
 };
 
 export const WEBSITE_SIZE_PRESETS: Record<SizePreset, ComponentDimensions> = {
@@ -46,6 +46,24 @@ export const APP_SIZE_PRESETS = ICON_NODE_SIZE_PRESETS;
 export const API_SIZE_PRESETS = ICON_NODE_SIZE_PRESETS;
 
 export const DATABASE_SIZE_PRESETS = ICON_NODE_SIZE_PRESETS;
+
+export const DECISION_SIZE_PRESETS = ICON_NODE_SIZE_PRESETS;
+
+export const ANALYTICS_SIZE_PRESETS = ICON_NODE_SIZE_PRESETS;
+
+export const PERSON_SIZE_PRESETS = ICON_NODE_SIZE_PRESETS;
+
+export const PEOPLE_SIZE_PRESETS = ICON_NODE_SIZE_PRESETS;
+
+export const CONFIGURATION_SIZE_PRESETS = ICON_NODE_SIZE_PRESETS;
+
+export const CLOUD_SIZE_PRESETS = ICON_NODE_SIZE_PRESETS;
+
+export const ARCHIVE_SIZE_PRESETS = ICON_NODE_SIZE_PRESETS;
+
+export const ARTIFICIAL_INTELLIGENCE_SIZE_PRESETS = ICON_NODE_SIZE_PRESETS;
+
+export const MULTIMEDIA_SIZE_PRESETS = ICON_NODE_SIZE_PRESETS;
 
 export const DOCUMENT_SIZE_PRESETS: Record<SizePreset, ComponentDimensions> = {
   sm: { width: 36, height: 48 },
@@ -125,6 +143,105 @@ export function resolveDatabaseComponentSize(
   }
 
   return typeof size === 'string' ? DATABASE_SIZE_PRESETS[size] : size;
+}
+
+export function resolveDecisionComponentSize(
+  size: ComponentSize | undefined,
+  fallback: ComponentDimensions,
+): ComponentDimensions {
+  if (!size) {
+    return fallback;
+  }
+
+  return typeof size === 'string' ? DECISION_SIZE_PRESETS[size] : size;
+}
+
+export function resolveAnalyticsComponentSize(
+  size: ComponentSize | undefined,
+  fallback: ComponentDimensions,
+): ComponentDimensions {
+  if (!size) {
+    return fallback;
+  }
+
+  return typeof size === 'string' ? ANALYTICS_SIZE_PRESETS[size] : size;
+}
+
+export function resolvePersonComponentSize(
+  size: ComponentSize | undefined,
+  fallback: ComponentDimensions,
+): ComponentDimensions {
+  if (!size) {
+    return fallback;
+  }
+
+  return typeof size === 'string' ? PERSON_SIZE_PRESETS[size] : size;
+}
+
+export function resolvePeopleComponentSize(
+  size: ComponentSize | undefined,
+  fallback: ComponentDimensions,
+): ComponentDimensions {
+  if (!size) {
+    return fallback;
+  }
+
+  return typeof size === 'string' ? PEOPLE_SIZE_PRESETS[size] : size;
+}
+
+export function resolveConfigurationComponentSize(
+  size: ComponentSize | undefined,
+  fallback: ComponentDimensions,
+): ComponentDimensions {
+  if (!size) {
+    return fallback;
+  }
+
+  return typeof size === 'string' ? CONFIGURATION_SIZE_PRESETS[size] : size;
+}
+
+export function resolveCloudComponentSize(
+  size: ComponentSize | undefined,
+  fallback: ComponentDimensions,
+): ComponentDimensions {
+  if (!size) {
+    return fallback;
+  }
+
+  return typeof size === 'string' ? CLOUD_SIZE_PRESETS[size] : size;
+}
+
+export function resolveArchiveComponentSize(
+  size: ComponentSize | undefined,
+  fallback: ComponentDimensions,
+): ComponentDimensions {
+  if (!size) {
+    return fallback;
+  }
+
+  return typeof size === 'string' ? ARCHIVE_SIZE_PRESETS[size] : size;
+}
+
+export function resolveArtificialIntelligenceComponentSize(
+  size: ComponentSize | undefined,
+  fallback: ComponentDimensions,
+): ComponentDimensions {
+  if (!size) {
+    return fallback;
+  }
+
+  return typeof size === 'string' ? ARTIFICIAL_INTELLIGENCE_SIZE_PRESETS[size] : size;
+}
+
+export function resolveMultimediaComponentSize(
+  size: ComponentSize | undefined,
+  fallback: ComponentDimensions,
+): ComponentDimensions {
+  if (!size) {
+    return fallback;
+  }
+
+  return typeof size === 'string' ? MULTIMEDIA_SIZE_PRESETS[size] : size;
 }
 
 export function resolveDocumentComponentSize(
